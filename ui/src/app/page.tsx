@@ -1,9 +1,12 @@
+import HomePage from "@/components/home/page";
+import PageWrapper from "@/components/page-wrapper/page-wrapper";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-2xl font-semibold text-gray-700">
-        RentEase – Frontend Initialized
-      </h1>
-    </main>
+    <div>
+      <PageWrapper>
+        <HomePage />
+      </PageWrapper>
+    </div>
   );
 }
