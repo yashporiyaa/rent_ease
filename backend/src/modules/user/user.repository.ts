@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  createUser(data: CreateUserDto) {
-    return this.prisma.user.create({
-      data,
-    });
+  create(data: {
+    supabaseId: string;
+    companyName: string;
+    phone: string;
+    email: string;
+    businessType: string;
+  }) {
+    return this.prisma.user.create({ data });
   }
 
-  findAllUsers() {
-    return this.prisma.user.findMany();
-  }
+  // findBySupabaseId(supabaseUserId: string) {
+  //   return this.prisma.user.findUnique({
+  //     where: { supabaseId },
+  //   });
+  // }
 }
