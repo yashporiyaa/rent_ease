@@ -1,9 +1,41 @@
+"use client";
+
 import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { loginUser } from "@/lib/api/user";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      await loginUser(formData);
+
+      // ✅ redirect after successful login
+      router.push("/");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f6f8f7]">
       {/* LEFT SIDE */}
@@ -57,12 +89,15 @@ export default function LoginPage() {
             Log in to manage your property portfolio.
           </p>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <FormInput
               label="Work Email"
               type="email"
               placeholder="alex@company.com"
               icon={<Mail size={18} />}
+              value={formData.email}
+              required
+              onChange={(e) => handleChange("email", e.target.value)}
             />
 
             <div>
@@ -83,10 +118,14 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 icon={<Lock size={18} />}
+                value={formData.password}
+                required
+                onChange={(e) => handleChange("password", e.target.value)}
               />
             </div>
 
             <Button
+              type="submit"
               className="mt-6 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90

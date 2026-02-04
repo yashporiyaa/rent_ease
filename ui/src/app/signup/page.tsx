@@ -1,9 +1,41 @@
+"use client";
+
 import { Building2, Phone, Mail, Briefcase, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
 import Link from "next/link";
+import { useState } from "react";
+import { createUser } from "@/lib/api/user";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
+  const [formData, setFormData] = useState({
+    companyName: "",
+    phone: "",
+    email: "",
+    businessType: "",
+    password: "",
+  });
+  const router = useRouter();
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      await createUser(formData);
+      router.push("/login");
+    } catch (error: unknown) {
+      console.error("Signup error:");
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* LEFT SIDE */}
@@ -57,30 +89,42 @@ export default function SignUpPage() {
             Join thousands of property managers simplifying operations.
           </p>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <FormInput
               label="Company Name"
               placeholder="Enter company name"
               icon={<Building2 size={18} />}
+              value={formData.companyName}
+              required
+              onChange={(e) => handleChange("companyName", e.target.value)}
             />
 
             <FormInput
               label="Mobile Number"
-              placeholder="+1 (555) 000-0000"
+              placeholder="9876543210"
               icon={<Phone size={18} />}
+              value={formData.phone}
+              required
+              onChange={(e) => handleChange("phone", e.target.value)}
             />
 
             <FormInput
               label="Work Email"
               type="email"
-              placeholder="alex@company.com"
+              placeholder="admin@rentease.com"
               icon={<Mail size={18} />}
+              value={formData.email}
+              required
+              onChange={(e) => handleChange("email", e.target.value)}
             />
 
             <FormInput
               label="Type of Business"
-              placeholder="Property management, landlord, agency"
+              placeholder="Property Management"
               icon={<Briefcase size={18} />}
+              value={formData.businessType}
+              required
+              onChange={(e) => handleChange("businessType", e.target.value)}
             />
 
             <FormInput
@@ -88,9 +132,13 @@ export default function SignUpPage() {
               type="password"
               placeholder="••••••••"
               icon={<Lock size={18} />}
+              value={formData.password}
+              required
+              onChange={(e) => handleChange("password", e.target.value)}
             />
 
             <Button
+              type="submit"
               className="mt-4 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90

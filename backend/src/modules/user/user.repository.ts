@@ -3,16 +3,21 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(data: {
+  async create(data: {
     supabaseId: string;
     companyName: string;
     phone: string;
     email: string;
     businessType: string;
   }) {
-    return this.prisma.user.create({ data });
+    const user = await this.prisma.user.create({ data });
+
+    return {
+      message: 'User created successfully',
+      data: user,
+    };
   }
 
   // findBySupabaseId(supabaseUserId: string) {

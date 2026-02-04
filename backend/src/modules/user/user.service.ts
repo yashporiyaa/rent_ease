@@ -10,11 +10,10 @@ import { supabase } from '../../lib/supabase.js';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async signup(createUserDto: CreateUserDto) {
-    const { email, password, companyName, phone, businessType } =
-      createUserDto;
+    const { email, password, companyName, phone, businessType } = createUserDto;
 
     const { data, error } = await supabase.auth.admin.createUser({
       email,
@@ -29,9 +28,7 @@ export class UserService {
     }
 
     if (!data?.user) {
-      throw new InternalServerErrorException(
-        'Supabase user creation failed',
-      );
+      throw new InternalServerErrorException('Supabase user creation failed');
     }
 
     try {
