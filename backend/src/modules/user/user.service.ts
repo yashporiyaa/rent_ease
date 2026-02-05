@@ -15,37 +15,45 @@ export class UserService {
   async signup(createUserDto: CreateUserDto) {
     const { email, password, companyName, phone, businessType } = createUserDto;
 
+    // STEP 1 — Create Supabase Auth User
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
     });
+
     if (error) {
-      if (error.message.includes('already')) {
-        throw new ConflictException('User already exists');
-      }
-      throw new InternalServerErrorException(error.message);
+      throw new ConflictException(error.message);
     }
 
     if (!data?.user) {
-      throw new InternalServerErrorException('Supabase user creation failed');
+      throw new InternalServerErrorException('Auth user creation failed');
     }
 
-    try {
-      return await this.userRepository.create({
-        supabaseId: data.user.id,
-        email,
-        companyName,
-        phone,
-        businessType,
-      });
-    } catch (dbError) {
-      // Optional cleanup (advanced)
-      await supabase.auth.admin.deleteUser(data.user.id);
-      throw new InternalServerErrorException(
-        'User created in auth but failed in database',
-      );
+    // STEP 2 — Create Prisma User
+    const user = await this.userRepository.create({
+      supabaseId: data.user.id,
+      email,
+      companyName,
+      phone,
+      businessType,
+    });
+
+    // STEP 3 — 🔥 Auto Login User
+    const loginRes = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginRes.error) {
+      throw new InternalServerErrorException('Auto login failed');
     }
+
+    return {
+      user,
+      session: loginRes.data.session,
+      onboardingDone: user.data.onboardingDone,
+    };
   }
 
   async login(dto: LoginDto) {
@@ -60,7 +68,23 @@ export class UserService {
 
     return {
       accessToken: data.session.access_token,
-      userId: data.user.id,
+      refreshToken: data.session.refresh_token,
     };
+  }
+
+  async updateBusiness(data: any) {
+    return await this.userRepository.updateUser(data.userId, {
+      onboardingStep: 2,
+    });
+  }
+
+  async completeOnboarding(userId: string) {
+    return await this.userRepository.updateUser(userId, {
+      onboardingDone: true,
+    });
+  }
+
+  async getUser(userId: string) {
+    return await this.userRepository.findById(userId);
   }
 }

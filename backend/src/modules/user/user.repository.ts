@@ -13,16 +13,22 @@ export class UserRepository {
     businessType: string;
   }) {
     const user = await this.prisma.user.create({ data });
-
     return {
       message: 'User created successfully',
       data: user,
     };
   }
 
-  // findBySupabaseId(supabaseUserId: string) {
-  //   return this.prisma.user.findUnique({
-  //     where: { supabaseId },
-  //   });
-  // }
+  async updateUser(id: string, data: any) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async findById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
 }
