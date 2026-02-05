@@ -1,22 +1,21 @@
 "use client";
 
-import { Building2, Phone, Mail, Briefcase, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
 import Link from "next/link";
-import { useState } from "react";
-import { createUser } from "@/lib/api/user";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { loginUser } from "@/lib/api/user";
+import { supabase } from "@/lib/supabase";
 
-export default function SignUpPage() {
+export default function LoginPage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
-    companyName: "",
-    phone: "",
     email: "",
-    businessType: "",
     password: "",
   });
-  const router = useRouter();
 
   const handleChange = (key: string, value: string) => {
     setFormData((prev) => ({
@@ -29,15 +28,22 @@ export default function SignUpPage() {
     e.preventDefault();
 
     try {
-      await createUser(formData);
-      router.push("/login");
-    } catch (error: unknown) {
-      console.error("Signup error:");
+      const res = await loginUser(formData);
+
+      // localStorage.setItem("isLoggedIn", "true");
+      console.log(res);
+      await supabase.auth.setSession({
+        access_token: res.data.accessToken,
+        refresh_token: res.data.refreshToken,
+      });
+      router.push("/");
+    } catch (error) {
+      console.error("Login failed:", error);
     }
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#f6f8f7]">
       {/* LEFT SIDE */}
       <div className="relative hidden w-1/2 lg:flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#e6fbf3] to-[#f2fdf9]">
         {/* soft glow */}
@@ -49,7 +55,7 @@ export default function SignUpPage() {
           <div className="relative rounded-3xl border border-white bg-white p-3 shadow-2xl">
             <img
               src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
-              alt="Buildings"
+              alt="Apartments"
               className="rounded-2xl object-cover"
             />
 
@@ -78,90 +84,71 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* RIGHT SIDE (FORM) */}
+      {/* RIGHT SIDE (LOGIN FORM) */}
       <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[480px]">
-          <h1 className="mb-3 text-4xl font-black text-[#0e1b17]">
-            Create your account
+        <div className="w-full max-w-[420px]">
+          <h1 className="mb-2 text-4xl font-black text-[#0e1b17]">
+            Welcome back
           </h1>
 
           <p className="mb-8 text-[#4e977f]">
-            Join thousands of property managers simplifying operations.
+            Log in to manage your property portfolio.
           </p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <FormInput
-              label="Company Name"
-              placeholder="Enter company name"
-              icon={<Building2 size={18} />}
-              value={formData.companyName}
-              required
-              onChange={(e) => handleChange("companyName", e.target.value)}
-            />
-
-            <FormInput
-              label="Mobile Number"
-              placeholder="9876543210"
-              icon={<Phone size={18} />}
-              value={formData.phone}
-              required
-              onChange={(e) => handleChange("phone", e.target.value)}
-            />
-
-            <FormInput
               label="Work Email"
               type="email"
-              placeholder="admin@rentease.com"
+              placeholder="alex@company.com"
               icon={<Mail size={18} />}
               value={formData.email}
               required
               onChange={(e) => handleChange("email", e.target.value)}
             />
 
-            <FormInput
-              label="Type of Business"
-              placeholder="Property Management"
-              icon={<Briefcase size={18} />}
-              value={formData.businessType}
-              required
-              onChange={(e) => handleChange("businessType", e.target.value)}
-            />
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-semibold text-[#0e1b17]">
+                  Password
+                </label>
+                <a
+                  href="#"
+                  className="text-sm font-medium text-[#17cf91] hover:underline"
+                >
+                  Forgot password?
+                </a>
+              </div>
 
-            <FormInput
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              icon={<Lock size={18} />}
-              value={formData.password}
-              required
-              onChange={(e) => handleChange("password", e.target.value)}
-            />
+              <FormInput
+                label=""
+                type="password"
+                placeholder="••••••••"
+                icon={<Lock size={18} />}
+                value={formData.password}
+                required
+                onChange={(e) => handleChange("password", e.target.value)}
+              />
+            </div>
 
             <Button
               type="submit"
-              className="mt-4 h-14 w-full rounded-full bg-[#17cf91]
+              className="mt-6 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90
                          shadow-lg shadow-[#17cf91]/20 cursor-pointer"
             >
-              Sign Up
+              Log In
             </Button>
           </form>
 
           <p className="mt-8 text-center text-sm text-[#4e977f]">
-            Already have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
-              href="/login"
+              href="/signup"
               className="font-bold text-[#17cf91] hover:underline cursor-pointer"
             >
-              Log in
+              Sign Up
             </Link>
-          </p>
-
-          <p className="mt-6 text-center text-xs text-[#4e977f]">
-            By signing up, you agree to our{" "}
-            <span className="underline">Terms of Service</span> and{" "}
-            <span className="underline">Privacy Policy</span>.
           </p>
         </div>
       </div>
