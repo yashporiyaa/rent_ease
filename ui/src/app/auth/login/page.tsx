@@ -31,7 +31,6 @@ export default function LoginPage() {
       const res = await loginUser(formData);
 
       // localStorage.setItem("isLoggedIn", "true");
-      console.log(res);
       await supabase.auth.setSession({
         access_token: res.data.accessToken,
         refresh_token: res.data.refreshToken,

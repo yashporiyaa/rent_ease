@@ -30,7 +30,6 @@ export default function SignUpPage() {
 
     try {
       const res = await createUser(formData);
-      console.log(res);
       if (!res.onboardingDone) {
         router.push("/onboarding");
       } else {
@@ -157,7 +156,7 @@ export default function SignUpPage() {
           <p className="mt-8 text-center text-sm text-[#4e977f]">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href="/auth/login"
               className="font-bold text-[#17cf91] hover:underline cursor-pointer"
             >
               Log in

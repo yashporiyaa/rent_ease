@@ -1,23 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Stepper } from "./stepper";
 import { Button } from "@/components/ui/button";
+import { OnboardingContext } from "@/app/context/onboarding-context";
 
-export function CustomerStep() {
+export function CustomerStep({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState("");
+  const { setCustomerId } = useContext(OnboardingContext);
 
   const submit = async () => {
-    await fetch("http://localhost:3001/customers", {
+    const res = await fetch("http://localhost:3001/customers", {
       method: "POST",
-      credentials: "include", 
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
       }),
     });
+    const data = await res.json();
 
-    window.location.reload();
+    setCustomerId(data.customerId);
+    onSuccess(); 
   };
 
   return (

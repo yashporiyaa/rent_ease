@@ -2,22 +2,30 @@
 
 import { Button } from "@/components/ui/button";
 import { Stepper } from "./stepper";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { OnboardingContext } from "@/app/context/onboarding-context";
 
-export function ItemStep() {
+export function ItemStep({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const { setItemId } = useContext(OnboardingContext);
 
   const submit = async () => {
-    await fetch("http://localhost:3001/customers", {
+    const res = await fetch("http://localhost:3001/items", {
       method: "POST",
-      credentials: "include", 
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
+        category,
+        price: Number(price),
       }),
     });
+    const data = await res.json();
+    setItemId(data.itemId);
 
-    window.location.reload();
+    onSuccess(); //  move to next step
   };
 
   return (
@@ -29,8 +37,20 @@ export function ItemStep() {
 
       <input
         className="mt-6 border p-3 w-full rounded-xl"
-        placeholder="Item Name"
+        placeholder="Item name"
         onChange={(e) => setName(e.target.value)}
+      />
+
+      <input
+        className="mt-6 border p-3 w-full rounded-xl"
+        placeholder="Category"
+        onChange={(e) => setCategory(e.target.value)}
+      />
+
+      <input
+        className="mt-6 border p-3 w-full rounded-xl"
+        placeholder="Price"
+        onChange={(e) => setPrice(e.target.value)}
       />
 
       <Button

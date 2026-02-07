@@ -22,31 +22,30 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
+    const loadUser = async () => {
+      const res = await fetch("http://localhost:3001/users/me", {
+        credentials: "include",
+      });
 
-      setUser(data.session?.user ?? null);
-      setAccessToken(data.session?.access_token ?? null);
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
+      }
 
       setLoading(false);
     };
 
-    loadSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      },
-    );
-
-    return () => listener.subscription.unsubscribe();
+    loadUser();
   }, []);
 
   const logout = async () => {
     setLoading(true);
-
-    await supabase.auth.signOut();
-
+    await fetch("http://localhost:3001/users/logout", {
+      method: "POST",
+      credentials: "include",
+    });
     setUser(null);
     setLoading(false);
   };

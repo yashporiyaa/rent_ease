@@ -7,10 +7,10 @@ export const createUser = async (createUsersData: {
   businessType: string;
   password: string;
 }) => {
-    console.log(createUsersData);
   try {
     const response = await fetch(`${API_URL}/users/signup`, {
       method: "POST",
+      credentials: "include", 
       headers: {
         "Content-Type": "application/json",
       },
@@ -18,7 +18,7 @@ export const createUser = async (createUsersData: {
     });
 
     const data = await response.json();
-    console.log(response);
+
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
@@ -30,16 +30,13 @@ export const createUser = async (createUsersData: {
   }
 };
 
-export const loginUser = async (data: {
-  email: string;
-  password: string;
-}) => {
+export const loginUser = async (data: { email: string; password: string }) => {
   const res = await fetch("http://localhost:3001/users/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include", 
+    credentials: "include",
     body: JSON.stringify(data),
   });
 
