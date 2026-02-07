@@ -52,6 +52,7 @@ export class UserService {
     return {
       user,
       session: loginRes.data.session,
+      accessToken: loginRes.data.session.access_token,
       onboardingDone: user.data.onboardingDone,
     };
   }
@@ -69,13 +70,15 @@ export class UserService {
     return {
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token,
+      user: data.user,
     };
   }
+  async updateBusiness(supabaseId: string, address: string) {
+    if (!address) {
+      throw new Error('Address is required');
+    }
 
-  async updateBusiness(data: any) {
-    return await this.userRepository.updateUser(data.userId, {
-      onboardingStep: 2,
-    });
+    return this.userRepository.updateBusinessBySupabaseId(supabaseId, address);
   }
 
   async completeOnboarding(userId: string) {
@@ -84,7 +87,7 @@ export class UserService {
     });
   }
 
-  async getUser(userId: string) {
-    return await this.userRepository.findById(userId);
+  async getUser(supabaseId: string) {
+    return await this.userRepository.findById(supabaseId);
   }
 }

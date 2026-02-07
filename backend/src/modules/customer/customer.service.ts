@@ -1,20 +1,19 @@
-import { Injectable } from "@nestjs/common";
-import { CreateCustomerDto } from "./dto/create-customer.dto.js";
-import { UserRepository } from "../user/user.repository.js";
-import { CustomerRepository } from "./customer.repository.js";
+import { Injectable } from '@nestjs/common';
+import { CreateCustomerDto } from './dto/create-customer.dto.js';
+import { UserRepository } from '../user/user.repository.js';
+import { CustomerRepository } from './customer.repository.js';
 
 @Injectable()
 export class CustomerService {
   constructor(
-    private repo: CustomerRepository,
-    private userRepo: UserRepository
+    private CustomerRepository: CustomerRepository,
+    private UserRepository: UserRepository,
   ) {}
 
-  async createCustomer(dto: CreateCustomerDto) {
-    const customer = await this.repo.create(dto);
-
+  async createCustomer(supabaseId: string, dto: CreateCustomerDto) {
+    const customer = await this.CustomerRepository.create(supabaseId, dto);
     // Update onboarding step
-    await this.userRepo.updateUser(dto.userId, {
+    const user = await this.UserRepository.updateUser(supabaseId, {
       onboardingStep: 3,
     });
 

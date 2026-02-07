@@ -13,12 +13,13 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(uuid())
-  supabaseId   String       @unique
-  companyName  String
-  phone        String
-  email        String @unique
-  businessType String
+  id              String  @id @default(uuid())
+  supabaseId      String  @unique
+  companyName     String
+  phone           String
+  email           String  @unique
+  businessType    String
+  businessAddress String?
 
   onboardingStep Int     @default(1)
   onboardingDone Boolean @default(false)
@@ -38,7 +39,7 @@ model Customer {
   id     String @id @default(uuid())
   userId String
   name   String
-  phone  String
+  phone  String?
 
   user    User     @relation(fields: [userId], references: [id])
   rentals Rental[]

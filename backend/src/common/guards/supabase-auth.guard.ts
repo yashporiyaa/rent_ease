@@ -10,13 +10,12 @@ import {
 export class SupabaseAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
 
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header missing');
+    const token = request.cookies?.accessToken;
+
+    if (!token) {
+      throw new UnauthorizedException('Access token missing');
     }
-
-    const token = authHeader.replace('Bearer ', '');
 
     const decoded = jwt.decode(token);
 

@@ -19,16 +19,34 @@ export class UserRepository {
     };
   }
 
-  async updateUser(id: string, data: any) {
-    return this.prisma.user.update({
-      where: { id },
-      data,
-    });
+  async updateUser(supabaseId: string, data: any) {
+    try {
+      const user = await this.prisma.user.update({
+        where: { supabaseId },
+        data,
+      });
+
+      return user;
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
-  async findById(id: string) {
+  async updateBusinessBySupabaseId(supabaseId: string, address: string) {
+    const businessAddress = address;
+    const user = await this.prisma.user.update({
+      where: { supabaseId },
+      data: {
+        businessAddress,
+      },
+    });
+
+    return user;
+  }
+
+  async findById(supabaseId: string) {
     return this.prisma.user.findUnique({
-      where: { id },
+      where: { supabaseId },
     });
   }
 }
