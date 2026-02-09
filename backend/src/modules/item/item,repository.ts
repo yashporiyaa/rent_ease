@@ -18,4 +18,11 @@ export class ItemRepository {
       console.log(error.message);
     }
   }
+
+   async findByUserId(userId: string) {
+    return await this.prisma.item.findMany({
+      where: { userId },
+      orderBy: { name: 'asc' },
+    });
+  }
 }

@@ -7,10 +7,9 @@ export class CreateCustomerDto {
 
   @IsString()
   @IsOptional()
-  // @IsNotEmpty()
   phone?: string;
 
-  @IsString()
-  @IsOptional()
-  address?: string;
+  // @IsString()
+  // @IsOptional()
+  // address?: string;
 }

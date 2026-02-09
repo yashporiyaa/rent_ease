@@ -4,25 +4,22 @@ import { CreateCustomerDto } from './dto/create-customer.dto.js';
 
 @Injectable()
 export class CustomerRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async create(supabaseId: string, dto: CreateCustomerDto) {
+  create(data: { userId: string; name: string; phone?: string }) {
     try {
-      const customer = this.prisma.customer.create({
-        data: {
-          name: dto.name,
-
-          user: {
-            connect: {
-              supabaseId,
-            },
-          },
-        },
-      });
+      const customer = this.prisma.customer.create({ data });
 
       return customer;
     } catch (error) {
       console.log(error.message);
     }
+  }
+
+  async findByUserId(userId: string) {
+    return await this.prisma.customer.findMany({
+      where: { userId },
+      orderBy: { name: 'asc' },
+    });
   }
 }

@@ -8,12 +8,12 @@ export class ItemService {
   constructor(
     private itemRepository: ItemRepository,
     private userRepository: UserRepository
-  ) {}
+  ) { }
 
   async create(supabaseId: string, dto: CreateItemDto) {
     const user = await this.userRepository.findById(supabaseId);
-    if(!user){
-       throw new NotFoundException({
+    if (!user) {
+      throw new NotFoundException({
         success: false,
         message: 'User not found'
       });
@@ -30,6 +30,21 @@ export class ItemService {
     });
 
     return item;
+  }
+
+  async getAll(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const items = await this.itemRepository.findByUserId(user.id);
+
+    return {
+      success: true,
+      data: items,
+    };
   }
 }
 
