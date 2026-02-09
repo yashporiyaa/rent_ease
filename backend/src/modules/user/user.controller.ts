@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service.js';
-import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 
 @Controller('users')
@@ -36,6 +36,11 @@ export class UserController {
   logout(@Res({ passthrough: true }) res) {
     res.clearCookie('accessToken');
     return { success: true };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.userService.forgotPassword(email);
   }
 
   @UseGuards(SupabaseAuthGuard)

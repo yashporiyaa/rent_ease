@@ -1,4 +1,16 @@
-import { IsArray, IsDateString, IsNumber, IsString } from "class-validator";
+import { IsArray, IsDateString, IsString, ValidateNested, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class RentalItemDto {
+  @IsString()
+  itemId: string;
+
+  @IsNumber()
+  quantity: number;
+
+  @IsNumber()
+  price: number;
+}
 
 export class CreateRentalDto {
   @IsString()
@@ -11,9 +23,7 @@ export class CreateRentalDto {
   endDate: string;
 
   @IsArray()
-  items: {
-    itemId: string;
-    quantity: number;
-    price: number;
-  }[];
+  @ValidateNested({ each: true })
+  @Type(() => RentalItemDto)
+  items: RentalItemDto[];
 }

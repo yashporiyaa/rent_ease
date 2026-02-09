@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository.js';
 import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
@@ -73,6 +74,21 @@ export class UserService {
       user: data.user,
     };
   }
+
+  async forgotPassword(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'http://localhost:3000/auth/reset-password',
+    });
+
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    return {
+      message: 'If an account exists, a password reset email has been sent',
+    };
+  }
+
   async updateBusiness(supabaseId: string, address: string) {
     if (!address) {
       throw new Error('Address is required');
