@@ -4,9 +4,11 @@ import { customers } from "@/lib/mock/customers";
 export function CustomerSelect({
   value,
   onChange,
+  customers,
 }: {
   value: string;
   onChange: (id: string) => void;
+  customers: { id: string; name: string }[];
 }) {
   return (
     <div>

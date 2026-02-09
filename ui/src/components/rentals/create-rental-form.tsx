@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { CustomerSelect } from "./customer-select";
 import { ItemSelect } from "./item-select";
 import { RentalSummaryBox } from "./rental-summary-box";
-import { items as mockItems } from "@/lib/mock/items";
+import { useRouter } from "next/navigation";
 
-export function CreateRentalForm() {
+export function CreateRentalForm({
+  customers,
+  items: availableItems,
+}: {
+  customers: { id: string; name: string }[];
+  items: { id: string; name: string; price: number }[];
+}) {
   const [customerId, setCustomerId] = useState("");
   const [items, setItems] = useState<Record<string, number>>({});
   const [startDate, setStartDate] = useState("");
@@ -17,6 +23,7 @@ export function CreateRentalForm() {
     items?: string;
     dates?: string;
   }>({});
+  const router = useRouter();
 
   const validate = () => {
     const newErrors: typeof errors = {};
@@ -41,7 +48,7 @@ export function CreateRentalForm() {
 
   const buildRentalItemsPayload = () => {
     return Object.entries(items).map(([itemId, quantity]) => {
-      const item = mockItems.find((i) => i.id === itemId)!;
+      const item = availableItems.find((i) => i.id === itemId)!;
 
       return {
         itemId,
@@ -85,6 +92,32 @@ export function CreateRentalForm() {
     // }
   };
 
+  if (customers.length === 0) {
+    return (
+      <div className="bg-white p-10 rounded-xl border shadow-sm text-center">
+        <h2 className="text-xl font-bold text-[#0e1b17]">
+          No customers found
+        </h2>
+        <p className="text-slate-500 mt-2">
+          You must add a customer before creating a rental.
+        </p>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="bg-white p-10 rounded-xl border shadow-sm text-center">
+        <h2 className="text-xl font-bold text-[#0e1b17]">
+          No items available
+        </h2>
+        <p className="text-slate-500 mt-2">
+          Add items to inventory before creating a rental.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl space-y-6">
       <h1 className="text-2xl font-black text-[#0e1b17]">Create New Rental</h1>
@@ -99,6 +132,7 @@ export function CreateRentalForm() {
           setCustomerId(value);
           setErrors((e) => ({ ...e, customer: undefined }));
         }}
+        customers={customers}
       />
 
       {errors.items && (
@@ -111,6 +145,7 @@ export function CreateRentalForm() {
           setItems(updatedItems);
           setErrors((e) => ({ ...e, items: undefined }));
         }}
+        items={availableItems}
       />
 
       <div className="grid grid-cols-2 gap-4">

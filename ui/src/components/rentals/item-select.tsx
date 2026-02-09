@@ -4,9 +4,11 @@ import { items } from "@/lib/mock/items";
 export function ItemSelect({
   selectedItems,
   setSelectedItems,
+  items,
 }: {
   selectedItems: Record<string, number>;
   setSelectedItems: (v: Record<string, number>) => void;
+  items: { id: string; name: string; price: number }[];
 }) {
   const updateQty = (id: string, qty: number) => {
     const updated = { ...selectedItems };
