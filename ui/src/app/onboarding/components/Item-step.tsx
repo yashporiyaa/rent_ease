@@ -23,9 +23,9 @@ export function ItemStep({ onSuccess }: { onSuccess: () => void }) {
       }),
     });
     const data = await res.json();
-    setItemId(data.itemId);
+    setItemId(data.data.id);
 
-    onSuccess(); //  move to next step
+    onSuccess();
   };
 
   return (

@@ -10,7 +10,6 @@ export function BusinessStep({ onSuccess }: { onSuccess: () => void }) {
   const { user } = useContext(UserContext);
 
   const submit = async () => {
-    console.log(user);
     if (!user) return;
     await fetch("http://localhost:3001/users/onboarding/business", {
       method: "PATCH",
@@ -23,7 +22,7 @@ export function BusinessStep({ onSuccess }: { onSuccess: () => void }) {
       }),
     });
 
-    onSuccess(); // move to next step
+    onSuccess();
   };
 
   return (

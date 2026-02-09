@@ -11,7 +11,6 @@ export class CustomerController {
   @Post()
   async create(@Req() req: any, @Body() dto: CreateCustomerDto) {
     const supabaseId = req.user.sub;
-    console.log(req.user)
     return await this.service.createCustomer(supabaseId, dto);
   }
 }

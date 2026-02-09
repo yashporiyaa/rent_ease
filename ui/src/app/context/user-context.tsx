@@ -8,7 +8,6 @@ type UserContextType = {
   user: User;
   loading: boolean;
   logout: () => Promise<void>;
-  accessToken: string | null;
 };
 
 export const UserContext = createContext<UserContextType>(
@@ -17,7 +16,6 @@ export const UserContext = createContext<UserContextType>(
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +49,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, logout, accessToken }}>
+    <UserContext.Provider value={{ user, loading, logout }}>
       {children}
     </UserContext.Provider>
   );

@@ -19,8 +19,8 @@ export function CustomerStep({ onSuccess }: { onSuccess: () => void }) {
       }),
     });
     const data = await res.json();
-
-    setCustomerId(data.customerId);
+    
+    setCustomerId(data.data.id);
     onSuccess(); 
   };
 

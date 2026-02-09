@@ -1,3 +1,5 @@
+"use client";
+
 import { OnboardingProvider } from "../context/onboarding-context";
 import { UserProvider } from "../context/user-context";
 
