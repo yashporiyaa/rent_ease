@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { loginUser } from "@/lib/api/user";
-import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,14 +27,11 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await loginUser(formData);
+      await loginUser(formData);
 
-      // localStorage.setItem("isLoggedIn", "true");
-      await supabase.auth.setSession({
-        access_token: res.data.accessToken,
-        refresh_token: res.data.refreshToken,
-      });
-      router.push("/");
+      localStorage.setItem("isLoggedIn", "true");
+
+      router.push("/auth/redirect");
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -44,12 +40,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-[#f6f8f7]">
       {/* LEFT SIDE */}
-      <div className="relative hidden w-1/2 lg:flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#e6fbf3] to-[#f2fdf9]">
+      <div className="relative hidden w-1/2 lg:flex items-center justify-center overflow-hidden bg-linear-to-br from-[#e6fbf3] to-[#f2fdf9]">
         {/* soft glow */}
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[#17cf91]/30 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-[#17cf91]/20 blur-3xl" />
 
-        <div className="relative z-10 max-w-[520px] px-10">
+        <div className="relative z-10 max-w-130 px-10">
           {/* Image card */}
           <div className="relative rounded-3xl border border-white bg-white p-3 shadow-2xl">
             <img
@@ -85,7 +81,7 @@ export default function LoginPage() {
 
       {/* RIGHT SIDE (LOGIN FORM) */}
       <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-105">
           <h1 className="mb-2 text-4xl font-black text-[#0e1b17]">
             Welcome back
           </h1>
@@ -110,12 +106,12 @@ export default function LoginPage() {
                 <label className="text-sm font-semibold text-[#0e1b17]">
                   Password
                 </label>
-                <a
-                  href="#"
+                <Link
+                  href="/auth/forgot-password"
                   className="text-sm font-medium text-[#17cf91] hover:underline"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               <FormInput
@@ -143,7 +139,7 @@ export default function LoginPage() {
           <p className="mt-8 text-center text-sm text-[#4e977f]">
             Don&apos;t have an account?{" "}
             <Link
-              href="/signup"
+              href="/auth/signup"
               className="font-bold text-[#17cf91] hover:underline cursor-pointer"
             >
               Sign Up

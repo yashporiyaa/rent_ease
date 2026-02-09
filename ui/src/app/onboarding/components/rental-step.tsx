@@ -34,7 +34,7 @@ export function RentalStep() {
     });
 
     // onboarding finished → dashboard
-    router.push("/dashboard");
+    router.push("protected/dashboard");
   };
 
   if (!customerId || !itemId) {

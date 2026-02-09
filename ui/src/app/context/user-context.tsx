@@ -1,14 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { User } from "@supabase/supabase-js";
-
-type UserContextType = {
-  user: User;
-  loading: boolean;
-  logout: () => Promise<void>;
-};
+import { UserContextType } from "@/types";
+import { createContext, useEffect, useState } from "react";
 
 export const UserContext = createContext<UserContextType>(
   {} as UserContextType,
@@ -20,23 +13,25 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const res = await fetch("http://localhost:3001/users/me", {
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      } else {
-        setUser(null);
-      }
-
-      setLoading(false);
-    };
-
-    loadUser();
+    getUser();
   }, []);
+
+  const getUser = async () => {
+    setLoading(true);
+    const res = await fetch("http://localhost:3001/users/me", {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      const user = await res.json();
+      console.log(user.data);
+      setUser(user.data);
+    } else {
+      setUser(null);
+    }
+
+    setLoading(false);
+  };
 
   const logout = async () => {
     setLoading(true);
@@ -45,11 +40,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       credentials: "include",
     });
     setUser(null);
+    localStorage.clear();
     setLoading(false);
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, logout }}>
+    <UserContext.Provider value={{ user, loading, logout, getUser }}>
       {children}
     </UserContext.Provider>
   );

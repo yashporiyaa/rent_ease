@@ -29,13 +29,8 @@ export default function SignUpPage() {
     e.preventDefault();
 
     try {
-      const res = await createUser(formData);
-      if (!res.onboardingDone) {
-        router.push("/onboarding");
-      } else {
-        router.push("/dashboard");
-      }
-      // router.push("/login");
+      await createUser(formData);
+      router.push("/onboarding");
     } catch (error: unknown) {
       console.error("Signup error:");
     }
@@ -44,12 +39,12 @@ export default function SignUpPage() {
   return (
     <div className="flex min-h-screen">
       {/* LEFT SIDE */}
-      <div className="relative hidden w-1/2 lg:flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#e6fbf3] to-[#f2fdf9]">
+      <div className="relative hidden w-1/2 lg:flex items-center justify-center overflow-hidden bg-linear-to-br from-[#e6fbf3] to-[#f2fdf9]">
         {/* soft glow */}
         <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[#17cf91]/30 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-[#17cf91]/20 blur-3xl" />
 
-        <div className="relative z-10 max-w-[520px] px-10">
+        <div className="relative z-10 max-w-130 px-10">
           {/* Image card */}
           <div className="relative rounded-3xl border border-white bg-white p-3 shadow-2xl">
             <img
@@ -85,7 +80,7 @@ export default function SignUpPage() {
 
       {/* RIGHT SIDE (FORM) */}
       <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[480px]">
+        <div className="w-full max-w-120">
           <h1 className="mb-3 text-4xl font-black text-[#0e1b17]">
             Create your account
           </h1>

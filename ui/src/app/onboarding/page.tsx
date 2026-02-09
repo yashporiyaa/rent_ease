@@ -11,14 +11,6 @@ export default function Page() {
   const [step, setStep] = useState(1);
   const { user } = useContext(UserContext);
 
-  useEffect(() => {
-    if (user) {
-      fetch("http://localhost:3001/users/me")
-        .then((res) => res.json())
-        .then((data) => setStep(data.data.onboardingStep));
-    }
-  }, []);
-
   if (step === 1) return <BusinessStep onSuccess={() => setStep(2)} />;
   if (step === 2) return <CustomerStep onSuccess={() => setStep(3)} />;
   if (step === 3) return <ItemStep onSuccess={() => setStep(4)} />;

@@ -31,7 +31,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Button
             onClick={user ? logout : () => router.push("/auth/signup")}
-            className="relative rounded-full bg-[#17cf91] px-6 text-[#0e1b17] font-bold hover:bg-[#17cf91]/90 cursor-pointer min-w-[140px]"
+            className="relative rounded-full bg-[#17cf91] px-6 text-[#0e1b17] font-bold hover:bg-[#17cf91]/90 cursor-pointer min-w-35"
             disabled={loading}
           >
             {/* Spinner */}
