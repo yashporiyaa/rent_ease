@@ -7,6 +7,8 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { CustomerModule } from './modules/customer/customer.module.js';
 import { ItemModule } from './modules/item/item.module.js';
 import { RentalModule } from './modules/rental/rental.module.js';
+import { InvoiceModule } from './modules/invoice/invoice.module.js';
+import { PaymentModule } from './modules/payment/payment.module.js';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { RentalModule } from './modules/rental/rental.module.js';
     CustomerModule,
     ItemModule,
     RentalModule,
+    InvoiceModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

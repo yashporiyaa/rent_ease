@@ -11,7 +11,7 @@ export class RentalService {
   ) {}
 
   async create(supabaseId: string, dto: CreateRentalDto) {
-    // 1️Calculate total amount
+    // Calculate total
     const totalAmount = dto.items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
@@ -19,26 +19,63 @@ export class RentalService {
 
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
-      throw new NotFoundException({
-        success: false,
-        message: 'User not found',
+      throw new NotFoundException('User not found');
+    }
+
+    // Create rental + invoice together
+    const { rental, invoice } =
+      await this.rentalRepository.createRentalWithInvoice(
+        user.id,
+        dto,
+        totalAmount,
+      );
+
+    //  Finish onboarding (first rental)
+    if (!user.onboardingDone) {
+      await this.userRepository.updateUser(supabaseId, {
+        onboardingDone: true,
+        onboardingStep: 4,
       });
     }
-    const userId = user.id;
 
-    // 2️Create rental (DB logic delegated)
-    const rental = await this.rentalRepository.createRental(
-      userId,
-      dto,
-      totalAmount,
-    );
+    return {
+      success: true,
+      data: {
+        rental,
+        invoice,
+      },
+    };
+  }
 
-    // 3️Finish onboarding
-    await this.userRepository.updateUser(supabaseId, {
-      onboardingDone: true,
-      onboardingStep: 4,
-    });
+  async getAll(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-    return rental;
+    const rentals = await this.rentalRepository.findByUserId(user.id);
+
+    return {
+      success: true,
+      data: rentals,
+    };
+  }
+
+  async getOne(supabaseId: string, rentalId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const rental = await this.rentalRepository.findById(user.id, rentalId);
+
+    if (!rental) {
+      throw new NotFoundException('Rental not found');
+    }
+
+    return {
+      success: true,
+      data: rental,
+    };
   }
 }

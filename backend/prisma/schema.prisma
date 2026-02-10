@@ -63,7 +63,9 @@ model Rental {
   startDate   DateTime
   endDate     DateTime
   totalAmount Float
+  createdAt   DateTime      @default(now())
 
+  status      RentalStatus  @default(ACTIVE)
   user        User         @relation(fields: [userId], references: [id])
   customer    Customer     @relation(fields: [customerId], references: [id])
   rentalItems RentalItem[]
