@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 export function RentalStatusBadge({
   status,
 }: {
-  status: "active" | "completed" | "overdue";
+  status: "ACTIVE" | "COMPLETED" | "OVERDUE";
 }) {
   const styles = {
-    active: "bg-emerald-100 text-emerald-700",
-    completed: "bg-slate-100 text-slate-600",
-    overdue: "bg-red-100 text-red-700",
+    ACTIVE: "bg-emerald-100 text-emerald-700",
+    COMPLETED: "bg-slate-100 text-slate-600",
+    OVERDUE: "bg-red-100 text-red-700",
   };
 
   return (

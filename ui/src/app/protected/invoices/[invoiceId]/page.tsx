@@ -1,27 +1,27 @@
-import { invoiceDetails } from "@/lib/mock/invoice-details";
-import { InvoiceItemsTable } from "@/components/invoices/invoice-items-table";
-import { InvoiceSummary } from "@/components/invoices/invoice-summary";
-import { InvoicePaymentsPlaceholder } from "@/components/invoices/invoice-payments-placeholder";
-import { InvoiceHeader } from "@/components/invoices/invoice-header";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import InvoiceDetailsInfo from "@/components/invoices/invoice-details";
+import { Button } from "@/components/ui/button";
 
-export default function InvoiceDetailsPage() {
+export default async function InvoiceDetailsPage({
+  params,
+}: {
+  params: Promise<{ invoiceId: string }>;
+}) {
+  const { invoiceId } = await params;
   return (
-    <>
-      <InvoiceHeader
-        invoiceId={invoiceDetails.id}
-        status={invoiceDetails.status as any}
-      />
-
-      <InvoiceSummary
-        customer={invoiceDetails.customer.name}
-        issueDate={invoiceDetails.issueDate}
-        dueDate={invoiceDetails.dueDate}
-        amount={invoiceDetails.totalAmount}
-      />
-
-      <InvoiceItemsTable items={invoiceDetails.items} />
-
-      <InvoicePaymentsPlaceholder />
-    </>
+    <div className="space-y-6">
+      <Button
+        asChild
+        variant="ghost"
+        className="justify-start text-[#0e1b17] hover:text-[#0e1b17]"
+      >
+        <Link href="/protected/invoices">
+          <ArrowLeft />
+          Back to invoices
+        </Link>
+      </Button>
+      <InvoiceDetailsInfo invoiceId={invoiceId} />
+    </div>
   );
 }

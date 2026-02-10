@@ -13,7 +13,7 @@ export function CustomersEmptyState() {
         Add your first customer to start creating rentals.
       </p>
 
-      <Link href="/customers/new">
+      <Link href="/protected/customers/new">
         <Button className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold">
           Add Customer
         </Button>

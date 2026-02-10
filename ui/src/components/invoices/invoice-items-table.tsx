@@ -1,41 +1,38 @@
+import { Package } from "lucide-react";
+
 export function InvoiceItemsTable({
   items,
 }: {
   items: {
     id: string;
-    name: string;
+    item: { name: string };
     quantity: number;
     price: number;
   }[];
 }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm mb-8">
-      <div className="p-6 border-b">
-        <h2 className="text-lg font-bold text-[#0e1b17]">
-          Invoice Items
-        </h2>
-      </div>
-
+    <div className="bg-white rounded-xl border shadow-sm">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-600">
+        <thead className="bg-slate-50">
           <tr>
             <th className="px-6 py-4 text-left">Item</th>
-            <th className="px-6 py-4 text-left">Quantity</th>
-            <th className="px-6 py-4 text-left">Price</th>
-            <th className="px-6 py-4 text-left">Subtotal</th>
+            <th className="px-6 py-4 text-right">Qty</th>
+            <th className="px-6 py-4 text-right">Price</th>
+            <th className="px-6 py-4 text-right">Subtotal</th>
           </tr>
         </thead>
 
         <tbody className="divide-y">
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td className="px-6 py-4 font-medium">
-                {item.name}
+          {items.map((ri) => (
+            <tr key={ri.id}>
+              <td className="px-6 py-4 flex items-center gap-2">
+                <Package size={16} className="text-[#17cf91]" />
+                {ri.item.name}
               </td>
-              <td className="px-6 py-4">{item.quantity}</td>
-              <td className="px-6 py-4">₹{item.price}</td>
-              <td className="px-6 py-4 font-semibold">
-                ₹{item.quantity * item.price}
+              <td className="px-6 py-4 text-right">{ri.quantity}</td>
+              <td className="px-6 py-4 text-right">₹{ri.price}</td>
+              <td className="px-6 py-4 text-right font-bold">
+                ₹{ri.quantity * ri.price}
               </td>
             </tr>
           ))}

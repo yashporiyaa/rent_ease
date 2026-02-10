@@ -63,33 +63,30 @@ export function CreateRentalForm({
 
     const payload = {
       customerId,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       items: buildRentalItemsPayload(),
     };
     console.log(payload);
 
-    // try {
-    //   const res = await fetch("http://localhost:3001/rentals", {
-    //     method: "POST",
-    //     credentials: "include",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(payload),
-    //   });
+    try {
+      const res = await fetch("http://localhost:3001/rentals", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to create rental");
+      }
 
-    //   if (!res.ok) {
-    //     throw new Error("Failed to create rental");
-    //   }
-
-    //   const rental = await res.json();
-
-    //   //  Redirect to rental details
-    //   router.push(`/rentals/${rental.id}`);
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      const data = await res.json();
+      router.push(`/protected/rentals/${data.data.rental.id}`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (customers.length === 0) {
@@ -178,7 +175,7 @@ export function CreateRentalForm({
         )}
       </div>
 
-      <RentalSummaryBox selectedItems={items} />
+      <RentalSummaryBox selectedItems={items} items={availableItems} />
 
       <Button
         onClick={submit}

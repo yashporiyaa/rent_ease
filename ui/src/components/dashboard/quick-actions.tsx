@@ -10,7 +10,7 @@ export function QuickActions() {
 
       <div className="flex flex-col gap-3">
         <Link
-          href="/rentals/new"
+          href="/protected/rentals/new"
           className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition"
         >
           <PlusCircle className="h-5 w-5" />
@@ -18,7 +18,7 @@ export function QuickActions() {
         </Link>
 
         <Link
-          href="/customers/new"
+          href="/protected/customers/new"
           className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
         >
           <UserPlus className="h-5 w-5 text-[#17cf91]" />
@@ -26,7 +26,7 @@ export function QuickActions() {
         </Link>
 
         <Link
-          href="/assets/new"
+          href="/protected/items/new"
           className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
         >
           <Boxes className="h-5 w-5 text-[#17cf91]" />

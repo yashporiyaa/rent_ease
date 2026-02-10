@@ -3,7 +3,7 @@ export function RentalItemsTable({
 }: {
   items: {
     id: string;
-    name: string;
+    item: { name: string };
     quantity: number;
     price: number;
   }[];
@@ -22,18 +22,18 @@ export function RentalItemsTable({
             <th className="px-6 py-4 text-left">Item</th>
             <th className="px-6 py-4 text-left">Quantity</th>
             <th className="px-6 py-4 text-left">Price</th>
+            <th className="px-6 py-4 text-right">Subtotal</th>
           </tr>
         </thead>
 
         <tbody className="divide-y">
           {items.map((item) => (
             <tr key={item.id}>
-              <td className="px-6 py-4 font-medium">
-                {item.name}
-              </td>
+              <td className="px-6 py-4 font-medium">{item.item.name}</td>
               <td className="px-6 py-4">{item.quantity}</td>
-              <td className="px-6 py-4 font-semibold">
-                ₹{item.price}
+              <td className="px-6 py-4 font-semibold">₹{item.price}</td>
+              <td className="px-6 py-4 text-right font-semibold">
+                ₹{item.price * item.quantity}
               </td>
             </tr>
           ))}

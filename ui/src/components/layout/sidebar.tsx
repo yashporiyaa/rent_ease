@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { useContext } from "react";
 import { UserContext } from "@/app/context/user-context";
@@ -17,10 +18,11 @@ import { Button } from "../ui/button";
 
 const navItems = [
   { href: "/protected/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/protected//rentals", label: "Rentals", icon: Receipt },
-  { href: "/protected//customers", label: "Customers", icon: Users },
-  { href: "/protected//assets", label: "Assets", icon: Boxes },
-  { href: "/protected//reports", label: "Reports", icon: BarChart3 },
+  { href: "/protected/rentals", label: "Rentals", icon: Receipt },
+  { href: "/protected/invoices", label: "Invoices", icon: FileText }, 
+  { href: "/protected/customers", label: "Customers", icon: Users },
+  { href: "/protected/items", label: "Items", icon: Boxes },
+  { href: "/protected/reports", label: "Reports", icon: BarChart3 },
 ];
 
 export function Sidebar() {

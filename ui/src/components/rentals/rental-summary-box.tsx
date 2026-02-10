@@ -1,10 +1,17 @@
 import { IndianRupee } from "lucide-react";
-import { items } from "@/lib/mock/items";
+
+type Item = {
+  id: string;
+  name: string;
+  price: number;
+};
 
 export function RentalSummaryBox({
   selectedItems,
+  items
 }: {
   selectedItems: Record<string, number>;
+  items: Item[];
 }) {
   const total = Object.entries(selectedItems).reduce((sum, [id, qty]) => {
     const item = items.find((i) => i.id === id);

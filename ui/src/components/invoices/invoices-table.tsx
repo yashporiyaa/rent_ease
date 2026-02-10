@@ -1,9 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { invoices } from "@/lib/mock/invoices";
-import { InvoiceStatusBadge } from "./invoice-status-badge";
 import { Eye } from "lucide-react";
+import { InvoiceStatusBadge } from "./invoice-status-badge";
+
+type InvoiceRow = {
+  id: string;
+  invoiceNo: string;
+  customer: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+};
 
 export function InvoicesTable() {
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/invoice", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setInvoices(data.data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="p-6 border-b">
@@ -20,7 +51,7 @@ export function InvoicesTable() {
           <tr>
             <th className="px-6 py-4 text-left">Invoice</th>
             <th className="px-6 py-4 text-left">Customer</th>
-            <th className="px-6 py-4 text-left">Due Date</th>
+            <th className="px-6 py-4 text-left">Date</th>
             <th className="px-6 py-4 text-left">Amount</th>
             <th className="px-6 py-4 text-left">Status</th>
             <th className="px-6 py-4 text-right">Action</th>
@@ -31,13 +62,11 @@ export function InvoicesTable() {
           {invoices.map((invoice) => (
             <tr key={invoice.id} className="hover:bg-slate-50">
               <td className="px-6 py-4 font-medium">
-                {invoice.id}
+                {invoice.invoiceNo}
               </td>
-              <td className="px-6 py-4">
-                {invoice.customer}
-              </td>
+              <td className="px-6 py-4">{invoice.customer}</td>
               <td className="px-6 py-4 text-slate-600">
-                {invoice.dueDate}
+                {new Date(invoice.createdAt).toLocaleDateString()}
               </td>
               <td className="px-6 py-4 font-semibold">
                 ₹{invoice.amount}

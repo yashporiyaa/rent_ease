@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ItemsTable } from "@/components/items/items-table";
 import { ItemsEmptyState } from "@/components/items/items-empty-state";
+import { Button } from "@/components/ui/button";
 
 export default function ItemsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -23,9 +25,29 @@ export default function ItemsPage() {
     );
   }
 
-  if (items.length === 0) {
-    return <ItemsEmptyState />;
-  }
-
-  return <ItemsTable items={items} />;
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-[#0e1b17]">
+            Inventory Items
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Keep your rental inventory organized.
+          </p>
+        </div>
+        <Button
+          asChild
+          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+        >
+          <Link href="/protected/items/new">Add Item</Link>
+        </Button>
+      </div>
+      {items.length === 0 ? (
+        <ItemsEmptyState />
+      ) : (
+        <ItemsTable items={items} />
+      )}
+    </div>
+  );
 }

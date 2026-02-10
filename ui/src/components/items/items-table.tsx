@@ -7,12 +7,6 @@ export function ItemsTable({
 }) {
   return (
     <div className="bg-white rounded-xl border shadow-sm">
-      <div className="p-6 border-b">
-        <h1 className="text-2xl font-black text-[#0e1b17]">
-          Inventory Items
-        </h1>
-      </div>
-
       <table className="w-full text-sm">
         <thead className="bg-slate-50">
           <tr>
