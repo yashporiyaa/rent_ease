@@ -1,4 +1,6 @@
-export function RentalSummary({ rental }: { rental: any }) {
+import { RentalSummaryProps } from "@/types";
+
+export function RentalSummary({ rental }: RentalSummaryProps) {
   return (
     <div className="bg-white p-6 rounded-xl border shadow-sm flex justify-between">
       <div>

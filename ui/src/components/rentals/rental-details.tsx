@@ -5,6 +5,8 @@ import { RentalSummary } from "@/components/rentals/rental-summary";
 import { RentalItemsTable } from "@/components/rentals/rental-items-table";
 import { RentalInvoicePlaceholder } from "@/components/rentals/rental-invoice-placeholder";
 import { useEffect, useState } from "react";
+import { getRentalById } from "@/lib/api/rentals";
+import { toast } from "react-toastify";
 
 export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
   const [rental, setRental] = useState<any>(null);
@@ -12,14 +14,13 @@ export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
 
   useEffect(() => {
     const fetchRentalById = async () => {
-      console.log(rentalId);
       try {
-        const res = await fetch(`http://localhost:3001/rentals/${rentalId}`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        console.log(data);
-        setRental(data.data);
+        const res = await getRentalById(rentalId);
+        setRental(res.data);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch rental details";
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -35,7 +36,7 @@ export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
       </div>
     );
   }
-  
+
   if (!rental) {
     return <p>Rental not found</p>;
   }

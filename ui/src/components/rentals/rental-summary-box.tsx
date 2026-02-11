@@ -1,18 +1,10 @@
+import { RentalSummaryBoxProps } from "@/types";
 import { IndianRupee } from "lucide-react";
-
-type Item = {
-  id: string;
-  name: string;
-  price: number;
-};
 
 export function RentalSummaryBox({
   selectedItems,
-  items
-}: {
-  selectedItems: Record<string, number>;
-  items: Item[];
-}) {
+  items,
+}: RentalSummaryBoxProps) {
   const total = Object.entries(selectedItems).reduce((sum, [id, qty]) => {
     const item = items.find((i) => i.id === id);
     return sum + (item?.price || 0) * qty;

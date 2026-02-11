@@ -5,6 +5,8 @@ import { Stepper } from "./stepper";
 import { useContext, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingContext } from "@/app/context/onboarding-context";
+import { createRental } from "@/lib/api/rentals";
+import { toast } from "react-toastify";
 
 export function RentalStep() {
   const router = useRouter();
@@ -14,27 +16,30 @@ export function RentalStep() {
   const [quantity, setQuantity] = useState("1");
   const [price, setPrice] = useState("");
   const { customerId, itemId } = useContext(OnboardingContext);
-  const submit = async () => {
-    await fetch("http://localhost:3001/rentals", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customerId,
-        startDate,
-        endDate,
-        items: [
-          {
-            itemId,
-            quantity: Number(quantity),
-            price: Number(price),
-          },
-        ],
-      }),
-    });
 
-    // onboarding finished → dashboard
-    router.push("protected/dashboard");
+  const submit = async () => {
+    const payload = {
+      customerId: customerId!,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      items: [
+        {
+          itemId: itemId!,
+          quantity: Number(quantity),
+          price: Number(price),
+        },
+      ],
+    };
+
+    try {
+      await createRental(payload);
+      toast.success("Setup complete");
+      router.push("protected/dashboard");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create rental";
+      toast.error(message);
+    }
   };
 
   if (!customerId || !itemId) {
@@ -89,6 +94,7 @@ export function RentalStep() {
       />
 
       <Button
+        variant="brand"
         className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold"
         onClick={submit}
       >

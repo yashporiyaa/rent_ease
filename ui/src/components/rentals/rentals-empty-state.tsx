@@ -1,4 +1,4 @@
-    import Link from "next/link";
+import Link from "next/link";
 import { FilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +14,10 @@ export function RentalsEmptyState() {
       </p>
 
       <Link href="/protected/rentals/new">
-        <Button className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold">
+        <Button
+          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+          variant="brand"
+        >
           Create Rental
         </Button>
       </Link>

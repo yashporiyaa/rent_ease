@@ -1,12 +1,6 @@
 import { cn } from "@/lib/utils";
+import { StatsCardProps } from "@/types";
 import { BarChart3 } from "lucide-react";
-
-type StatsCardProps = {
-  title: string;
-  value: string;
-  trend?: string;
-  type?: string;
-};
 
 export function StatsCard({
   title,

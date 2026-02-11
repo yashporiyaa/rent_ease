@@ -1,10 +1,14 @@
-export function InvoiceSummary({ invoice }: { invoice: any }) {
+import { InvoiceSummaryProps } from "@/types";
+
+export function InvoiceSummary({ invoice }: InvoiceSummaryProps) {
+  if (!invoice) return null;
+  
   return (
     <div className="bg-white p-6 rounded-xl border shadow-sm flex justify-between">
       <div>
         <p className="text-slate-500 text-sm">Total Items</p>
         <p className="text-xl font-bold">
-          {invoice.rental.rentalItems.length}
+          {invoice?.rental?.rentalItems?.length}
         </p>
       </div>
 

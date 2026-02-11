@@ -1,8 +1,8 @@
 import { formatDate } from "@/lib/utils/date";
-import { RentalStatusBadge } from "./rental-status-badge";
 import { Calendar } from "lucide-react";
+import { RentalHeaderProps } from "@/types";
 
-export function RentalHeader({ rental }: { rental: any }) {
+export function RentalHeader({ rental }: RentalHeaderProps) {
   return (
     <>
       <div className="bg-white p-6 rounded-xl border shadow-sm">
@@ -17,7 +17,6 @@ export function RentalHeader({ rental }: { rental: any }) {
           {formatDate(rental.startDate)} → {formatDate(rental.endDate)}
         </div>
       </div>
-      {/* <RentalStatusBadge status={status} /> */}
     </>
   );
 }

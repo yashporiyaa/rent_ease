@@ -14,7 +14,10 @@ export function ItemsEmptyState() {
       </p>
 
       <Link href="/protected/items/new">
-        <Button className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold">
+        <Button
+          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+          variant="brand"
+        >
           Add Item
         </Button>
       </Link>

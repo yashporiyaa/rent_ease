@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Stepper } from "./stepper";
 import { useContext, useState } from "react";
 import { OnboardingContext } from "@/app/context/onboarding-context";
+import { createItem } from "@/lib/api/items";
+import { toast } from "react-toastify";
 
 export function ItemStep({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState("");
@@ -12,20 +14,16 @@ export function ItemStep({ onSuccess }: { onSuccess: () => void }) {
   const { setItemId } = useContext(OnboardingContext);
 
   const submit = async () => {
-    const res = await fetch("http://localhost:3001/items", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        category,
-        price: Number(price),
-      }),
-    });
-    const data = await res.json();
-    setItemId(data.data.id);
-
-    onSuccess();
+    try {
+      const res = await createItem(name, category, Number(price));
+      setItemId(res.data.id);
+      toast.success("Item created");
+      onSuccess();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create item";
+      toast.error(message);
+    }
   };
 
   return (
@@ -54,6 +52,7 @@ export function ItemStep({ onSuccess }: { onSuccess: () => void }) {
       />
 
       <Button
+        variant="brand"
         className="mt-6 w-full rounded-full bg-[#17cf91]"
         onClick={submit}
       >

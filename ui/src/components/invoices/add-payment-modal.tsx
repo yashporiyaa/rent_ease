@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { createPayment } from "@/lib/api/payments";
+import { toast } from "react-toastify";
 
 const METHODS = ["CASH", "UPI", "CARD", "BANK_TRANSFER"];
 
@@ -19,21 +21,16 @@ export function AddPaymentModal({
   const [paidAt, setPaidAt] = useState("");
 
   const submit = async () => {
-    await fetch("http://localhost:3001/payments", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        invoiceId,
-        amount: Number(amount),
-        method,
-        reference: reference || null,
-        paidAt,
-      }),
-    });
-
-    setOpen(false);
-    onSuccess();
+    try {
+      await createPayment(invoiceId, Number(amount), method, reference, paidAt);
+      toast.success("Payment added");
+      setOpen(false);
+      onSuccess();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to add payment";
+      toast.error(message);
+    }
   };
 
   return (
@@ -41,7 +38,7 @@ export function AddPaymentModal({
       <Button
         onClick={() => setOpen(true)}
         className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
-        variant="outline"
+        variant="brand"
       >
         Add Payment
       </Button>
@@ -49,9 +46,7 @@ export function AddPaymentModal({
       {open && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-            <h2 className="text-xl font-bold text-[#0e1b17]">
-              Add Payment
-            </h2>
+            <h2 className="text-xl font-bold text-[#0e1b17]">Add Payment</h2>
 
             <input
               type="number"
@@ -88,13 +83,11 @@ export function AddPaymentModal({
             />
 
             <div className="flex gap-3 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
+              <Button variant="brand" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button
+                variant="brand"
                 onClick={submit}
                 className="bg-[#17cf91] text-[#0e1b17] font-bold"
               >

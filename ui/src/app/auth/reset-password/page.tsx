@@ -63,6 +63,7 @@ export default function ResetPasswordPage() {
             )}
 
             <Button
+              variant="brand"
               type="submit"
               disabled={loading}
               className="mt-4 h-14 w-full rounded-full bg-[#17cf91]

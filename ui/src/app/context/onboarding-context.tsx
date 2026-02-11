@@ -1,13 +1,10 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
-
-type OnboardingContextType = {
-  customerId?: string;
-  itemId?: string;
-  setCustomerId: (id: string) => void;
-  setItemId: (id: string) => void;
-}
+import {
+  OnboardingContextType,
+  ProviderChildrenProps,
+} from "@/types";
+import { createContext, useState } from "react";
 
 export const OnboardingContext = createContext<OnboardingContextType>(
   {} as OnboardingContextType,
@@ -15,9 +12,7 @@ export const OnboardingContext = createContext<OnboardingContextType>(
 
 export const OnboardingProvider = ({
   children,
-}: {
-  children: React.ReactNode;
-}) => {
+}: ProviderChildrenProps) => {
   const [customerId, setCustomerId] = useState<string>();
   const [itemId, setItemId] = useState<string>();
 
@@ -28,4 +23,4 @@ export const OnboardingProvider = ({
       {children}
     </OnboardingContext.Provider>
   );
-}
+};

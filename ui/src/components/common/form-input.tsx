@@ -1,16 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormInputProps } from "@/types";
 import { cn } from "@/lib/utils";
-
-type ThemedInputProps = {
-  label: string;
-  placeholder?: string;
-  type?: string;
-  icon?: React.ReactNode;
-  value?: string;
-  required?: boolean;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-};
 
 export function FormInput({
   label,
@@ -20,7 +11,7 @@ export function FormInput({
   value,
   required,
   onChange,
-}: ThemedInputProps) {
+}: FormInputProps) {
   return (
     <div className="flex flex-col gap-2">
       <Label className="text-sm font-semibold text-[#0e1b17] dark:text-white">

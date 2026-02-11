@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createUser } from "@/lib/api/user";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -30,9 +31,12 @@ export default function SignUpPage() {
 
     try {
       await createUser(formData);
+      localStorage.setItem("isLoggedIn", "true");
+      toast.success("Account created successfully");
       router.push("/onboarding");
     } catch (error: unknown) {
-      console.error("Signup error:");
+      const message = error instanceof Error ? error.message : "Signup failed";
+      toast.error(message);
     }
   };
 
@@ -138,6 +142,7 @@ export default function SignUpPage() {
             />
 
             <Button
+              variant="brand"
               type="submit"
               className="mt-4 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold

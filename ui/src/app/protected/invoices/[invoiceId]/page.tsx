@@ -13,7 +13,7 @@ export default async function InvoiceDetailsPage({
     <div className="space-y-6">
       <Button
         asChild
-        variant="ghost"
+        variant="brand"
         className="justify-start text-[#0e1b17] hover:text-[#0e1b17]"
       >
         <Link href="/protected/invoices">

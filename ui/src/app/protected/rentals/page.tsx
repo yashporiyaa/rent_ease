@@ -1,30 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { RentalsTable } from "@/components/rentals/rentals-table";
 import { RentalsEmptyState } from "@/components/rentals/rentals-empty-state";
 import { Button } from "@/components/ui/button";
+import { getRentals } from "@/lib/api/rentals";
+import { getCustomers, getItems } from "@/lib/api/customers";
+import { toast } from "react-toastify";
+import { CreateRentalForm } from "@/components/rentals/create-rental-form";
+import { CustomerListItem, InventoryItem, RentalRecord } from "@/types";
 
 export default function RentalsPage() {
-  const [rentals, setRentals] = useState<any[]>([]);
+  const [rentals, setRentals] = useState<RentalRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [formCustomers, setFormCustomers] = useState<CustomerListItem[]>([]);
+  const [formItems, setFormItems] = useState<InventoryItem[]>([]);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const fetchRentals = useCallback(async () => {
+    try {
+      const res = await getRentals();
+      setRentals(res.data);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch rentals";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchRentals = async () => {
+    void fetchRentals();
+  }, [fetchRentals]);
+
+  useEffect(() => {
+    if (!isCreateOpen) return;
+
+    const fetchFormData = async () => {
+      setFormLoading(true);
       try {
-        const res = await fetch("http://localhost:3001/rentals", {
-          credentials: "include",
-        });
-        const data = await res.json();
-        setRentals(data.data);
+        const [customersRes, itemsRes] = await Promise.all([
+          getCustomers(),
+          getItems(),
+        ]);
+        setFormCustomers(customersRes.data);
+        setFormItems(itemsRes.data);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to load rental form data";
+        toast.error(message);
       } finally {
-        setLoading(false);
+        setFormLoading(false);
       }
     };
 
-    fetchRentals();
-  }, []);
+    void fetchFormData();
+  }, [isCreateOpen]);
 
   if (loading) {
     return (
@@ -44,16 +79,48 @@ export default function RentalsPage() {
           </p>
         </div>
         <Button
-          asChild
+          variant="brand"
+          onClick={() => setIsCreateOpen(true)}
           className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
         >
-          <Link href="/protected/rentals/new">Create Rental</Link>
+          Create Rental
         </Button>
       </div>
       {rentals.length === 0 ? (
         <RentalsEmptyState />
       ) : (
         <RentalsTable rentals={rentals} />
+      )}
+
+      {isCreateOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          onClick={() => setIsCreateOpen(false)}
+        >
+          <div className="min-h-full flex items-center justify-center">
+            <div
+              className="w-full max-w-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {formLoading ? (
+                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
+                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <CreateRentalForm
+                  customers={formCustomers}
+                  items={formItems}
+                  onClose={() => setIsCreateOpen(false)}
+                  onSuccess={async () => {
+                    setIsCreateOpen(false);
+                    setLoading(true);
+                    await fetchRentals();
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

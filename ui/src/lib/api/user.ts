@@ -31,20 +31,106 @@ export const createUser = async (createUsersData: {
 };
 
 export const loginUser = async (data: { email: string; password: string }) => {
-  const res = await fetch("http://localhost:3001/users/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
+  try {
+    const res = await fetch("http://localhost:3001/users/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Login failed");
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Login failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("loginUser failed:", error);
+    throw error;
   }
-
-  return res.json();
 };
 
+export const forgotPassword = async (email: string) => {
+  try {
+    const res = await fetch("http://localhost:3001/users/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Forgot password failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("forgotPassword failed:", error);
+    throw error;
+  }
+};
+
+export const logoutUser = async () => {
+  try {
+    const res = await fetch("http://localhost:3001/users/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Logout failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("logoutUser failed:", error);
+    throw error;
+  }
+};
+
+export const getUser = async () => {
+  try {
+    const res = await fetch("http://localhost:3001/users/me", {
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Fetch user failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("getUser failed:", error);
+    throw error;
+  }
+};
+
+export const updateBusinessOnboarding = async (address: string) => {
+  try {
+    const res = await fetch("http://localhost:3001/users/onboarding/business", {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        address,
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Update business onboarding failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("updateBusinessOnboarding failed:", error);
+    throw error;
+  }
+};

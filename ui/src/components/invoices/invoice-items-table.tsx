@@ -10,6 +10,8 @@ export function InvoiceItemsTable({
     price: number;
   }[];
 }) {
+  if(!items || items.length === 0) return null;
+
   return (
     <div className="bg-white rounded-xl border shadow-sm">
       <table className="w-full text-sm">

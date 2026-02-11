@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
+import { forgotPassword } from "@/lib/api/user";
+import { toast } from "react-toastify";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -12,16 +14,20 @@ export default function ForgotPasswordPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email) return;
+
     setLoading(true);
-
-    await fetch("http://localhost:3001/users/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-
-    setLoading(false);
-    setIsSent(true);
+    try {
+      await forgotPassword(email);
+      toast.success("Reset link sent if account exists");
+      setIsSent(true);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to send reset link";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +50,7 @@ export default function ForgotPasswordPage() {
             />
 
             <Button
+              variant="brand"
               type="submit"
               disabled={loading}
               className="mt-4 w-full rounded-full bg-[#17cf91]"

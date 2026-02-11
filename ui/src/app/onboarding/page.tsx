@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BusinessStep } from "./components/business-step";
 import { CustomerStep } from "./components/customer-step";
 import { ItemStep } from "./components/Item-step";

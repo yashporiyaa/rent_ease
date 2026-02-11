@@ -6,27 +6,46 @@ import { UserContext } from "@/app/context/user-context";
 
 export default function RedirectPage() {
   const router = useRouter();
-  const { user, loading, getUser } = useContext(UserContext);
+  const { refreshUser } = useContext(UserContext);
 
   useEffect(() => {
-    getUser();
-  }, []);
+    let isActive = true;
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
-  useEffect(() => {
-    if (loading) return;
+    const resolveRedirect = async () => {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        router.replace("/auth/login");
+        return;
+      }
 
-    if (!user) {
-        console.log("not user")
-      router.replace("/auth/login");
-      return;
-    }
+      let currentUser = await refreshUser();
+      if (!currentUser) {
+        await wait(250);
+        currentUser = await refreshUser();
+      }
+      if (!isActive) return;
 
-    if (!user.onboardingDone) {
-      router.replace("/onboarding");
-    } else {
+      if (!currentUser) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      if (!currentUser.onboardingDone) {
+        router.replace("/onboarding");
+        return;
+      }
+
       router.replace("/protected/dashboard");
-    }
-  }, [loading, user, router]);
+    };
+
+    void resolveRedirect();
+
+    return () => {
+      isActive = false;
+    };
+  }, [refreshUser, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">

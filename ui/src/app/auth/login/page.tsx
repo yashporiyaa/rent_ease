@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { loginUser } from "@/lib/api/user";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,12 +29,13 @@ export default function LoginPage() {
 
     try {
       await loginUser(formData);
-
+      toast.success("Login successful");
       localStorage.setItem("isLoggedIn", "true");
 
       router.push("/auth/redirect");
     } catch (error) {
-      console.error("Login failed:", error);
+      const message = error instanceof Error ? error.message : "Login failed";
+      toast.error(message);
     }
   };
 
@@ -126,6 +128,7 @@ export default function LoginPage() {
             </div>
 
             <Button
+              variant="brand"
               type="submit"
               className="mt-6 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold

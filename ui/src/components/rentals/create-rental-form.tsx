@@ -6,13 +6,20 @@ import { CustomerSelect } from "./customer-select";
 import { ItemSelect } from "./item-select";
 import { RentalSummaryBox } from "./rental-summary-box";
 import { useRouter } from "next/navigation";
+import { createRental } from "@/lib/api/rentals";
+import { toast } from "react-toastify";
+import { X } from "lucide-react";
 
 export function CreateRentalForm({
   customers,
   items: availableItems,
+  onSuccess,
+  onClose,
 }: {
   customers: { id: string; name: string }[];
   items: { id: string; name: string; price: number }[];
+  onSuccess?: () => void;
+  onClose?: () => void;
 }) {
   const [customerId, setCustomerId] = useState("");
   const [items, setItems] = useState<Record<string, number>>({});
@@ -67,25 +74,19 @@ export function CreateRentalForm({
       endDate: new Date(endDate),
       items: buildRentalItemsPayload(),
     };
-    console.log(payload);
 
     try {
-      const res = await fetch("http://localhost:3001/rentals", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to create rental");
+      const res = await createRental(payload);
+      toast.success("Rental created successfully");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(`/protected/rentals/${res.data.rental.id}`);
       }
-
-      const data = await res.json();
-      router.push(`/protected/rentals/${data.data.rental.id}`);
     } catch (error) {
-      console.error(error);
+      const message =
+        error instanceof Error ? error.message : "Failed to create rental";
+      toast.error(message);
     }
   };
 
@@ -116,8 +117,15 @@ export function CreateRentalForm({
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-black text-[#0e1b17]">Create New Rental</h1>
+    <div className="max-w-3xl space-y-6 bg-white p-8 rounded-xl border shadow-sm">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-black text-[#0e1b17]">Create New Rental</h1>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
 
       {errors.customer && (
         <p className="text-sm text-red-600 mt-1">{errors.customer}</p>
@@ -178,6 +186,7 @@ export function CreateRentalForm({
       <RentalSummaryBox selectedItems={items} items={availableItems} />
 
       <Button
+        variant="brand"
         onClick={submit}
         disabled={
           !customerId ||

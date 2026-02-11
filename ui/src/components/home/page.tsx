@@ -15,10 +15,16 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8 flex gap-4">
-            <Button className="rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 px-8 text-[#0e1b17] font-bold cursor-pointer">
+            <Button
+              className="rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 px-8 text-[#0e1b17] font-bold cursor-pointer"
+              variant="brand"
+            >
               Get Started
             </Button>
-            <Button variant="outline" className="rounded-full border-[#d0e7df] cursor-pointer">
+            <Button
+              variant="brand"
+              className="rounded-full border-[#d0e7df] cursor-pointer"
+            >
               Watch Demo
             </Button>
           </div>
@@ -101,7 +107,10 @@ export default function HomePage() {
               <h3 className="font-semibold">{plan}</h3>
               <p className="mt-4 text-3xl font-black">{price}</p>
               <p className="mt-2 text-sm text-[#4e977f]">{desc}</p>
-              <Button className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold">
+              <Button
+                className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold"
+                variant="brand"
+              >
                 Choose {plan}
               </Button>
             </div>

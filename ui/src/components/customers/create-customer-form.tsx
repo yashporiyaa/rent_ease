@@ -2,10 +2,18 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User, Phone } from "lucide-react";
+import { User, Phone, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createCustomer } from "@/lib/api/customers";
+import { toast } from "react-toastify";
 
-export function CreateCustomerForm() {
+export function CreateCustomerForm({
+  onSuccess,
+  onClose,
+}: {
+  onSuccess?: () => void;
+  onClose?: () => void;
+}) {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -19,34 +27,33 @@ export function CreateCustomerForm() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/customers", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          phone,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to create customer");
+      await createCustomer(name, phone);
+      toast.success("Customer created successfully");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/protected/customers");
       }
-
-      // success → go back to customers list
-      router.push("/customers");
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
     }
   };
 
   return (
     <div className="max-w-xl bg-white p-8 rounded-xl border shadow-sm">
-      <h1 className="text-2xl font-black text-[#0e1b17] mb-2">
-        Add New Customer
-      </h1>
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-black text-[#0e1b17]">
+          Add New Customer
+        </h1>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
       <p className="text-slate-500 mb-6">
         Create a customer to start renting items.
       </p>
@@ -86,11 +93,10 @@ export function CreateCustomerForm() {
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600 mb-4">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
       <Button
+        variant="brand"
         onClick={submit}
         className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
       >

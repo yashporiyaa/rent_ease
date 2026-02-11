@@ -6,23 +6,33 @@ import { InvoiceItemsTable } from "@/components/invoices/invoice-items-table";
 import { InvoiceSummary } from "@/components/invoices/invoice-summary";
 import { AddPaymentModal } from "./add-payment-modal";
 import { PaymentsTable } from "./payments-table";
+import { getInvoice } from "@/lib/api/invoice";
+import { toast } from "react-toastify";
 
 export default function InvoiceDetailsInfo({
   invoiceId,
 }: {
   invoiceId: string;
 }) {
-  console.log(invoiceId);
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/invoice/${invoiceId}`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => setInvoice(data.data))
-      .finally(() => setLoading(false));
+    const fetchInvoice = async () => {
+      try {
+        const data = await getInvoice(invoiceId);
+        console.log(data);
+        setInvoice(data.data);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch invoice details";
+        toast.error(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoice();
   }, [invoiceId]);
 
   if (loading) {
@@ -38,18 +48,23 @@ export default function InvoiceDetailsInfo({
   return (
     <div className="space-y-6 max-w-4xl">
       <InvoiceHeader invoice={invoice} />
-      <InvoiceItemsTable items={invoice.rental.rentalItems} />
+      <InvoiceItemsTable items={invoice?.rental?.rentalItems} />
       <InvoiceSummary invoice={invoice} />
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-[#0e1b17]">Payment Details</h2>
         <AddPaymentModal
           invoiceId={invoice.id}
-          onSuccess={() => {
-            fetch(`http://localhost:3001/invoices/${invoiceId}`, {
-              credentials: "include",
-            })
-              .then((res) => res.json())
-              .then((data) => setInvoice(data.data));
+          onSuccess={async () => {
+            try {
+              const data = await getInvoice(invoiceId);
+              setInvoice(data.data);
+            } catch (error) {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to refresh invoice";
+              toast.error(message);
+            }
           }}
         />
       </div>

@@ -1,6 +1,7 @@
 import { User } from "lucide-react";
+import { InvoiceHeaderProps } from "@/types";
 
-export function InvoiceHeader({ invoice }: { invoice: any }) {
+export function InvoiceHeader({ invoice }: InvoiceHeaderProps) {
   return (
     <div className="bg-white p-6 rounded-xl border shadow-sm">
       <div className="flex justify-between items-start">
@@ -11,7 +12,7 @@ export function InvoiceHeader({ invoice }: { invoice: any }) {
 
           <p className="text-slate-500 mt-1 flex items-center gap-2">
             <User size={14} />
-            {invoice.rental.customer.name}
+            {invoice?.rental?.customer?.name}
           </p>
         </div>
 

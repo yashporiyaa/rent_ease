@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
+import { InvoiceStatus } from "@/types";
 
 export function InvoiceStatusBadge({
   status,
 }: {
-  status: "paid" | "unpaid" | "overdue";
+  status: InvoiceStatus;
 }) {
   const styles = {
     paid: "bg-emerald-100 text-emerald-700",

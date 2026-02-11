@@ -1,51 +1,64 @@
 "use client";
 
-import { UserContextType } from "@/types";
-import { createContext, useEffect, useState } from "react";
+import { getUser, logoutUser } from "@/lib/api/user";
+import { ProviderChildrenProps, User, UserContextType } from "@/types";
+import { usePathname } from "next/navigation";
+import { createContext, useCallback, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const UserContext = createContext<UserContextType>(
   {} as UserContextType,
 );
 
-export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+export const UserProvider = ({ children }: ProviderChildrenProps) => {
+  const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getUser();
+  const refreshUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getUser();
+      const currentUser = (response?.data ?? null) as User | null;
+      setUser(currentUser);
+      return currentUser;
+    } catch {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const getUser = async () => {
-    setLoading(true);
-    const res = await fetch("http://localhost:3001/users/me", {
-      credentials: "include",
-    });
-
-    if (res.ok) {
-      const user = await res.json();
-      console.log(user.data);
-      setUser(user.data);
-    } else {
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
       setUser(null);
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-  };
+    void refreshUser();
+  }, [refreshUser, pathname]);
 
   const logout = async () => {
-    setLoading(true);
-    await fetch("http://localhost:3001/users/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-    setUser(null);
-    localStorage.clear();
-    setLoading(false);
+    try {
+      setLoading(true);
+      await logoutUser();
+      setUser(null);
+      localStorage.clear();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Logout failed";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, logout, getUser }}>
+    <UserContext.Provider value={{ user, loading, refreshUser, logout }}>
       {children}
     </UserContext.Provider>
   );

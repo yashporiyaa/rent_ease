@@ -1,14 +1,9 @@
 import { CreditCard } from "lucide-react";
+import { PaymentsTableProps } from "@/types";
 
-type Payment = {
-  id: string;
-  amount: number;
-  method: string;
-  reference?: string | null;
-  paidAt: string;
-};
+export function PaymentsTable({ payments }: PaymentsTableProps) {
+  if (!payments) return null;
 
-export function PaymentsTable({ payments }: { payments: Payment[] }) {
   if (payments.length === 0) {
     return (
       <div className="bg-white p-6 rounded-xl border text-slate-500">

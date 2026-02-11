@@ -4,25 +4,28 @@ import { useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "./stepper";
 import { UserContext } from "@/app/context/user-context";
+import { updateBusinessOnboarding } from "@/lib/api/user";
+import { toast } from "react-toastify";
 
 export function BusinessStep({ onSuccess }: { onSuccess: () => void }) {
   const [address, setAddress] = useState("");
-  const { user } = useContext(UserContext);
+  const { user, refreshUser } = useContext(UserContext);
 
   const submit = async () => {
-    if (!user) return;
-    await fetch("http://localhost:3001/users/onboarding/business", {
-      method: "PATCH",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        address,
-      }),
-    });
-
-    onSuccess();
+    const currentUser = user ?? (await refreshUser());
+    if (!currentUser) {
+      toast.error("Session not found. Please login again.");
+      return;
+    }
+    try {
+      await updateBusinessOnboarding(address);
+      toast.success("Business details saved");
+      onSuccess();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to save business details";
+      toast.error(message);
+    }
   };
 
   return (
@@ -41,6 +44,7 @@ export function BusinessStep({ onSuccess }: { onSuccess: () => void }) {
       />
 
       <Button
+        variant="brand"
         className="mt-6 w-full rounded-full bg-[#17cf91]"
         onClick={submit}
       >

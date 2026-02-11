@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { createItem } from "@/lib/api/items";
+import { toast } from "react-toastify";
+import { X } from "lucide-react";
 
-export function CreateItemForm() {
+export function CreateItemForm({
+  onSuccess,
+  onClose,
+}: {
+  onSuccess?: () => void;
+  onClose?: () => void;
+}) {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -18,25 +27,34 @@ export function CreateItemForm() {
       return;
     }
 
-    await fetch("http://localhost:3001/items", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        category,
-        price: Number(price),
-      }),
-    });
-
-    router.push("/items");
+    try {
+      await createItem(name, category, Number(price));
+      toast.success("Item created successfully");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/protected/items");
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create item";
+      setError(message);
+      toast.error(message);
+    }
   };
 
   return (
     <div className="max-w-xl bg-white p-8 rounded-xl border shadow-sm">
-      <h1 className="text-2xl font-black mb-6 text-[#0e1b17]">
-        Add Inventory Item
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-black text-[#0e1b17]">
+          Add Inventory Item
+        </h1>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
 
       <input
         className="border p-3 rounded-xl w-full mb-4"
@@ -59,7 +77,11 @@ export function CreateItemForm() {
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
-      <Button onClick={submit} className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold">
+      <Button
+        variant="brand"
+        onClick={submit}
+        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+      >
         Create Item
       </Button>
     </div>

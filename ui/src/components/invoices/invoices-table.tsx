@@ -4,27 +4,30 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye } from "lucide-react";
 import { InvoiceStatusBadge } from "./invoice-status-badge";
-
-type InvoiceRow = {
-  id: string;
-  invoiceNo: string;
-  customer: string;
-  amount: number;
-  status: string;
-  createdAt: string;
-};
+import { getAllInvoices } from "@/lib/api/invoice";
+import { InvoiceRow } from "@/types";
+import { toast } from "react-toastify";
 
 export function InvoicesTable() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:3001/invoice", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => setInvoices(data.data))
-      .finally(() => setLoading(false));
+    const fetchInvoices = async () => {
+      try {
+        const data = await getAllInvoices();
+        console.log(data);
+        setInvoices(data.data);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch invoices";
+        toast.error(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
   }, []);
 
   if (loading) {
@@ -38,9 +41,7 @@ export function InvoicesTable() {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="p-6 border-b">
-        <h1 className="text-2xl font-black text-[#0e1b17]">
-          Invoices
-        </h1>
+        <h1 className="text-2xl font-black text-[#0e1b17]">Invoices</h1>
         <p className="text-slate-500 mt-1">
           Track all invoices and payment statuses.
         </p>
@@ -61,18 +62,14 @@ export function InvoicesTable() {
         <tbody className="divide-y">
           {invoices.map((invoice) => (
             <tr key={invoice.id} className="hover:bg-slate-50">
-              <td className="px-6 py-4 font-medium">
-                {invoice.invoiceNo}
-              </td>
+              <td className="px-6 py-4 font-medium">{invoice.invoiceNo}</td>
               <td className="px-6 py-4">{invoice.customer}</td>
               <td className="px-6 py-4 text-slate-600">
                 {new Date(invoice.createdAt).toLocaleDateString()}
               </td>
-              <td className="px-6 py-4 font-semibold">
-                ₹{invoice.amount}
-              </td>
+              <td className="px-6 py-4 font-semibold">₹{invoice.amount}</td>
               <td className="px-6 py-4">
-                <InvoiceStatusBadge status={invoice.status as any} />
+                <InvoiceStatusBadge status={invoice.status} />
               </td>
               <td className="px-6 py-4 text-right">
                 <Link

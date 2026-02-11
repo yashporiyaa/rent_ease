@@ -2,8 +2,9 @@ import Link from "next/link";
 import { RentalStatusBadge } from "./rental-status-badge";
 import { Eye } from "lucide-react";
 import { formatDate } from "@/lib/utils/date";
+import { RentalsTableProps } from "@/types";
 
-export function RentalsTable({ rentals }: { rentals: any[] }) {
+export function RentalsTable({ rentals }: RentalsTableProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Table */}
@@ -51,7 +52,7 @@ export function RentalsTable({ rentals }: { rentals: any[] }) {
                 <td className="px-6 py-4 font-semibold">₹{rental.totalAmount}</td>
 
                 <td className="px-6 py-4">
-                  <RentalStatusBadge status={rental.status as any} />
+                  <RentalStatusBadge status={rental.status} />
                 </td>
 
                 <td className="px-6 py-4 text-right">
