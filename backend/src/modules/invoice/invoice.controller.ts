@@ -2,7 +2,7 @@ import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { InvoiceService } from './invoice.service.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 
-@Controller('invoice')
+@Controller('invoices')
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
