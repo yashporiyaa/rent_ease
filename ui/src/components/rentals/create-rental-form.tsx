@@ -1,23 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CustomerSelect } from "./customer-select";
 import { ItemSelect } from "./item-select";
 import { RentalSummaryBox } from "./rental-summary-box";
 import { useRouter } from "next/navigation";
 import { createRental } from "@/lib/api/rentals";
+import { getAvailability } from "@/lib/api/items";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
 export function CreateRentalForm({
   customers,
-  items: availableItems,
   onSuccess,
   onClose,
 }: {
   customers: { id: string; name: string }[];
-  items: { id: string; name: string; price: number }[];
   onSuccess?: () => void;
   onClose?: () => void;
 }) {
@@ -25,6 +24,10 @@ export function CreateRentalForm({
   const [items, setItems] = useState<Record<string, number>>({});
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [availableItems, setAvailableItems] = useState<
+    { id: string; name: string; price: number; stock: number; available: number }[]
+  >([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     customer?: string;
     items?: string;
@@ -65,6 +68,39 @@ export function CreateRentalForm({
     });
   };
 
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setAvailableItems([]);
+      setItems({});
+      return;
+    }
+
+    if (new Date(endDate) < new Date(startDate)) {
+      setAvailableItems([]);
+      setItems({});
+      return;
+    }
+
+    const fetchAvailability = async () => {
+      setItemsLoading(true);
+      try {
+        const res = await getAvailability(startDate, endDate);
+        setAvailableItems(res.data);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to load availability";
+        toast.error(message);
+        setAvailableItems([]);
+      } finally {
+        setItemsLoading(false);
+      }
+    };
+
+    void fetchAvailability();
+  }, [startDate, endDate]);
+
   const submit = async () => {
     if (!validate()) return;
 
@@ -103,7 +139,7 @@ export function CreateRentalForm({
     );
   }
 
-  if (items.length === 0) {
+  if (availableItems.length === 0 && startDate && endDate && !itemsLoading) {
     return (
       <div className="bg-white p-10 rounded-xl border shadow-sm text-center">
         <h2 className="text-xl font-bold text-[#0e1b17]">
@@ -152,6 +188,9 @@ export function CreateRentalForm({
         }}
         items={availableItems}
       />
+      {itemsLoading && (
+        <p className="text-sm text-slate-500">Loading available items...</p>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <input
@@ -192,11 +231,12 @@ export function CreateRentalForm({
           !customerId ||
           Object.keys(items).length === 0 ||
           !startDate ||
-          !endDate
+          !endDate ||
+          itemsLoading
         }
         className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Create Rental
+        {itemsLoading ? "Checking availability..." : "Create Rental"}
       </Button>
     </div>
   );

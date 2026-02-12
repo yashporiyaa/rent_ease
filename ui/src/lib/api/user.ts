@@ -134,3 +134,21 @@ export const updateBusinessOnboarding = async (address: string) => {
     throw error;
   }
 };
+
+export const getUserDashboardData = async () => {
+  try {
+    const res = await fetch("http://localhost:3001/users/dashboard", {
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Fetch user dashboard data failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("getUserDashbaordData failed:", error);
+    throw error;
+  }
+};

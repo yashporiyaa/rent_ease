@@ -26,3 +26,25 @@ export const createItem = async (
     throw error;
   }
 };
+
+export const getAvailability = async (startDate: string, endDate: string) => {
+  try {
+    const params = new URLSearchParams({ startDate, endDate });
+    const res = await fetch(
+      `http://localhost:3001/items/availability?${params.toString()}`,
+      {
+        credentials: "include",
+      },
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Fetch availability failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("getAvailability failed:", error);
+    throw error;
+  }
+};

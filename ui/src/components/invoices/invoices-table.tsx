@@ -16,7 +16,6 @@ export function InvoicesTable() {
     const fetchInvoices = async () => {
       try {
         const data = await getAllInvoices();
-        console.log(data);
         setInvoices(data.data);
       } catch (error) {
         const message =

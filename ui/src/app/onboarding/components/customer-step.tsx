@@ -9,11 +9,12 @@ import { toast } from "react-toastify";
 
 export function CustomerStep({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const { setCustomerId } = useContext(OnboardingContext);
 
   const submit = async () => {
     try {
-      const res = await createCustomer(name);
+      const res = await createCustomer(name, phone);
       setCustomerId(res.data.id);
       toast.success("Customer created");
       onSuccess();
@@ -35,6 +36,12 @@ export function CustomerStep({ onSuccess }: { onSuccess: () => void }) {
         className="mt-6 border p-3 w-full rounded-xl"
         placeholder="Customer Name"
         onChange={(e) => setName(e.target.value)}
+      />
+      
+      <input
+        className="mt-4 border p-3 w-full rounded-xl"
+        placeholder="Phone Number"
+        onChange={(e) => setPhone(e.target.value)}
       />
 
       <Button

@@ -50,7 +50,7 @@ export type CreateRentalPayload = {
 export type StatsCardProps = {
   title: string;
   value: string;
-  trend?: string;
+  trend?: string | null;
   type?: string;
 };
 

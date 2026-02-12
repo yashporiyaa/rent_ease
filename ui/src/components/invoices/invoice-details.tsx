@@ -21,7 +21,6 @@ export default function InvoiceDetailsInfo({
     const fetchInvoice = async () => {
       try {
         const data = await getInvoice(invoiceId);
-        console.log(data);
         setInvoice(data.data);
       } catch (error) {
         const message =

@@ -7,6 +7,7 @@ import { RentalInvoicePlaceholder } from "@/components/rentals/rental-invoice-pl
 import { useEffect, useState } from "react";
 import { getRentalById } from "@/lib/api/rentals";
 import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
 
 export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
   const [rental, setRental] = useState<any>(null);
@@ -44,6 +45,26 @@ export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
   return (
     <div className="space-y-6">
       <RentalHeader rental={rental} />
+      {rental.status === "ACTIVE" && (
+        <div className="flex justify-end">
+          <Button
+            onClick={async () => {
+              await fetch(
+                `http://localhost:3001/rentals/${rental.id}/return`,
+                {
+                  method: "PATCH",
+                  credentials: "include",
+                },
+              );
+
+              window.location.reload();
+            }}
+            className="bg-red-500 text-white rounded-full"
+          >
+            Mark as Returned
+          </Button>
+        </div>
+      )}
       <RentalSummary rental={rental} />
       <RentalItemsTable items={rental.rentalItems} />
       <RentalInvoicePlaceholder />

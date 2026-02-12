@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { loginUser } from "@/lib/api/user";
 import { toast } from "react-toastify";
+import { UserContext } from "@/app/context/user-context";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, refreshUser } = useContext(UserContext);
+  const [checking, setChecking] = useState(true);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -38,6 +41,47 @@ export default function LoginPage() {
       toast.error(message);
     }
   };
+
+  useEffect(() => {
+    let active = true;
+    const redirectIfLoggedIn = async () => {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        if (active) setChecking(false);
+        return;
+      }
+
+      let currentUser = user;
+      if (!currentUser) {
+        currentUser = await refreshUser();
+      }
+      if (!active) return;
+
+      if (currentUser) {
+        if (currentUser.onboardingDone) {
+          router.replace("/protected/dashboard");
+        } else {
+          router.replace("/onboarding");
+        }
+        return;
+      }
+      setChecking(false);
+    };
+
+    void redirectIfLoggedIn();
+
+    return () => {
+      active = false;
+    };
+  }, [refreshUser, router, user]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
+        <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f6f8f7]">
