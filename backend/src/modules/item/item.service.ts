@@ -46,5 +46,26 @@ export class ItemService {
       data: items,
     };
   }
-}
 
+  async getAvailability(
+    supabaseId: string,
+    startDate: string,
+    endDate: string,
+  ) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const result = await this.itemRepository.getAvailabilityByUserId(
+      user.id,
+      startDate,
+      endDate,
+    );
+
+    return {
+      success: true,
+      data: result,
+    };
+  }
+}

@@ -63,4 +63,10 @@ export class UserController {
     const supabaseId = req.user.sub;
     return this.userService.getUser(supabaseId);
   }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Get('dashboard')
+  async getDashboardStats(@Req() req: any) {
+    return this.userService.getDashboardData(req.user.sub);
+  }
 }

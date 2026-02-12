@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { generateInvoiceNo } from '../../common/utils/invoice.util.js';
@@ -46,6 +50,45 @@ export class RentalRepository {
     });
   }
 
+  async assertItemsAvailable(dto: CreateRentalDto) {
+    for (const requestedItem of dto.items) {
+      const item = await this.prisma.item.findUnique({
+        where: { id: requestedItem.itemId },
+      });
+
+      if (!item) {
+        throw new NotFoundException('Item not found');
+      }
+
+      const overlappingRentals = await this.prisma.rentalItem.findMany({
+        where: {
+          itemId: requestedItem.itemId,
+          rental: {
+            status: 'ACTIVE',
+            startDate: { lte: new Date(dto.endDate) },
+            endDate: { gte: new Date(dto.startDate) },
+          },
+        },
+        include: {
+          rental: true,
+        },
+      });
+
+      const alreadyBooked = overlappingRentals.reduce(
+        (sum, ri) => sum + ri.quantity,
+        0,
+      );
+
+      const availableStock = item.stock - alreadyBooked;
+
+      if (requestedItem.quantity > availableStock) {
+        throw new BadRequestException(
+          `${item.name} has only ${availableStock} available for selected dates`,
+        );
+      }
+    }
+  }
+
   async findByUserId(userId: string) {
     return await this.prisma.rental.findMany({
       where: { userId },
@@ -79,5 +122,45 @@ export class RentalRepository {
       },
     });
     return rental;
+  }
+
+  async findByIdAndUser(rentalId: string, userId: string) {
+    return await this.prisma.rental.findFirst({
+      where: {
+        id: rentalId,
+        userId,
+      },
+    });
+  }
+
+  async markAsReturned(rentalId: string) {
+    return await this.prisma.rental.update({
+      where: { id: rentalId },
+      data: {
+        status: 'COMPLETED',
+        returnedAt: new Date(),
+      },
+    });
+  }
+
+  async findOverdueByUser(userId: string) {
+    
+    return await this.prisma.rental.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: {
+          lt: new Date(),
+        },
+      },
+      include: {
+        customer: {
+          select: { name: true },
+        },
+      },
+      orderBy: {
+        endDate: 'asc',
+      },
+    });
   }
 }

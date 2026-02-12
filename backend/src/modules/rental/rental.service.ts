@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RentalRepository } from './rental.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
@@ -21,6 +25,8 @@ export class RentalService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    await this.rentalRepository.assertItemsAvailable(dto);
 
     // Create rental + invoice together
     const { rental, invoice } =
@@ -77,5 +83,41 @@ export class RentalService {
       success: true,
       data: rental,
     };
+  }
+
+  async returnRental(supabaseId: string, rentalId: string) {
+    //  Find user
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Get rental
+    const rental = await this.rentalRepository.findByIdAndUser(
+      rentalId,
+      user.id,
+    );
+
+    if (!rental) {
+      throw new NotFoundException('Rental not found');
+    }
+
+    if (rental.status !== 'ACTIVE') {
+      throw new BadRequestException('Rental already completed');
+    }
+
+    // Update rental
+    return await this.rentalRepository.markAsReturned(rentalId);
+  }
+
+  async getOverdueRentals(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.rentalRepository.findOverdueByUser(user.id);
   }
 }

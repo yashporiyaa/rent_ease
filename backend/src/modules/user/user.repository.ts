@@ -49,4 +49,45 @@ export class UserRepository {
       where: { supabaseId },
     });
   }
+
+  async getDashboardStats(userId: string) {
+    const today = new Date();
+
+    const activeRentals = await this.prisma.rental.count({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+    });
+
+    const overdueRentals = await this.prisma.rental.count({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { lt: today },
+      },
+    });
+
+    const totalRevenue = await this.prisma.invoice.aggregate({
+      where: { userId },
+      _sum: { totalAmount: true },
+    });
+
+    const pendingInvoices = await this.prisma.invoice.count({
+      where: {
+        userId,
+        status: 'PENDING',
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        activeRentals,
+        overdueRentals,
+        totalRevenue: totalRevenue._sum.totalAmount || 0,
+        pendingInvoices,
+      },
+    };
+  }
 }

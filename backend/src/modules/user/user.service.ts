@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository.js';
 import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
@@ -105,5 +106,15 @@ export class UserService {
 
   async getUser(supabaseId: string) {
     return await this.userRepository.findById(supabaseId);
+  }
+
+  async getDashboardData(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.userRepository.getDashboardStats(user.id);
   }
 }
