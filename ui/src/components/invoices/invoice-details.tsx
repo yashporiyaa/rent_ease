@@ -8,6 +8,7 @@ import { AddPaymentModal } from "./add-payment-modal";
 import { PaymentsTable } from "./payments-table";
 import { getInvoice } from "@/lib/api/invoice";
 import { toast } from "react-toastify";
+import { Button } from "../ui/button";
 
 export default function InvoiceDetailsInfo({
   invoiceId,
@@ -24,7 +25,9 @@ export default function InvoiceDetailsInfo({
         setInvoice(data.data);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Failed to fetch invoice details";
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch invoice details";
         toast.error(message);
       } finally {
         setLoading(false);
@@ -46,6 +49,17 @@ export default function InvoiceDetailsInfo({
 
   return (
     <div className="space-y-6 max-w-4xl">
+      <Button
+        onClick={() =>
+          window.open(
+            `http://localhost:3001/invoices/${invoice.id}/pdf`,
+            "_blank",
+          )
+        }
+        className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+      >
+        Download PDF
+      </Button>
       <InvoiceHeader invoice={invoice} />
       <InvoiceItemsTable items={invoice?.rental?.rentalItems} />
       <InvoiceSummary invoice={invoice} />

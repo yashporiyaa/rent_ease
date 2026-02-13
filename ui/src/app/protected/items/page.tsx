@@ -53,7 +53,7 @@ export default function ItemsPage() {
         <Button
           variant="brand"
           onClick={() => setIsCreateOpen(true)}
-          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
         >
           Add Item
         </Button>

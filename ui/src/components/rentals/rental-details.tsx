@@ -48,6 +48,7 @@ export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
       {rental.status === "ACTIVE" && (
         <div className="flex justify-end">
           <Button
+            variant="ghost"
             onClick={async () => {
               await fetch(
                 `http://localhost:3001/rentals/${rental.id}/return`,
@@ -59,7 +60,7 @@ export default function RentalDetailsInfo({ rentalId }: { rentalId: string }) {
 
               window.location.reload();
             }}
-            className="bg-red-500 text-white rounded-full"
+            className="bg-red-500 text-white rounded-full cursor-pointer hover:bg-red-300"
           >
             Mark as Returned
           </Button>

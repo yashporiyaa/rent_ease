@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
               variant="brand"
               type="submit"
               disabled={loading}
-              className="mt-4 w-full rounded-full bg-[#17cf91]"
+              className="mt-4 w-full rounded-full bg-[#17cf91] cursor-pointer"
             >
               Send reset link
             </Button>

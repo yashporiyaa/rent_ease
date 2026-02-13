@@ -37,7 +37,7 @@ export function AddPaymentModal({
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+        className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
         variant="brand"
       >
         Add Payment
@@ -89,7 +89,7 @@ export function AddPaymentModal({
               <Button
                 variant="brand"
                 onClick={submit}
-                className="bg-[#17cf91] text-[#0e1b17] font-bold"
+                className="bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
               >
                 Save Payment
               </Button>

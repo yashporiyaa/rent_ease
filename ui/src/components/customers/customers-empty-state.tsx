@@ -13,7 +13,7 @@ export function CustomersEmptyState() {
 
       <Link href="/protected/customers/new">
         <Button
-          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
           variant="brand"
         >
           Add Customer

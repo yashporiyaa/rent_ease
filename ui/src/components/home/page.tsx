@@ -108,7 +108,7 @@ export default function HomePage() {
               <p className="mt-4 text-3xl font-black">{price}</p>
               <p className="mt-2 text-sm text-[#4e977f]">{desc}</p>
               <Button
-                className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold"
+                className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold cursor-pointer"
                 variant="brand"
               >
                 Choose {plan}

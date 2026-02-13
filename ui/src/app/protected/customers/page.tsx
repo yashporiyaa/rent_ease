@@ -51,7 +51,7 @@ export default function CustomersPage() {
         <Button
           variant="brand"
           onClick={() => setIsCreateOpen(true)}
-          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
         >
           Add Customer
         </Button>

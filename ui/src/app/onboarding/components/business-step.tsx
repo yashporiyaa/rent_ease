@@ -45,7 +45,7 @@ export function BusinessStep({ onSuccess }: { onSuccess: () => void }) {
 
       <Button
         variant="brand"
-        className="mt-6 w-full rounded-full bg-[#17cf91]"
+        className="mt-6 w-full rounded-full bg-[#17cf91] cursor-pointer"
         onClick={submit}
       >
         Continue

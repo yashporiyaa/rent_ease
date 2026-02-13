@@ -169,3 +169,8 @@ export type InvoiceHeaderProps = {
 export type InvoiceSummaryProps = {
   invoice: InvoiceDetail;
 };
+
+export type RevenueData = {
+  month: string;
+  revenue: number;
+};

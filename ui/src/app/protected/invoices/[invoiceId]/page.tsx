@@ -14,7 +14,7 @@ export default async function InvoiceDetailsPage({
       <Button
         asChild
         variant="brand"
-        className="justify-start text-[#0e1b17] hover:text-[#0e1b17]"
+        className="justify-start text-[#0e1b17] hover:text-[#0e1b17] cursor-pointer"
       >
         <Link href="/protected/invoices">
           <ArrowLeft />

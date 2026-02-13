@@ -95,7 +95,7 @@ export function RentalStep() {
 
       <Button
         variant="brand"
-        className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold"
+        className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold cursor-pointer"
         onClick={submit}
       >
         Finish Setup

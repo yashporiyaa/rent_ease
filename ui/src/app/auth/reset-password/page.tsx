@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
               variant="brand"
               type="submit"
               disabled={loading}
-              className="mt-4 h-14 w-full rounded-full bg-[#17cf91]
+              className="mt-4 h-14 w-full rounded-full bg-[#17cf91] cursor-pointer
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90
                          shadow-lg shadow-[#17cf91]/20"

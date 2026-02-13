@@ -15,7 +15,7 @@ export default async function RentalDetailsPage({
       <Button
         asChild
         variant="brand"
-        className="justify-start text-[#0e1b17] hover:text-[#0e1b17]"
+        className="justify-start text-[#0e1b17] hover:text-[#0e1b17] cursor-pointer"
       >
         <Link href="/protected/rentals">
           <ArrowLeft />

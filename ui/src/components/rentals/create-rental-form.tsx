@@ -157,7 +157,7 @@ export function CreateRentalForm({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black text-[#0e1b17]">Create New Rental</h1>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
             <X className="h-5 w-5" />
           </Button>
         )}
@@ -234,7 +234,7 @@ export function CreateRentalForm({
           !endDate ||
           itemsLoading
         }
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
       >
         {itemsLoading ? "Checking availability..." : "Create Rental"}
       </Button>

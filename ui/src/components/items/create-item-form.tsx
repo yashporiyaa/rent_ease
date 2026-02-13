@@ -50,7 +50,7 @@ export function CreateItemForm({
           Add Inventory Item
         </h1>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
             <X className="h-5 w-5" />
           </Button>
         )}
@@ -80,7 +80,7 @@ export function CreateItemForm({
       <Button
         variant="brand"
         onClick={submit}
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
       >
         Create Item
       </Button>

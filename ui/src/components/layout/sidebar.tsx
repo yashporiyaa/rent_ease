@@ -83,7 +83,7 @@ export function Sidebar() {
           <Button
             variant="brand"
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 bg-white hover:bg-slate-50 rounded-lg"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 bg-white hover:bg-slate-50 rounded-lg cursor-pointer"
           >
             <LogOut size={18} />
             Logout
