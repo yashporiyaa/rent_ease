@@ -29,21 +29,35 @@ export class PaymentService {
       },
     });
 
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
-    }
-    const paidSoFar = invoice.payments.reduce((sum, p) => sum + p.amount, 0);
-
-    if (paidSoFar + dto.amount > invoice.totalAmount) {
-      throw new BadRequestException('Payment exceeds invoice total');
-    }
-
     // Transaction: payment + invoice status update
     return this.prisma.$transaction(async (tx) => {
+      const invoiceTx = await tx.invoice.findFirst({
+        where: {
+          id: dto.invoiceId,
+          userId: user.id,
+        },
+        include: {
+          payments: true,
+        },
+      });
+
+      if (!invoiceTx) {
+        throw new NotFoundException('Invoice not found');
+      }
+
+      const paidSoFar = invoiceTx.payments.reduce(
+        (sum, p) => sum + p.amount,
+        0,
+      );
+
+      if (paidSoFar + dto.amount > invoiceTx.totalAmount) {
+        throw new BadRequestException('Payment exceeds invoice total');
+      }
+
       const payment = await tx.payment.create({
         data: {
           userId: user.id,
-          invoiceId: invoice.id,
+          invoiceId: invoiceTx.id,
           amount: dto.amount,
           method: dto.method,
           reference: dto.reference,
@@ -53,16 +67,18 @@ export class PaymentService {
 
       const newTotalPaid = paidSoFar + dto.amount;
 
-      let newStatus: InvoiceStatus = InvoiceStatus.PENDING;
+      let newStatus: InvoiceStatus;
 
-      if (newTotalPaid === invoice.totalAmount) {
+      if (newTotalPaid === invoiceTx.totalAmount) {
         newStatus = InvoiceStatus.PAID;
       } else if (newTotalPaid > 0) {
         newStatus = InvoiceStatus.PARTIAL;
+      } else {
+        newStatus = InvoiceStatus.PENDING;
       }
 
       await tx.invoice.update({
-        where: { id: invoice.id },
+        where: { id: invoiceTx.id },
         data: { status: newStatus },
       });
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
@@ -68,5 +68,11 @@ export class UserController {
   @Get('dashboard')
   async getDashboardStats(@Req() req: any) {
     return this.userService.getDashboardData(req.user.sub);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Get('revenue-analytics')
+  async getRevenue(@Req() req: any, @Query('range') range: string) {
+    return this.userService.getRevenueAnalytics(req.user.sub, range ?? '30d');
   }
 }

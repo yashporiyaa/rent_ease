@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
+type MonthlyRevenue = {
+  month: string;
+  revenue: number;
+};
+
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -88,6 +93,90 @@ export class UserRepository {
         totalRevenue: totalRevenue._sum.totalAmount || 0,
         pendingInvoices,
       },
+    };
+  }
+
+  async getRevenueAnalytics(userId: string, range: string) {
+    const now = new Date();
+    let start: Date;
+
+    switch (range) {
+      case '7d':
+        start = new Date(now);
+        start.setDate(now.getDate() - 6);
+        break;
+
+      case '1y':
+        start = new Date(
+          Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1),
+        );
+        break;
+
+      case '30d':
+      default:
+        start = new Date(now);
+        start.setDate(now.getDate() - 29);
+    }
+
+    const invoices = await this.prisma.invoice.findMany({
+      where: {
+        userId,
+        createdAt: { gte: start },
+      },
+      select: {
+        totalAmount: true,
+        createdAt: true,
+      },
+    });
+
+    const grouped: Record<string, number> = {};
+
+    for (const invoice of invoices) {
+      let key: string;
+
+      if (range === '1y') {
+        key = invoice.createdAt.toISOString().slice(0, 7); // monthly
+      } else {
+        key = invoice.createdAt.toISOString().slice(0, 10); // daily
+      }
+
+      grouped[key] = (grouped[key] ?? 0) + invoice.totalAmount;
+    }
+
+    const result: { label: string; revenue: number }[] = [];
+
+    if (range === '1y') {
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1),
+        );
+
+        const key = date.toISOString().slice(0, 7);
+
+        result.push({
+          label: date.toLocaleString('default', { month: 'short' }),
+          revenue: grouped[key] ?? 0,
+        });
+      }
+    } else {
+      const days = range === '7d' ? 7 : 30;
+
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(now.getDate() - i);
+
+        const key = date.toISOString().slice(0, 10);
+
+        result.push({
+          label: date.getDate().toString(),
+          revenue: grouped[key] ?? 0,
+        });
+      }
+    }
+
+    return {
+      success: true,
+      data: result,
     };
   }
 }

@@ -117,4 +117,14 @@ export class UserService {
 
     return await this.userRepository.getDashboardStats(user.id);
   }
+
+  async getRevenueAnalytics(supabaseId: string, range: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.userRepository.getRevenueAnalytics(user.id, range);
+  }
 }
