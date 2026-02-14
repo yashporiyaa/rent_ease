@@ -20,6 +20,7 @@ model User {
   email           String  @unique
   businessType    String
   businessAddress String?
+  taxRate         Float? 
 
   onboardingStep Int     @default(1)
   onboardingDone Boolean @default(false)
@@ -96,6 +97,7 @@ model Invoice {
   totalAmount Float
   taxAmount   Float?
   status      InvoiceStatus
+  taxRate     Float?
 
   user     User      @relation(fields: [userId], references: [id])
   rental   Rental    @relation(fields: [rentalId], references: [id])

@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-
-type MonthlyRevenue = {
-  month: string;
-  revenue: number;
-};
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserRepository {
@@ -178,5 +174,12 @@ export class UserRepository {
       success: true,
       data: result,
     };
+  }
+
+  async updateUserByInternalId(userId: string, data: Partial<User>) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
   }
 }

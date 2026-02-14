@@ -9,6 +9,7 @@ import {
 import { UserRepository } from './user.repository.js';
 import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
 import { supabase } from '../../lib/supabase.js';
+import { UpdateTaxDto } from './dto/update-tax.dto.js';
 
 @Injectable()
 export class UserService {
@@ -126,5 +127,24 @@ export class UserService {
     }
 
     return this.userRepository.getRevenueAnalytics(user.id, range);
+  }
+
+  async updateTax(supabaseId: string, dto: UpdateTaxDto) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.userRepository.updateUserByInternalId(user.id, {
+      taxRate: dto.taxRate,
+    });
+
+    return {
+      success: true,
+      message: 'Tax rate updated successfully',
+      data: {
+        taxRate: updated.taxRate,
+      },
+    };
   }
 }

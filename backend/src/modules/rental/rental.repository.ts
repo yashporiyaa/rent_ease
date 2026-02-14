@@ -15,6 +15,8 @@ export class RentalRepository {
   async createRentalWithInvoice(
     userId: string,
     dto: CreateRentalDto,
+    taxRate: number | null,
+    taxAmount: number,
     totalAmount: number,
   ) {
     return this.prisma.$transaction(async (tx) => {
@@ -40,8 +42,9 @@ export class RentalRepository {
           userId,
           rentalId: rental.id,
           invoiceNo: generateInvoiceNo(),
+          taxRate,
           totalAmount,
-          taxAmount: null, // later GST
+          taxAmount, // later GST
           status: InvoiceStatus.PENDING,
         },
       });

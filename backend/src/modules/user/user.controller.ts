@@ -2,6 +2,7 @@ import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards, Query } from '
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
+import { UpdateTaxDto } from './dto/update-tax.dto.js';
 
 @Controller('users')
 export class UserController {
@@ -74,5 +75,11 @@ export class UserController {
   @Get('revenue-analytics')
   async getRevenue(@Req() req: any, @Query('range') range: string) {
     return this.userService.getRevenueAnalytics(req.user.sub, range ?? '30d');
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Patch('settings/tax')
+  updateTax(@Req() req: any, @Body() dto: UpdateTaxDto) {
+    return this.userService.updateTax(req.user.sub, dto);
   }
 }

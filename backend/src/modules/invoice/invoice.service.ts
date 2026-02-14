@@ -71,6 +71,11 @@ export class InvoiceService {
   }
 
   private buildInvoiceView(invoice: any) {
+    const subtotal = invoice.totalAmount;
+    const tax = invoice.taxAmount ?? 0;
+    const taxRate = invoice.taxRate ?? 0;
+    const grandTotal = subtotal + tax;
+
     return {
       invoiceNo: invoice.invoiceNo,
       status: invoice.status,
@@ -90,9 +95,10 @@ export class InvoiceService {
         total: ri.quantity * ri.price,
       })),
       totals: {
-        subtotal: invoice.totalAmount,
-        tax: invoice.taxAmount ?? 0,
-        grandTotal: invoice.totalAmount + (invoice.taxAmount ?? 0),
+        subtotal,
+        tax,
+        taxRate,
+        grandTotal,
       },
     };
   }

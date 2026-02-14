@@ -6,6 +6,7 @@ import {
 import { RentalRepository } from './rental.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
+import { calculateTax } from '../../common/utils/tax.util.js';
 
 @Injectable()
 export class RentalService {
@@ -29,10 +30,17 @@ export class RentalService {
     await this.rentalRepository.assertItemsAvailable(dto);
 
     // Create rental + invoice together
+
+    const subtotal = totalAmount;
+
+    const { taxAmount, grandTotal } = calculateTax(subtotal, user.taxRate);
+
     const { rental, invoice } =
       await this.rentalRepository.createRentalWithInvoice(
         user.id,
         dto,
+        user.taxRate,
+        taxAmount,
         totalAmount,
       );
 
