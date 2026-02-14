@@ -16,6 +16,7 @@ export type User = {
   email: string;
   businessType: string;
   businessAddress: string;
+  taxRate: number;
   onboardingStep: number;
   onboardingDone: boolean;
   createdAt: Date;

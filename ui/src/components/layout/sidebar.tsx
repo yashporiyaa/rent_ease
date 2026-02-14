@@ -73,7 +73,7 @@ export function Sidebar() {
         {/* Footer */}
         <div className="pt-4 border-t space-y-1">
           <Link
-            href="/settings"
+            href="/protected/settings"
             className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
           >
             <Settings size={18} />

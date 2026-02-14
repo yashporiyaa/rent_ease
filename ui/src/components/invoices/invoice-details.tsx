@@ -6,7 +6,7 @@ import { InvoiceItemsTable } from "@/components/invoices/invoice-items-table";
 import { InvoiceSummary } from "@/components/invoices/invoice-summary";
 import { AddPaymentModal } from "./add-payment-modal";
 import { PaymentsTable } from "./payments-table";
-import { getInvoice } from "@/lib/api/invoice";
+import { downloadInvoicePDF, getInvoice } from "@/lib/api/invoice";
 import { toast } from "react-toastify";
 import { Button } from "../ui/button";
 
@@ -50,12 +50,9 @@ export default function InvoiceDetailsInfo({
   return (
     <div className="space-y-6 max-w-4xl">
       <Button
-        onClick={() =>
-          window.open(
-            `http://localhost:3001/invoices/${invoice.id}/pdf`,
-            "_blank",
-          )
-        }
+        onClick={async () => {
+          await downloadInvoicePDF(invoice);
+        }}
         className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
       >
         Download PDF

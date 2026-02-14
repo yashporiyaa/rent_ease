@@ -152,3 +152,26 @@ export const getUserDashboardData = async () => {
     throw error;
   }
 };
+
+export const updateUserTaxSettings = async (taxRate: string) => {
+  try {
+    const res = await fetch("http://localhost:3001/users/settings/tax", {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        taxRate: Number(taxRate),
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Update user tax settings failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("updateUserTaxSettings failed:", error);
+    throw error;
+  }
+};

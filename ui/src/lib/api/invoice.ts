@@ -33,3 +33,14 @@ export const getAllInvoices = async () => {
     throw error;
   }
 };
+
+export const downloadInvoicePDF = async (invoice: { id: string }) => {
+  const newWindow = await window.open(
+    `http://localhost:3001/invoices/${invoice.id}/pdf`,
+    "_blank",
+  );
+
+  if (!newWindow) {
+    throw new Error("Failed to open PDF");
+  }
+};
