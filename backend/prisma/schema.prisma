@@ -13,17 +13,18 @@ datasource db {
 }
 
 model User {
-  id              String  @id @default(uuid())
-  supabaseId      String  @unique
+  id              String          @id @default(uuid())
+  supabaseId      String          @unique
   companyName     String
   phone           String
-  email           String  @unique
+  email           String          @unique
   businessType    String
   businessAddress String?
   taxRate         Float? 
 
-  onboardingStep Int     @default(1)
-  onboardingDone Boolean @default(false)
+  onboardingStep  Int             @default(1)
+  onboardingDone  Boolean         @default(false)
+  invoiceTemplate InvoiceTemplate @default(CLASSIC)
 
   customers Customer[]
   items     Item[]
@@ -162,3 +163,10 @@ enum SubscriptionStatus {
   CANCELLED
   TRIAL
 }
+
+enum InvoiceTemplate {
+  CLASSIC
+  MODERN
+  MINIMAL
+}
+

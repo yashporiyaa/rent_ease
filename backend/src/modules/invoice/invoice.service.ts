@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InvoiceTemplate } from '@prisma/client';
 import { UserRepository } from '../user/user.repository.js';
 import { InvoiceRepository } from './invoice.repository.js';
 import { InvoicePdfService } from './invoice-pdf.service.js';
@@ -65,9 +66,12 @@ export class InvoiceService {
     if (!invoice) {
       throw new NotFoundException('Invoice not found');
     }
-    
+
     const structured = this.buildInvoiceView(invoice);
-    return this.invoicePdfService.generateInvoicePdf(structured);
+    return this.invoicePdfService.generateInvoicePdf(
+      structured,
+      user.invoiceTemplate ?? InvoiceTemplate.CLASSIC,
+    );
   }
 
   private buildInvoiceView(invoice: any) {
@@ -75,6 +79,11 @@ export class InvoiceService {
     const tax = invoice.taxAmount ?? 0;
     const taxRate = invoice.taxRate ?? 0;
     const grandTotal = subtotal + tax;
+    const amountPaid = (invoice.payments ?? []).reduce(
+      (sum: number, payment: any) => sum + (payment.amount ?? 0),
+      0,
+    );
+    const outstanding = Math.max(grandTotal - amountPaid, 0);
 
     return {
       invoiceNo: invoice.invoiceNo,
@@ -99,6 +108,8 @@ export class InvoiceService {
         tax,
         taxRate,
         grandTotal,
+        amountPaid,
+        outstanding,
       },
     };
   }

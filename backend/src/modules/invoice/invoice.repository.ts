@@ -64,6 +64,7 @@ export class InvoiceRepository {
             },
           },
         },
+        payments: true,
       },
     });
 

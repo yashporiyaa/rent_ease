@@ -182,4 +182,11 @@ export class UserRepository {
       data,
     });
   }
+
+  async updateProfile(supabaseId: string, data: any) {
+    return this.prisma.user.update({
+      where: { supabaseId },
+      data,
+    });
+  }
 }

@@ -10,6 +10,7 @@ import { UserRepository } from './user.repository.js';
 import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
 import { supabase } from '../../lib/supabase.js';
 import { UpdateTaxDto } from './dto/update-tax.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 @Injectable()
 export class UserService {
@@ -145,6 +146,16 @@ export class UserService {
       data: {
         taxRate: updated.taxRate,
       },
+    };
+  }
+
+  async updateProfile(supabaseId: string, dto: UpdateProfileDto) {
+    const updated = await this.userRepository.updateProfile(supabaseId, dto);
+
+    return {
+      success: true,
+      message: 'Profile updated successfully',
+      data: updated,
     };
   }
 }

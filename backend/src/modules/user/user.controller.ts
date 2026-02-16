@@ -3,6 +3,7 @@ import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { UpdateTaxDto } from './dto/update-tax.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 @Controller('users')
 export class UserController {
@@ -81,5 +82,11 @@ export class UserController {
   @Patch('settings/tax')
   updateTax(@Req() req: any, @Body() dto: UpdateTaxDto) {
     return this.userService.updateTax(req.user.sub, dto);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Patch('profile')
+  updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
+    return this.userService.updateProfile(req.user.sub, dto);
   }
 }
