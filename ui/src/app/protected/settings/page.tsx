@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 export default function SettingsPage() {
   const [taxRate, setTaxRate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [template, setTemplate] = useState("CLASSIC");
   const { user } = useContext(UserContext);
 
   useEffect(() => {
@@ -51,6 +52,16 @@ export default function SettingsPage() {
       >
         {loading ? "Saving..." : "Save Settings"}
       </Button>
+
+      <select
+        value={template}
+        onChange={(e) => setTemplate(e.target.value)}
+        className="border p-3 w-full rounded-xl"
+      >
+        <option value="CLASSIC">Classic</option>
+        <option value="MODERN">Modern</option>
+        <option value="MINIMAL">Minimal</option>
+      </select>
     </div>
   );
 }

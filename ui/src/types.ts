@@ -17,6 +17,7 @@ export type User = {
   businessType: string;
   businessAddress: string;
   taxRate: number;
+  invoiceTemplate: string;
   onboardingStep: number;
   onboardingDone: boolean;
   createdAt: Date;
@@ -50,7 +51,7 @@ export type CreateRentalPayload = {
 
 export type StatsCardProps = {
   title: string;
-  value: string;
+  value: number | string;
   trend?: string | null;
   type?: string;
 };

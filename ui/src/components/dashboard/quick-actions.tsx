@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { PlusCircle, UserPlus, Boxes } from "lucide-react";
 
-export function QuickActions() {
+type QuickActionsProps = {
+  onCreateRental?: () => void;
+};
+
+export function QuickActions({ onCreateRental }: QuickActionsProps) {
   return (
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
       <h2 className="text-base font-bold text-[#0e1b17] mb-6">
@@ -9,13 +13,24 @@ export function QuickActions() {
       </h2>
 
       <div className="flex flex-col gap-3">
-        <Link
-          href="/protected/rentals/new"
-          className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span>Add New Rental</span>
-        </Link>
+        {onCreateRental ? (
+          <button
+            type="button"
+            onClick={onCreateRental}
+            className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition text-left cursor-pointer"
+          >
+            <PlusCircle className="h-5 w-5" />
+            <span>Add New Rental</span>
+          </button>
+        ) : (
+          <Link
+            href="/protected/rentals/new"
+            className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition"
+          >
+            <PlusCircle className="h-5 w-5" />
+            <span>Add New Rental</span>
+          </Link>
+        )}
 
         <Link
           href="/protected/customers/new"

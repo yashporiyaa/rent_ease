@@ -1,23 +1,66 @@
 "use client";
 
+import { CreateRentalForm } from "@/components/rentals/create-rental-form";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { UpcomingReturns } from "@/components/dashboard/upcoming-returns";
+import { getCustomers } from "@/lib/api/customers";
 import { getUserDashboardData } from "@/lib/api/user";
-import { useEffect, useState } from "react";
+import { CustomerListItem } from "@/types";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "react-toastify";
+
+type DashboardStats = {
+  activeRentals: number;
+  overdueRentals: number;
+  totalRevenue: number;
+  pendingInvoices: number;
+};
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [formCustomers, setFormCustomers] = useState<CustomerListItem[]>([]);
+  const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchUserDashboardData = async () => {
+  const fetchUserDashboardData = useCallback(async () => {
+    try {
       const res = await getUserDashboardData();
       setStats(res.data);
-    };
-    fetchUserDashboardData();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch dashboard data";
+      toast.error(message);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchUserDashboardData();
+  }, [fetchUserDashboardData]);
+
+  useEffect(() => {
+    if (!isCreateOpen) return;
+
+    const fetchFormData = async () => {
+      setFormLoading(true);
+      try {
+        const customersRes = await getCustomers();
+        setFormCustomers(customersRes.data);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to load rental form data";
+        toast.error(message);
+      } finally {
+        setFormLoading(false);
+      }
+    };
+
+    void fetchFormData();
+  }, [isCreateOpen]);
 
   if (!stats) return null;
   
@@ -65,7 +108,7 @@ export default function DashboardPage() {
           <RevenueChart />
         </div>
         <div className="col-span-12 lg:col-span-4">
-          <QuickActions />
+          <QuickActions onCreateRental={() => setIsCreateOpen(true)} />
         </div>
       </div>
 
@@ -77,6 +120,35 @@ export default function DashboardPage() {
           <UpcomingReturns />
         </div>
       </div>
+
+      {isCreateOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          onClick={() => setIsCreateOpen(false)}
+        >
+          <div className="min-h-full flex items-center justify-center">
+            <div
+              className="w-full max-w-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {formLoading ? (
+                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
+                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <CreateRentalForm
+                  customers={formCustomers}
+                  onClose={() => setIsCreateOpen(false)}
+                  onSuccess={async () => {
+                    setIsCreateOpen(false);
+                    await fetchUserDashboardData();
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

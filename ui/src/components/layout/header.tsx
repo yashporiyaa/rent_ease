@@ -1,6 +1,12 @@
+import { UserContext } from "@/app/context/user-context";
 import { Bell, HelpCircle, Search } from "lucide-react";
+import { useContext } from "react";
 
 export function Header() {
+  const { user } = useContext(UserContext);
+
+  if (!user) return null;
+
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b px-8 py-4">
       <div className="flex items-center justify-between gap-8">
@@ -24,7 +30,7 @@ export function Header() {
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-bold">Alex Rivera</p>
+              <p className="text-sm font-bold">{user.email.split("@")[0]}</p>
               <p className="text-xs text-slate-500">Administrator</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-[#17cf91]/20" />
