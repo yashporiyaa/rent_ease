@@ -166,4 +166,29 @@ export class RentalRepository {
       },
     });
   }
+
+  async findCalendarBookings(userId: string, start: Date, end: Date) {
+    return this.prisma.rental.findMany({
+      where: {
+        userId,
+        status: {
+          not: 'COMPLETED',
+        },
+        startDate: {
+          gte: start,
+          lte: end,
+        },
+      },
+      include: {
+        invoice: {
+          select: {
+            invoiceNo: true,
+          },
+        },
+      },
+      orderBy: {
+        startDate: 'asc',
+      },
+    });
+  }
 }

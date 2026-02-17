@@ -5,12 +5,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { RentalService } from './rental.service.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
+import { CalendarQueryDto } from './dto/calendar-query.dto.js';
 
 @Controller('rentals')
 export class RentalController {
@@ -32,6 +34,16 @@ export class RentalController {
   @Get('overdue')
   async getOverdue(@Req() req: any) {
     return await this.rentalService.getOverdueRentals(req.user.sub);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Get('calendar')
+  getCalendar(@Req() req: any, @Query() query: CalendarQueryDto) {
+    return this.rentalService.getCalendarData(
+      req.user.sub,
+      query.start,
+      query.end,
+    );
   }
 
   @UseGuards(SupabaseAuthGuard)

@@ -128,4 +128,44 @@ export class RentalService {
 
     return await this.rentalRepository.findOverdueByUser(user.id);
   }
+
+  async getCalendarData(supabaseId: string, start: string, end: string) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) throw new NotFoundException('User not found');
+
+    const rentals = await this.rentalRepository.findCalendarBookings(
+      user.id,
+      new Date(start),
+      new Date(end),
+    );
+
+    const grouped: Record<string, { label: string; rentalId: string }[]> = {};
+
+    for (const rental of rentals) {
+      const dateKey = rental.startDate.toISOString().slice(0, 10);
+
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+
+      grouped[dateKey].push({
+        label: rental.invoice?.invoiceNo ?? rental.id.slice(0, 8),
+        rentalId: rental.id,
+      });
+    }
+
+    const result = Object.entries(grouped).map(([date, bookings]) => {
+      return {
+        date,
+        bookings,
+        moreCount: bookings.length > 3 ? bookings.length - 3 : 0,
+      };
+    });
+
+    return {
+      success: true,
+      message: 'Calendar data fetched successfully',
+      data: result,
+    };
+  }
 }
