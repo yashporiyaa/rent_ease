@@ -1,6 +1,11 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 
 export default function HomePage() {
+  const router = useRouter();
+
   return (
     <>
       <section className="mx-auto max-w-7xl px-6 py-20 grid gap-12 lg:grid-cols-2 items-center">
@@ -92,29 +97,23 @@ export default function HomePage() {
           Transparent Pricing
         </h2>
 
-        <div className="mx-auto mt-12 max-w-6xl grid gap-6 md:grid-cols-3">
-          {[
-            ["Basic", "$49", "Up to 5 properties"],
-            ["Pro", "$129", "Unlimited properties"],
-            ["Enterprise", "$299", "Custom solutions"],
-          ].map(([plan, price, desc]) => (
-            <div
-              key={plan}
-              className={`rounded-2xl border p-8 ${
-                plan === "Pro" ? "border-[#17cf91]" : "border-[#e6f4ee]"
-              }`}
+        <div className="mx-auto mt-12 max-w-xl">
+          <div className="rounded-2xl border border-[#17cf91] p-8 text-center">
+            <h3 className="font-semibold text-[#0e1b17]">Transparent Plan</h3>
+            <p className="mt-4 text-3xl font-black text-[#0e1b17]">Rs. 1999</p>
+            <p className="mt-2 text-sm text-[#4e977f]">
+              Complete access for property management.
+            </p>
+            <Button
+              className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold cursor-pointer"
+              variant="brand"
+              onClick={() => {
+                router.push("/auth/signup");
+              }}
             >
-              <h3 className="font-semibold">{plan}</h3>
-              <p className="mt-4 text-3xl font-black">{price}</p>
-              <p className="mt-2 text-sm text-[#4e977f]">{desc}</p>
-              <Button
-                className="mt-6 w-full rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 text-[#0e1b17] font-bold cursor-pointer"
-                variant="brand"
-              >
-                Choose {plan}
-              </Button>
-            </div>
-          ))}
+              Choose Plan
+            </Button>
+          </div>
         </div>
       </section>
     </>

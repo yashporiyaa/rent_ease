@@ -18,10 +18,6 @@ export default function ProfilePage() {
     invoiceTemplate: "minimal",
   });
 
-//   useEffect(() => {
-//     refreshUser();
-//   }, []);
-
   useEffect(() => {
     if (user) {
       setForm({

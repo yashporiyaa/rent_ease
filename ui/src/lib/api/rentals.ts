@@ -56,3 +56,23 @@ export const getRentalById = async (rentalId: string) => {
     throw error;
   }
 };
+
+export const getCalendarData = async (start: string, end: string) => {
+  try {
+    const res = await fetch(
+      `http://localhost:3001/rentals/calendar?start=${start}&end=${end}`,
+      { credentials: "include" },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Fetch calendar data failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("getCalendarData failed:", error);
+    throw error;
+  }
+};

@@ -1,9 +1,11 @@
 import { UserContext } from "@/app/context/user-context";
 import { Bell, HelpCircle, Search } from "lucide-react";
+import { useRouter } from "next/dist/client/components/navigation";
 import { useContext } from "react";
 
 export function Header() {
   const { user } = useContext(UserContext);
+  const router = useRouter();
 
   if (!user) return null;
 
@@ -28,7 +30,7 @@ export function Header() {
             <HelpCircle />
           </IconButton>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/protected/profile")}>
             <div className="text-right">
               <p className="text-sm font-bold">{user.email.split("@")[0]}</p>
               <p className="text-xs text-slate-500">Administrator</p>
