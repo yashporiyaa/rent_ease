@@ -41,6 +41,8 @@ export class UserService {
       companyName,
       phone,
       businessType,
+      onboardingDone: true,
+      onboardingStep: 4,
     });
 
     // STEP 3 — 🔥 Auto Login User
@@ -57,7 +59,7 @@ export class UserService {
       user,
       session: loginRes.data.session,
       accessToken: loginRes.data.session.access_token,
-      onboardingDone: user.data.onboardingDone,
+      onboardingDone: true,
     };
   }
 
@@ -90,20 +92,6 @@ export class UserService {
     return {
       message: 'If an account exists, a password reset email has been sent',
     };
-  }
-
-  async updateBusiness(supabaseId: string, address: string) {
-    if (!address) {
-      throw new Error('Address is required');
-    }
-
-    return this.userRepository.updateBusinessBySupabaseId(supabaseId, address);
-  }
-
-  async completeOnboarding(userId: string) {
-    return await this.userRepository.updateUser(userId, {
-      onboardingDone: true,
-    });
   }
 
   async getUser(supabaseId: string) {

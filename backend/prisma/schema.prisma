@@ -22,6 +22,11 @@ model User {
   businessAddress String?
   taxRate         Float? 
 
+
+  stripeCustomerId     String?  @unique
+  subscriptionStatus   SubscriptionStatus   @default(TRIAL) 
+  trialEndsAt          DateTime
+
   onboardingStep  Int             @default(1)
   onboardingDone  Boolean         @default(false)
   invoiceTemplate InvoiceTemplate @default(CLASSIC)
@@ -125,13 +130,13 @@ model Payment {
 }
 
 model Subscription {
-  id     String @id @default(uuid())
-  userId String @unique
+  id                     String         @id @default(uuid())
+  userId                 String         @unique
 
-  planName  String
-  status    SubscriptionStatus
-  startDate DateTime
-  endDate   DateTime
+  stripeSubscriptionId   String         @unique
+  priceId                String
+  currentPeriodEnd       DateTime
+  status                 SubscriptionStatus
 
   user User @relation(fields: [userId], references: [id])
 }

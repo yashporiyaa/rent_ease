@@ -9,6 +9,7 @@ import { ItemModule } from './modules/item/item.module.js';
 import { RentalModule } from './modules/rental/rental.module.js';
 import { InvoiceModule } from './modules/invoice/invoice.module.js';
 import { PaymentModule } from './modules/payment/payment.module.js';
+import { StripeModule } from './modules/stripe/stripe.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PaymentModule } from './modules/payment/payment.module.js';
     RentalModule,
     InvoiceModule,
     PaymentModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

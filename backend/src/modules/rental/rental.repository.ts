@@ -147,7 +147,6 @@ export class RentalRepository {
   }
 
   async findOverdueByUser(userId: string) {
-    
     return await this.prisma.rental.findMany({
       where: {
         userId,

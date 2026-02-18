@@ -12,8 +12,22 @@ export class UserRepository {
     phone: string;
     email: string;
     businessType: string;
+    onboardingStep?: number;
+    onboardingDone?: boolean;
   }) {
-    const user = await this.prisma.user.create({ data });
+    const trialDays = 14;
+    const user = await this.prisma.user.create({
+      data: {
+        supabaseId: data.supabaseId,
+        companyName: data.companyName,
+        phone: data.phone,
+        email: data.email,
+        businessType: data.businessType,
+        onboardingStep: data.onboardingStep,
+        onboardingDone: data.onboardingDone,
+        trialEndsAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000),
+      },
+    });
     return {
       message: 'User created successfully',
       data: user,
@@ -33,22 +47,12 @@ export class UserRepository {
     }
   }
 
-  async updateBusinessBySupabaseId(supabaseId: string, address: string) {
-    const businessAddress = address;
-    const user = await this.prisma.user.update({
-      where: { supabaseId },
-      data: {
-        businessAddress,
-      },
-    });
-
-    return user;
-  }
-
   async findById(supabaseId: string) {
-    return this.prisma.user.findUnique({
+    
+    const user = await this.prisma.user.findUnique({
       where: { supabaseId },
     });
+    return user;
   }
 
   async getDashboardStats(userId: string) {

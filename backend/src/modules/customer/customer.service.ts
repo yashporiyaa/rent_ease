@@ -8,7 +8,7 @@ export class CustomerService {
   constructor(
     private CustomerRepository: CustomerRepository,
     private UserRepository: UserRepository,
-  ) { }
+  ) {}
 
   async createCustomer(supabaseId: string, dto: CreateCustomerDto) {
     const user = await this.UserRepository.findById(supabaseId);
@@ -20,10 +20,6 @@ export class CustomerService {
       userId: user.id,
       name: dto.name,
       phone: dto.phone,
-    });
-    // Update onboarding step
-    await this.UserRepository.updateUser(supabaseId, {
-      onboardingStep: 3,
     });
 
     return customer;

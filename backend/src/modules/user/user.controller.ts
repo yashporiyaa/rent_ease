@@ -46,20 +46,6 @@ export class UserController {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Patch('onboarding/business')
-  async updateBusiness(@Req() req: any, @Body() body: any) {
-    const supabaseId = req.user.sub;
-
-    return this.userService.updateBusiness(supabaseId, body.address);
-  }
-
-  @UseGuards(SupabaseAuthGuard)
-  @Patch('onboarding/complete')
-  async completeOnboarding(@Req() req: any, @Body('userId') userId: string) {
-    return await this.userService.completeOnboarding(userId);
-  }
-
-  @UseGuards(SupabaseAuthGuard)
   @Get('me')
   getMe(@Req() req: any) {
     const supabaseId = req.user.sub;

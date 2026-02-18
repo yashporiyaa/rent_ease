@@ -7,26 +7,21 @@ import { CreateItemDto } from './dto/create-item.dto.js';
 export class ItemService {
   constructor(
     private itemRepository: ItemRepository,
-    private userRepository: UserRepository
-  ) { }
+    private userRepository: UserRepository,
+  ) {}
 
   async create(supabaseId: string, dto: CreateItemDto) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
     const userId = user.id;
     const item = await this.itemRepository.create({
       userId,
       ...dto,
-    });
-
-    //  MOVE ONBOARDING TO STEP 4
-    await this.userRepository.updateUser(supabaseId, {
-      onboardingStep: 4,
     });
 
     return item;

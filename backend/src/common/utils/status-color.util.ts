@@ -1,4 +1,4 @@
-import { InvoiceStatus } from "@prisma/client";
+import { InvoiceStatus } from '@prisma/client';
 
 export function getStatusStyles(status: InvoiceStatus) {
   switch (status) {
@@ -21,7 +21,7 @@ export function getStatusStyles(status: InvoiceStatus) {
       };
 
     case 'CANCELLED':
-      return {  
+      return {
         bg: '#ef4444',
         text: '#ffffff',
       };

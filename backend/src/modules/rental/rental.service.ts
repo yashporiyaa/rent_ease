@@ -33,7 +33,7 @@ export class RentalService {
 
     const subtotal = totalAmount;
 
-    const { taxAmount, grandTotal } = calculateTax(subtotal, user.taxRate);
+    const { taxAmount } = calculateTax(subtotal, user.taxRate);
 
     const { rental, invoice } =
       await this.rentalRepository.createRentalWithInvoice(
@@ -43,14 +43,6 @@ export class RentalService {
         taxAmount,
         totalAmount,
       );
-
-    //  Finish onboarding (first rental)
-    if (!user.onboardingDone) {
-      await this.userRepository.updateUser(supabaseId, {
-        onboardingDone: true,
-        onboardingStep: 4,
-      });
-    }
 
     return {
       success: true,
