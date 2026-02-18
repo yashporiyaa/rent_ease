@@ -58,11 +58,7 @@ export default function LoginPage() {
       if (!active) return;
 
       if (currentUser) {
-        if (currentUser.onboardingDone) {
-          router.replace("/protected/dashboard");
-        } else {
-          router.replace("/onboarding");
-        }
+        router.replace("/protected/dashboard");
         return;
       }
       setChecking(false);

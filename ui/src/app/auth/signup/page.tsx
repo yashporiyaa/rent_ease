@@ -36,7 +36,7 @@ export default function SignUpPage() {
       await createUser(formData);
       localStorage.setItem("isLoggedIn", "true");
       toast.success("Account created successfully");
-      router.push("/onboarding");
+      router.push("/protected/dashboard");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Signup failed";
       toast.error(message);
@@ -59,11 +59,7 @@ export default function SignUpPage() {
       if (!active) return;
 
       if (currentUser) {
-        if (currentUser.onboardingDone) {
-          router.replace("/protected/dashboard");
-        } else {
-          router.replace("/onboarding");
-        }
+        router.replace("/protected/dashboard");
         return;
       }
       setChecking(false);

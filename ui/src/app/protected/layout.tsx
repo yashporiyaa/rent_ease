@@ -36,11 +36,6 @@ export default function ProtectedLayout({
         return;
       }
 
-      if (!currentUser.onboardingDone) {
-        router.replace("/onboarding");
-        return;
-      }
-
       setChecking(false);
     };
 

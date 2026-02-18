@@ -110,31 +110,6 @@ export const getUser = async () => {
   }
 };
 
-export const updateBusinessOnboarding = async (address: string) => {
-  try {
-    const res = await fetch("http://localhost:3001/users/onboarding/business", {
-      method: "PATCH",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        address,
-      }),
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || "Update business onboarding failed");
-    }
-
-    return res.json();
-  } catch (error) {
-    console.error("updateBusinessOnboarding failed:", error);
-    throw error;
-  }
-};
-
 export const getUserDashboardData = async () => {
   try {
     const res = await fetch("http://localhost:3001/users/dashboard", {

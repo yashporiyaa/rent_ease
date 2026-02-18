@@ -1,67 +1,81 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserContext } from "@/app/context/user-context";
-import { updateUserTaxSettings } from "@/lib/api/user";
+import { createCheckoutSession } from "@/lib/api/stripe";
 import { toast } from "react-toastify";
 
 export default function SettingsPage() {
-  const [taxRate, setTaxRate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [template, setTemplate] = useState("CLASSIC");
+  const [startingCheckout, setStartingCheckout] = useState(false);
   const { user } = useContext(UserContext);
 
-  useEffect(() => {
-    if (!user) return;
-
-    setTaxRate(user.taxRate?.toString() || "0");
-  }, [user]);
-
-  const submit = async () => {
-    setLoading(true);
-
-    await updateUserTaxSettings(taxRate);
-    toast.success("Tax settings updated successfully");
-    setLoading(false);
+  const handleSubscribe = async () => {
+    try {
+      setStartingCheckout(true);
+      const checkoutUrl = await createCheckoutSession();
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start subscription";
+      toast.error(message);
+      setStartingCheckout(false);
+    }
   };
 
+  const subscriptionStatus = user?.subscriptionStatus ?? "TRIAL";
+  const isActiveSubscription = subscriptionStatus === "ACTIVE";
+  const trialEndsAt = user?.trialEndsAt ? new Date(user.trialEndsAt) : null;
+  const currentPlan = isActiveSubscription ? "Transparent Plan" : "Free Trial";
+  const planPrice = isActiveSubscription ? "Rs. 1999 / month" : "Upgrade to subscribe";
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div className="max-w-2xl bg-white p-8 rounded-xl border shadow-sm space-y-6">
-      <h1 className="text-2xl font-black text-[#0e1b17]">Tax Settings</h1>
+    <div className="max-w-3xl space-y-6">
+      <div className="bg-white p-8 rounded-xl border shadow-sm space-y-6">
+        <h1 className="text-2xl font-black text-[#0e1b17]">
+          Subscription & Billing
+        </h1>
 
-      <div>
-        <label className="text-sm font-semibold text-[#0e1b17]">
-          GST / Tax Percentage
-        </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-[#d6efe6] bg-[#f4fcf8] p-5 space-y-2">
+            <p className="text-sm text-[#4e977f]">Current Plan</p>
+            <p className="text-xl font-black text-[#0e1b17]">{currentPlan}</p>
+            <p className="text-sm text-[#4e977f]">{planPrice}</p>
+          </div>
 
-        <input
-          type="number"
-          min="0"
-          max="100"
-          value={taxRate}
-          onChange={(e) => setTaxRate(e.target.value)}
-          className="mt-2 border p-3 w-full rounded-xl"
-        />
+          <div className="rounded-xl border border-[#d6efe6] bg-[#f4fcf8] p-5 space-y-2">
+            <p className="text-sm text-[#4e977f]">Current Status</p>
+            <p className="text-xl font-black text-[#0e1b17]">
+              {subscriptionStatus}
+            </p>
+            {trialEndsAt && (
+              <p className="text-sm text-[#4e977f]">
+                Trial ends on{" "}
+                {trialEndsAt.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <Button
+          onClick={handleSubscribe}
+          disabled={startingCheckout || isActiveSubscription}
+          className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+        >
+          {isActiveSubscription
+            ? "Subscription Active"
+            : startingCheckout
+              ? "Redirecting..."
+              : "Subscribe Now"}
+        </Button>
       </div>
-
-      <Button
-        onClick={submit}
-        disabled={loading}
-        className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
-      >
-        {loading ? "Saving..." : "Save Settings"}
-      </Button>
-
-      <select
-        value={template}
-        onChange={(e) => setTemplate(e.target.value)}
-        className="border p-3 w-full rounded-xl"
-      >
-        <option value="CLASSIC">Classic</option>
-        <option value="MODERN">Modern</option>
-        <option value="MINIMAL">Minimal</option>
-      </select>
     </div>
   );
 }

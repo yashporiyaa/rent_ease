@@ -82,7 +82,7 @@ export default function RentalsPage() {
         </Button>
       </div>
       {rentals.length === 0 ? (
-        <RentalsEmptyState />
+        <RentalsEmptyState onClick={() => setIsCreateOpen(true)} />
       ) : (
         <RentalsTable rentals={rentals} />
       )}

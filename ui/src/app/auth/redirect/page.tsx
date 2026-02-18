@@ -32,11 +32,6 @@ export default function RedirectPage() {
         return;
       }
 
-      if (!currentUser.onboardingDone) {
-        router.replace("/onboarding");
-        return;
-      }
-
       router.replace("/protected/dashboard");
     };
 

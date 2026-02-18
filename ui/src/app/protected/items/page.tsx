@@ -58,7 +58,7 @@ export default function ItemsPage() {
           Add Item
         </Button>
       </div>
-      {items.length === 0 ? <ItemsEmptyState /> : <ItemsTable items={items} />}
+      {items.length === 0 ? <ItemsEmptyState onClick={() => setIsCreateOpen(true)} /> : <ItemsTable items={items} />}
 
       {isCreateOpen && (
         <div

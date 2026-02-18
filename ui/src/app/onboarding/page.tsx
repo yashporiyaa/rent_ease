@@ -1,18 +1,18 @@
 "use client";
 
-import { useContext, useState } from "react";
-import { BusinessStep } from "./components/business-step";
-import { CustomerStep } from "./components/customer-step";
-import { ItemStep } from "./components/Item-step";
-import { UserContext } from "../context/user-context";
-import { RentalStep } from "./components/rental-step";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
-  const [step, setStep] = useState(1);
-  const { user } = useContext(UserContext);
+  const router = useRouter();
 
-  if (step === 1) return <BusinessStep onSuccess={() => setStep(2)} />;
-  if (step === 2) return <CustomerStep onSuccess={() => setStep(3)} />;
-  if (step === 3) return <ItemStep onSuccess={() => setStep(4)} />;
-  if (step === 4) return <RentalStep />;
+  useEffect(() => {
+    router.replace("/protected/dashboard");
+  }, [router]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
+      <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 }

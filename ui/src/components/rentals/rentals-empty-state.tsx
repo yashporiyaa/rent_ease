@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function RentalsEmptyState() {
+export function RentalsEmptyState({ onClick }: { onClick: () => void }) {
   return (
     <div className="bg-white p-10 rounded-xl border text-center">
       <FilePlus size={40} className="mx-auto text-[#17cf91] mb-4" />
@@ -13,14 +13,13 @@ export function RentalsEmptyState() {
         Create your first rental to start earning.
       </p>
 
-      <Link href="/protected/rentals/new">
-        <Button
-          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
-          variant="brand"
-        >
-          Create Rental
-        </Button>
-      </Link>
+      <Button
+        onClick={onClick}
+        className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+        variant="brand"
+      >
+        Create Rental
+      </Button>
     </div>
   );
 }

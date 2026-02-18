@@ -57,7 +57,7 @@ export default function CustomersPage() {
         </Button>
       </div>
       {customers.length === 0 ? (
-        <CustomersEmptyState />
+        <CustomersEmptyState onClick={() => setIsCreateOpen(true)} />
       ) : (
         <CustomersTable customers={customers} />
       )}

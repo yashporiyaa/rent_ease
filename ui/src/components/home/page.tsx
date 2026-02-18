@@ -23,6 +23,9 @@ export default function HomePage() {
             <Button
               className="rounded-full bg-[#17cf91] hover:bg-[#17cf91]/90 px-8 text-[#0e1b17] font-bold cursor-pointer"
               variant="brand"
+              onClick={() => {
+                router.push("/auth/signup");
+              }}
             >
               Get Started
             </Button>
@@ -111,7 +114,7 @@ export default function HomePage() {
                 router.push("/auth/signup");
               }}
             >
-              Choose Plan
+              Subscribe
             </Button>
           </div>
         </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function CustomersEmptyState() {
+export function CustomersEmptyState({ onClick }: { onClick: () => void }) {
   return (
     <div className="bg-white p-10 rounded-xl border shadow-sm text-center">
       <UserPlus className="mx-auto text-[#17cf91] mb-4" size={40} />
@@ -11,14 +11,13 @@ export function CustomersEmptyState() {
         Add your first customer to start creating rentals.
       </p>
 
-      <Link href="/protected/customers/new">
-        <Button
-          className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
-          variant="brand"
-        >
-          Add Customer
-        </Button>
-      </Link>
+      <Button
+        onClick={onClick}
+        className="mt-6 rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+        variant="brand"
+      >
+        Add Customer
+      </Button>
     </div>
   );
 }

@@ -15,8 +15,11 @@ export type User = {
   phone: string;
   email: string;
   businessType: string;
-  businessAddress: string;
-  taxRate: number;
+  businessAddress?: string | null;
+  taxRate?: number | null;
+  stripeCustomerId?: string | null;
+  subscriptionStatus?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
+  trialEndsAt?: string | Date | null;
   invoiceTemplate: string;
   onboardingStep: number;
   onboardingDone: boolean;
@@ -29,13 +32,6 @@ export type UserContextType = {
   loading: boolean;
   refreshUser: () => Promise<User | null>;
   logout: () => Promise<void>;
-};
-
-export type OnboardingContextType = {
-  customerId?: string;
-  itemId?: string;
-  setCustomerId: (id: string) => void;
-  setItemId: (id: string) => void;
 };
 
 export type CreateRentalPayload = {
