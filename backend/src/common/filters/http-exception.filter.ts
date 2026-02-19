@@ -25,6 +25,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : (res as any).message || message;
+    } else if (
+      typeof exception === 'object' &&
+      exception !== null &&
+      'type' in exception &&
+      (exception as any).type === 'entity.too.large'
+    ) {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+      message = 'Request payload too large';
     }
 
     response.status(status).json({

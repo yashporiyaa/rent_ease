@@ -5,11 +5,16 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor.
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
   });
+
+  // Allow larger payloads for item creation with multiple base64 images.
+  app.use(json({ limit: '15mb' }));
+  app.use(urlencoded({ limit: '15mb', extended: true }));
 
   app.use(cookieParser());
 

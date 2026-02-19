@@ -42,7 +42,6 @@ export class UserService {
       phone,
       businessType,
       onboardingDone: true,
-      onboardingStep: 4,
     });
 
     // STEP 3 — 🔥 Auto Login User

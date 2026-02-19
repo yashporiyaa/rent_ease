@@ -9,7 +9,6 @@ export class StripeController {
   @UseGuards(SupabaseAuthGuard)
   @Post('create-checkout-session')
   async createCheckout(@Req() req: any) {
-    // console.log(req.user);
     return this.stripeService.createCheckoutSession(req.user.sub);
   }
 

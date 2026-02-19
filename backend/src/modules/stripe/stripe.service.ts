@@ -24,28 +24,22 @@ export class StripeService {
 
   //  Checkout Session
   async createCheckoutSession(supabaseId: string) {
-    console.log(supabaseId);
     const user = await this.userRepository.findById(supabaseId);
 
     if (!user) {
       throw new Error('User not found');
     }
-    console.log(user);
     let customerId = user.stripeCustomerId;
-    console.log({ customerId });
     if (!customerId) {
       try {
         const customer = await this.stripe.customers.create({
           email: user.email,
         });
-        console.log(customer);
-        console.log('Stripe customer created:', customer.id);
 
         const data = await this.stripeRepository.updateStripeCustomerId(
           user.id,
           customer.id,
         );
-        console.log(data);
         customerId = customer.id;
       } catch (error: any) {
         console.error('Stripe customer creation failed:', error);
@@ -67,8 +61,6 @@ export class StripeService {
         cancel_url: `${process.env.FRONTEND_URL}/protected/settings`,
       });
 
-      console.log('SESSION CREATED:', session.id);
-
       return { url: session.url };
     } catch (error: any) {
       console.error('Checkout session creation failed:', error);
@@ -84,8 +76,6 @@ export class StripeService {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET!,
       );
-
-      console.log('WEBHOOK EVENT:', event.type);
 
       switch (event.type) {
         case 'checkout.session.completed':
@@ -128,7 +118,6 @@ export class StripeService {
   }
 
   private async onSubscriptionDeleted(subscription: Stripe.Subscription) {
-    console.log(subscription);
     await this.stripeRepository.cancelSubscription(subscription.id);
   }
 }

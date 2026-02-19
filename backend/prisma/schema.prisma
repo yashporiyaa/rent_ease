@@ -27,12 +27,13 @@ model User {
   subscriptionStatus   SubscriptionStatus   @default(TRIAL) 
   trialEndsAt          DateTime
 
-  onboardingStep  Int             @default(1)
   onboardingDone  Boolean         @default(false)
   invoiceTemplate InvoiceTemplate @default(CLASSIC)
 
   customers Customer[]
   items     Item[]
+  itemCategories ItemCategory[]
+  itemSizes ItemSize[]
   rentals   Rental[]
 
   createdAt    DateTime      @default(now())
@@ -43,10 +44,13 @@ model User {
 }
 
 model Customer {
-  id     String @id @default(uuid())
-  userId String
-  name   String
-  phone  String?
+  id       String @id @default(uuid())
+  userId   String
+  name     String
+  phone    String?
+  phone1   String?
+  phone2   String?
+  address  String?
 
   user    User     @relation(fields: [userId], references: [id])
   rentals Rental[]
@@ -55,14 +59,51 @@ model Customer {
 model Item {
   id       String @id @default(uuid())
   userId   String
-  name     String
+  shortName String @default("")
+  fullName String @default("")
+  description String?
   category String
+  categoryId String?
+  size     String?
+  sizeId   String?
   price    Float
+  entryDate DateTime @default(now())
+  quantity Int @default(1)
+  images   String[] @default([])
   stock    Int     @default(1)   
 
 
   user        User         @relation(fields: [userId], references: [id])
+  itemCategory ItemCategory? @relation(fields: [categoryId], references: [id])
+  itemSize    ItemSize? @relation(fields: [sizeId], references: [id])
   rentalItems RentalItem[]
+}
+
+model ItemCategory {
+  id       String @id @default(uuid())
+  userId   String
+  name     String
+  imageUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User @relation(fields: [userId], references: [id])
+  items Item[]
+
+  @@unique([userId, name])
+}
+
+model ItemSize {
+  id       String @id @default(uuid())
+  userId   String
+  name     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User @relation(fields: [userId], references: [id])
+  items Item[]
+
+  @@unique([userId, name])
 }
 
 model Rental {
@@ -73,6 +114,18 @@ model Rental {
   endDate     DateTime
   totalAmount Float
   createdAt   DateTime      @default(now())
+  bookingAt   DateTime      @default(now())
+  deliveryAddress String?
+  description String?
+  totalQuantity Int         @default(0)
+  discountPercent Float     @default(0)
+  discountAmount Float      @default(0)
+  taxPercent Float          @default(0)
+  taxAmountValue Float      @default(0)
+  advanceAmount Float       @default(0)
+  pendingAmount Float       @default(0)
+  depositAmount Float       @default(0)
+  outstandingWithDeposit Float @default(0)
 
   status      RentalStatus  @default(ACTIVE)
   returnedAt  DateTime?                    
@@ -89,6 +142,16 @@ model RentalItem {
   itemId   String
   quantity Int
   price    Float
+  fromAt   DateTime?
+  toAt     DateTime?
+  description String?
+  image    String?
+  discountPercent Float @default(0)
+  discountAmount Float  @default(0)
+  taxPercent Float      @default(0)
+  taxAmount Float       @default(0)
+  totalAmount Float     @default(0)
+  status   String       @default("ACTIVE")
 
   rental Rental @relation(fields: [rentalId], references: [id])
   item   Item   @relation(fields: [itemId], references: [id])

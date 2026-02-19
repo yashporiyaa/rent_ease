@@ -10,6 +10,8 @@ import { RentalModule } from './modules/rental/rental.module.js';
 import { InvoiceModule } from './modules/invoice/invoice.module.js';
 import { PaymentModule } from './modules/payment/payment.module.js';
 import { StripeModule } from './modules/stripe/stripe.module.js';
+import { ItemCategoryModule } from './modules/item-category/item-category.module.js';
+import { ItemSizeModule } from './modules/item-size/item-size.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { StripeModule } from './modules/stripe/stripe.module.js';
     UserModule,
     CustomerModule,
     ItemModule,
+    ItemCategoryModule,
+    ItemSizeModule,
     RentalModule,
     InvoiceModule,
     PaymentModule,

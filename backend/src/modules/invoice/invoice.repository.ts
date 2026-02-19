@@ -17,7 +17,7 @@ export class InvoiceRepository {
             customer: { select: { name: true } },
             rentalItems: {
               include: {
-                item: { select: { name: true } },
+                item: { select: { fullName: true } },
               },
             },
           },

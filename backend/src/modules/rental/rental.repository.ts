@@ -16,22 +16,53 @@ export class RentalRepository {
     userId: string,
     dto: CreateRentalDto,
     taxRate: number | null,
-    taxAmount: number,
-    totalAmount: number,
   ) {
+    const sortedFromDates = dto.lineItems
+      .map((item) => new Date(item.fromAt))
+      .sort((a, b) => a.getTime() - b.getTime());
+    const sortedToDates = dto.lineItems
+      .map((item) => new Date(item.toAt))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    const startDate = sortedFromDates[0] ?? new Date(dto.bookingAt);
+    const endDate =
+      sortedToDates[sortedToDates.length - 1] ?? new Date(dto.bookingAt);
+
     return this.prisma.$transaction(async (tx) => {
       const rental = await tx.rental.create({
         data: {
           userId,
           customerId: dto.customerId,
-          startDate: new Date(dto.startDate),
-          endDate: new Date(dto.endDate),
-          totalAmount,
+          bookingAt: new Date(dto.bookingAt),
+          startDate,
+          endDate,
+          totalAmount: dto.totalAmount,
+          deliveryAddress: dto.deliveryAddress,
+          description: dto.description,
+          totalQuantity: dto.totalQuantity,
+          discountPercent: dto.discountPercent,
+          discountAmount: dto.discountAmount,
+          taxPercent: dto.taxPercent,
+          taxAmountValue: dto.taxAmountValue,
+          advanceAmount: dto.advanceAmount,
+          pendingAmount: dto.pendingAmount,
+          depositAmount: dto.depositAmount,
+          outstandingWithDeposit: dto.outstandingWithDeposit,
           rentalItems: {
-            create: dto.items.map((item) => ({
+            create: dto.lineItems.map((item) => ({
               itemId: item.itemId,
               quantity: item.quantity,
-              price: item.price,
+              price: item.rate,
+              fromAt: new Date(item.fromAt),
+              toAt: new Date(item.toAt),
+              description: item.description,
+              image: item.image,
+              discountPercent: item.discountPercent ?? 0,
+              discountAmount: item.discountAmount ?? 0,
+              taxPercent: item.taxPercent ?? 0,
+              taxAmount: item.taxAmount ?? 0,
+              totalAmount: item.total,
+              status: item.status ?? 'ACTIVE',
             })),
           },
         },
@@ -43,8 +74,8 @@ export class RentalRepository {
           rentalId: rental.id,
           invoiceNo: generateInvoiceNo(),
           taxRate,
-          totalAmount,
-          taxAmount, // later GST
+          totalAmount: dto.totalAmount,
+          taxAmount: dto.taxAmountValue,
           status: InvoiceStatus.PENDING,
         },
       });
@@ -54,7 +85,7 @@ export class RentalRepository {
   }
 
   async assertItemsAvailable(dto: CreateRentalDto) {
-    for (const requestedItem of dto.items) {
+    for (const requestedItem of dto.lineItems) {
       const item = await this.prisma.item.findUnique({
         where: { id: requestedItem.itemId },
       });
@@ -68,8 +99,8 @@ export class RentalRepository {
           itemId: requestedItem.itemId,
           rental: {
             status: 'ACTIVE',
-            startDate: { lte: new Date(dto.endDate) },
-            endDate: { gte: new Date(dto.startDate) },
+            startDate: { lte: new Date(requestedItem.toAt) },
+            endDate: { gte: new Date(requestedItem.fromAt) },
           },
         },
         include: {
@@ -86,7 +117,7 @@ export class RentalRepository {
 
       if (requestedItem.quantity > availableStock) {
         throw new BadRequestException(
-          `${item.name} has only ${availableStock} available for selected dates`,
+          `${item.fullName} has only ${availableStock} available for selected dates`,
         );
       }
     }
@@ -118,7 +149,7 @@ export class RentalRepository {
         rentalItems: {
           include: {
             item: {
-              select: { name: true },
+              select: { fullName: true },
             },
           },
         },

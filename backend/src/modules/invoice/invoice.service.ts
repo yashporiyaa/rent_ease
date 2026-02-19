@@ -98,7 +98,7 @@ export class InvoiceService {
         end: invoice.rental.endDate,
       },
       items: invoice.rental.rentalItems.map((ri) => ({
-        name: ri.item.name,
+        name: ri.item.fullName,
         quantity: ri.quantity,
         unitPrice: ri.price,
         total: ri.quantity * ri.price,

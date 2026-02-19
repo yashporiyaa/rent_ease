@@ -6,7 +6,6 @@ import {
 import { RentalRepository } from './rental.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
-import { calculateTax } from '../../common/utils/tax.util.js';
 
 @Injectable()
 export class RentalService {
@@ -16,12 +15,6 @@ export class RentalService {
   ) {}
 
   async create(supabaseId: string, dto: CreateRentalDto) {
-    // Calculate total
-    const totalAmount = dto.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
-    );
-
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -29,19 +22,14 @@ export class RentalService {
 
     await this.rentalRepository.assertItemsAvailable(dto);
 
-    // Create rental + invoice together
-
-    const subtotal = totalAmount;
-
-    const { taxAmount } = calculateTax(subtotal, user.taxRate);
+    const appliedTaxRate =
+      dto.taxPercent > 0 ? dto.taxPercent : (user.taxRate ?? 0);
 
     const { rental, invoice } =
       await this.rentalRepository.createRentalWithInvoice(
         user.id,
         dto,
-        user.taxRate,
-        taxAmount,
-        totalAmount,
+        appliedTaxRate,
       );
 
     return {

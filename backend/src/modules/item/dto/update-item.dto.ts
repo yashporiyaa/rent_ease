@@ -7,34 +7,41 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateItemDto {
+export class UpdateItemDto {
   @IsString()
-  shortName: string;
+  @IsOptional()
+  shortName?: string;
 
   @IsString()
-  fullName: string;
+  @IsOptional()
+  fullName?: string;
 
   @IsString()
   @IsOptional()
   description?: string;
 
   @IsString()
-  categoryId: string;
+  @IsOptional()
+  categoryId?: string;
 
   @IsString()
-  sizeId: string;
+  @IsOptional()
+  sizeId?: string;
 
   @IsNumber()
-  price: number;
+  @IsOptional()
+  price?: number;
 
   @IsDateString()
-  entryDate: string;
+  @IsOptional()
+  entryDate?: string;
 
   @IsInt()
-  quantity: number;
+  @IsOptional()
+  quantity?: number;
 
   @IsArray()
-  @IsOptional()
   @IsString({ each: true })
+  @IsOptional()
   images?: string[];
 }

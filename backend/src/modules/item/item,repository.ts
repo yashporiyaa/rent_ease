@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { Prisma } from '@prisma/client';
 
 type ItemAvailability = {
   id: string;
   name: string;
+  fullName: string;
   price: number;
   stock: number;
   available: number;
+  images: string[];
+  description: string | null;
 };
 
 @Injectable()
@@ -27,10 +31,35 @@ export class ItemRepository {
     }
   }
 
-   async findByUserId(userId: string) {
+  async findByUserId(userId: string) {
     return await this.prisma.item.findMany({
       where: { userId },
-      orderBy: { name: 'asc' },
+      orderBy: { fullName: 'asc' },
+    });
+  }
+
+  async findByIdAndUserId(id: string, userId: string) {
+    return this.prisma.item.findFirst({
+      where: { id, userId },
+    });
+  }
+
+  async updateById(id: string, data: Prisma.ItemUncheckedUpdateInput) {
+    return this.prisma.item.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deleteById(id: string) {
+    return this.prisma.item.delete({
+      where: { id },
+    });
+  }
+
+  async countRentalItems(itemId: string) {
+    return this.prisma.rentalItem.count({
+      where: { itemId },
     });
   }
 
@@ -60,10 +89,13 @@ export class ItemRepository {
       const booked = overlapping.reduce((sum, ri) => sum + ri.quantity, 0);
       result.push({
         id: item.id,
-        name: item.name,
+        name: item.fullName,
+        fullName: item.fullName,
         price: item.price,
         stock: item.stock,
         available: item.stock - booked,
+        images: item.images,
+        description: item.description,
       });
     }
 

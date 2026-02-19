@@ -1,9 +1,10 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateCustomerDto {
+export class UpdateCustomerDto {
   @IsString()
+  @IsOptional()
   @IsNotEmpty()
-  name: string;
+  name?: string;
 
   @IsString()
   @IsOptional()

@@ -12,7 +12,6 @@ export class UserRepository {
     phone: string;
     email: string;
     businessType: string;
-    onboardingStep?: number;
     onboardingDone?: boolean;
   }) {
     const trialDays = 14;
@@ -23,7 +22,6 @@ export class UserRepository {
         phone: data.phone,
         email: data.email,
         businessType: data.businessType,
-        onboardingStep: data.onboardingStep,
         onboardingDone: data.onboardingDone,
         trialEndsAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000),
       },
