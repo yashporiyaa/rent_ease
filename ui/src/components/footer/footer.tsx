@@ -7,7 +7,7 @@ export function Footer() {
           <div>
             <div className="mb-4 flex items-center gap-2 font-bold text-[#0e1b17]">
               <span className="h-3 w-3 rounded-full bg-[#17cf91]" />
-              Rent-Ease
+              RentEase
             </div>
             <p className="text-sm text-[#4e977f]">
               Making property management easier, faster, and more profitable
@@ -55,7 +55,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-[#e6f4ee] pt-6 text-xs text-[#4e977f] md:flex-row md:justify-between">
-          <span>© 2026 Rent-Ease Inc. All rights reserved.</span>
+          <span>© 2026 RentEase Inc. All rights reserved.</span>
           <span>Security · Status · API</span>
         </div>
       </div>

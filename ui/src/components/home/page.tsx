@@ -14,7 +14,7 @@ export default function HomePage() {
             The smarter way to manage your property portfolio
           </h1>
           <p className="mt-6 text-[#4e977f]">
-            Rent-Ease provides landlords and property managers with the tools to
+            RentEase provides landlords and property managers with the tools to
             automate operations, maximize ROI, and deliver a superior tenant
             experience.
           </p>

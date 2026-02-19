@@ -11,6 +11,8 @@ import {
   Settings,
   LogOut,
   FileText,
+  Tags,
+  Ruler,
 } from "lucide-react";
 import { useContext } from "react";
 import { UserContext } from "@/app/context/user-context";
@@ -22,6 +24,8 @@ const navItems = [
   { href: "/protected/invoices", label: "Invoices", icon: FileText }, 
   { href: "/protected/customers", label: "Customers", icon: Users },
   { href: "/protected/items", label: "Items", icon: Boxes },
+  { href: "/protected/item-categories", label: "Item Categories", icon: Tags },
+  { href: "/protected/sizes", label: "Sizes", icon: Ruler },
   { href: "/protected/reports", label: "Reports", icon: BarChart3 },
 ];
 
@@ -42,7 +46,7 @@ export function Sidebar() {
         <div className="flex items-center gap-3 mb-8 px-2">
           <div className="bg-[#17cf91] p-2 rounded-lg text-white">🔑</div>
           <div>
-            <p className="font-bold text-[#0e1b17]">Rent-Ease</p>
+            <p className="font-bold text-[#0e1b17]">RentEase</p>
             <p className="text-xs text-[#17cf91]">Management Portal</p>
           </div>
         </div>

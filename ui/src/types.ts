@@ -21,7 +21,6 @@ export type User = {
   subscriptionStatus?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
   trialEndsAt?: string | Date | null;
   invoiceTemplate: string;
-  onboardingStep: number;
   onboardingDone: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -36,12 +35,33 @@ export type UserContextType = {
 
 export type CreateRentalPayload = {
   customerId: string;
-  startDate: string | Date;
-  endDate: string | Date;
-  items: {
+  bookingAt: string | Date;
+  deliveryAddress: string;
+  description?: string;
+  totalQuantity: number;
+  discountPercent: number;
+  discountAmount: number;
+  taxPercent: number;
+  taxAmountValue: number;
+  totalAmount: number;
+  advanceAmount: number;
+  pendingAmount: number;
+  depositAmount: number;
+  outstandingWithDeposit: number;
+  lineItems: {
     itemId: string;
     quantity: number;
-    price: number;
+    rate: number;
+    fromAt: string | Date;
+    toAt: string | Date;
+    description?: string;
+    image?: string;
+    discountPercent?: number;
+    discountAmount?: number;
+    taxPercent?: number;
+    taxAmount?: number;
+    total: number;
+    status?: string;
   }[];
 };
 
@@ -54,21 +74,49 @@ export type StatsCardProps = {
 
 export type Item = {
   id: string;
-  name: string;
+  fullName: string;
   price: number;
+  images?: string[];
+  description?: string;
 };
 
 export type InventoryItem = {
   id: string;
-  name: string;
+  shortName: string;
+  fullName: string;
+  description?: string | null;
   category: string;
+  categoryId?: string | null;
+  size?: string | null;
+  sizeId?: string | null;
   price: number;
+  entryDate: string;
+  quantity: number;
+  images: string[];
+  stock: number;
+};
+
+export type ItemCategory = {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ItemSize = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type CustomerListItem = {
   id: string;
   name: string;
-  phone?: string | undefined;
+  phone1?: string | undefined;
+  phone2?: string | undefined;
+  address?: string | undefined;
 };
 
 export type FormInputProps = {
@@ -114,14 +162,24 @@ export type RentalStatus = "ACTIVE" | "COMPLETED" | "OVERDUE" | "CANCELLED";
 export type RentalItemLine = {
   id: string;
   item: {
-    name: string;
+    fullName: string;
+    images?: string[];
   };
   quantity: number;
   price: number;
+  description?: string;
+  fromAt?: string;
+  toAt?: string;
+  discountAmount?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  status?: string;
+  image?: string;
 };
 
 export type RentalRecord = {
   id: string;
+  bookingAt: string;
   customer: {
     name: string;
   };
@@ -129,6 +187,11 @@ export type RentalRecord = {
   startDate: string;
   endDate: string;
   totalAmount: number;
+  discountAmount?: number;
+  taxAmountValue?: number;
+  advanceAmount?: number;
+  pendingAmount?: number;
+  depositAmount?: number;
   status: RentalStatus;
 };
 

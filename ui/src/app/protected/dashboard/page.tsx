@@ -128,7 +128,7 @@ export default function DashboardPage() {
         >
           <div className="min-h-full flex items-center justify-center">
             <div
-              className="w-full max-w-3xl"
+              className="w-full max-w-7xl"
               onClick={(e) => e.stopPropagation()}
             >
               {formLoading ? (

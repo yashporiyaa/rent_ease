@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlusCircle, UserPlus, Boxes } from "lucide-react";
+import { PlusCircle, UserPlus, Boxes, Tags, Ruler } from "lucide-react";
 
 type QuickActionsProps = {
   onCreateRental?: () => void;
@@ -41,11 +41,27 @@ export function QuickActions({ onCreateRental }: QuickActionsProps) {
         </Link>
 
         <Link
-          href="/protected/items/new"
+          href="/protected/items"
           className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
         >
           <Boxes className="h-5 w-5 text-[#17cf91]" />
           <span>Inventory Intake</span>
+        </Link>
+
+        <Link
+          href="/protected/item-categories"
+          className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
+        >
+          <Tags className="h-5 w-5 text-[#17cf91]" />
+          <span>Manage Categories</span>
+        </Link>
+
+        <Link
+          href="/protected/sizes"
+          className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
+        >
+          <Ruler className="h-5 w-5 text-[#17cf91]" />
+          <span>Manage Sizes</span>
         </Link>
       </div>
     </div>

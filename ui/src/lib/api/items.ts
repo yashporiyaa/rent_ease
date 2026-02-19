@@ -1,7 +1,13 @@
 export const createItem = async (
-  name: string,
-  category: string,
+  shortName: string,
+  fullName: string,
+  categoryId: string,
+  description: string | undefined,
+  sizeId: string,
   price: number,
+  entryDate: string,
+  quantity: number,
+  images: string[],
 ) => {
   try {
     const res = await fetch("http://localhost:3001/items", {
@@ -9,9 +15,15 @@ export const createItem = async (
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name,
-        category,
+        shortName,
+        fullName,
+        categoryId,
+        description,
+        sizeId,
         price: Number(price),
+        entryDate,
+        quantity: Number(quantity),
+        images,
       }),
     });
 
@@ -23,6 +35,77 @@ export const createItem = async (
     return res.json();
   } catch (error) {
     console.error("createItem failed:", error);
+    throw error;
+  }
+};
+
+export const getItems = async () => {
+  try {
+    const res = await fetch("http://localhost:3001/items", {
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Fetch items failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("getItems failed:", error);
+    throw error;
+  }
+};
+
+export const updateItem = async (
+  id: string,
+  payload: {
+    shortName?: string;
+    fullName?: string;
+    categoryId?: string;
+    description?: string;
+    sizeId?: string;
+    price?: number;
+    entryDate?: string;
+    quantity?: number;
+    images?: string[];
+  },
+) => {
+  try {
+    const res = await fetch(`http://localhost:3001/items/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Update item failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("updateItem failed:", error);
+    throw error;
+  }
+};
+
+export const deleteItem = async (id: string) => {
+  try {
+    const res = await fetch(`http://localhost:3001/items/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Delete item failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("deleteItem failed:", error);
     throw error;
   }
 };

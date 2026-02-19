@@ -5,7 +5,7 @@ export function InvoiceItemsTable({
 }: {
   items: {
     id: string;
-    item: { name: string };
+    item: { fullName: string };
     quantity: number;
     price: number;
   }[];
@@ -29,7 +29,7 @@ export function InvoiceItemsTable({
             <tr key={ri.id}>
               <td className="px-6 py-4 flex items-center gap-2">
                 <Package size={16} className="text-[#17cf91]" />
-                {ri.item.name}
+                {ri.item.fullName}
               </td>
               <td className="px-6 py-4 text-right">{ri.quantity}</td>
               <td className="px-6 py-4 text-right">₹{ri.price}</td>
