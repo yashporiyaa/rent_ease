@@ -1,5 +1,11 @@
 import { User } from "lucide-react";
-import { customers } from "@/lib/mock/customers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function CustomerSelect({
   value,
@@ -18,18 +24,18 @@ export function CustomerSelect({
 
       <div className="relative">
         <User className="absolute left-3 top-3 text-slate-400" size={18} />
-        <select
-          className="w-full pl-10 pr-4 py-3 border rounded-xl"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">Select customer</option>
+        <Select value={value || undefined} onValueChange={onChange}>
+          <SelectTrigger className="w-full h-12 pl-10 pr-3 rounded-xl border">
+            <SelectValue placeholder="Select customer" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl p-1">
           {customers.map((c) => (
-            <option key={c.id} value={c.id}>
+              <SelectItem key={c.id} value={c.id} className="py-2 px-3">
               {c.name}
-            </option>
+              </SelectItem>
           ))}
-        </select>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

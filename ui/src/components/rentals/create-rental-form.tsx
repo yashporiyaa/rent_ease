@@ -2,13 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { createRental } from "@/lib/api/rentals";
+import {
+  checkRentalItemAvailability,
+  createRental,
+  updateRental,
+} from "@/lib/api/rentals";
 import { toast } from "react-toastify";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { createCustomer, findCustomerByPhone, updateCustomer } from "@/lib/api/customers";
 import { getItems } from "@/lib/api/items";
-import { CustomerListItem, CreateRentalPayload, InventoryItem } from "@/types";
+import { CustomerListItem, CreateRentalPayload, InventoryItem, RentalRecord } from "@/types";
 
 type RentalLine = {
   id: string;
@@ -52,23 +63,33 @@ const nowLocalDateTime = () => {
   const tzOffset = now.getTimezoneOffset() * 60000;
   return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
 };
+const toLocalDateTimeInput = (value?: string | Date | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+};
 
 export function CreateRentalForm({
   customers,
+  rental,
   onSuccess,
   onClose,
 }: {
   customers: CustomerListItem[];
+  rental?: RentalRecord | null;
   onSuccess?: () => void;
   onClose?: () => void;
 }) {
   const router = useRouter();
+  const isEditMode = Boolean(rental?.id);
 
   const [customerList, setCustomerList] = useState<CustomerListItem[]>(customers);
   const [customerId, setCustomerId] = useState("");
+  const [bookingNo, setBookingNo] = useState("");
   const [bookingAt, setBookingAt] = useState(nowLocalDateTime());
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [headerDescription, setHeaderDescription] = useState("");
 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
@@ -96,9 +117,58 @@ export function CreateRentalForm({
   const [foundCustomer, setFoundCustomer] = useState<CustomerListItem | null>(null);
   const [isEditCustomer, setIsEditCustomer] = useState(false);
   const [submittingCustomer, setSubmittingCustomer] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const hasFoundCustomer = Boolean(foundCustomer?.id && foundCustomer?.name);
+
+  useEffect(() => {
+    setCustomerList(customers);
+  }, [customers]);
+
+  useEffect(() => {
+    if (!rental?.id) {
+      setCustomerId("");
+      setBookingNo("");
+      setBookingAt(nowLocalDateTime());
+      setDeliveryAddress("");
+      setLines([]);
+      setGlobalDiscountPercent("0");
+      setGlobalDiscountAmount("0");
+      setAdvanceAmount("0");
+      setDepositAmount("0");
+      return;
+    }
+
+    setCustomerId(rental.customerId ?? "");
+    setBookingNo(rental.bookingNo ?? "");
+    setBookingAt(toLocalDateTimeInput(rental.bookingAt) || nowLocalDateTime());
+    setDeliveryAddress(rental.deliveryAddress ?? "");
+    setGlobalDiscountPercent(String(rental.discountPercent ?? 0));
+    setGlobalDiscountAmount(String(rental.discountAmount ?? 0));
+    setAdvanceAmount(String(rental.advanceAmount ?? 0));
+    setDepositAmount(String(rental.depositAmount ?? 0));
+    setLines(
+      (rental.rentalItems ?? []).map((line) => ({
+        id: line.id,
+        itemId: line.itemId ?? "",
+        productName: line.item?.fullName ?? "Product",
+        image: line.image ?? line.item?.images?.[0],
+        description: line.description ?? "",
+        fromAt: toLocalDateTimeInput(line.fromAt),
+        toAt: toLocalDateTimeInput(line.toAt),
+        quantity: line.quantity,
+        rate: line.price,
+        discountPercent: Number(line.discountPercent ?? 0),
+        discountAmount: Number(line.discountAmount ?? 0),
+        taxPercent: Number(line.taxPercent ?? 0),
+        taxAmount: Number(line.taxAmount ?? 0),
+        total: Number(line.totalAmount ?? 0),
+        status: line.status ?? "ACTIVE",
+      })),
+    );
+    setEditingLineId(null);
+  }, [rental]);
 
   useEffect(() => {
     if (items.length > 0) return;
@@ -137,7 +207,7 @@ export function CreateRentalForm({
   const advance = Number(advanceAmount) || 0;
   const deposit = Number(depositAmount) || 0;
   const pending = round2(totalAfterDiscount - advance);
-  const outstandingWithDeposit = round2(pending + deposit);
+  const outstandingWithDeposit = round2(pending - deposit);
 
   const updateDiscountFromPercent = (value: string) => {
     setGlobalDiscountPercent(value);
@@ -180,7 +250,7 @@ export function CreateRentalForm({
     setEditingLineId(null);
   };
 
-  const addOrUpdateLine = () => {
+  const addOrUpdateLine = async () => {
     if (!itemId || !fromAt || !toAt || !quantity || !rate) {
       toast.error("Fill product section fields first");
       return;
@@ -192,6 +262,43 @@ export function CreateRentalForm({
       return;
     }
 
+    const requestedQty = Number(quantity);
+    if (!Number.isFinite(requestedQty) || requestedQty <= 0) {
+      toast.error("Quantity must be greater than 0");
+      return;
+    }
+
+    setCheckingAvailability(true);
+    try {
+      const availabilityRes = await checkRentalItemAvailability({
+        itemId,
+        quantity: requestedQty,
+        fromAt,
+        toAt,
+        excludeRentalId: rental?.id,
+      });
+
+      const availability = availabilityRes.data as {
+        available: boolean;
+        availableStock: number;
+        itemName: string;
+      };
+
+      if (!availability.available) {
+        toast.error(
+          `${availability.itemName} has only ${availability.availableStock} available for selected dates`,
+        );
+        return;
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to check availability";
+      toast.error(message);
+      return;
+    } finally {
+      setCheckingAvailability(false);
+    }
+
     const line: RentalLine = {
       id: editingLineId ?? makeLineId(),
       itemId,
@@ -200,7 +307,7 @@ export function CreateRentalForm({
       description: lineDescription || item.description || "",
       fromAt,
       toAt,
-      quantity: Number(quantity),
+      quantity: requestedQty,
       rate: Number(rate),
       discountPercent: Number(lineDiscountPercent) || 0,
       discountAmount: Number(lineDiscountAmount) || 0,
@@ -347,9 +454,9 @@ export function CreateRentalForm({
 
     const payload: CreateRentalPayload = {
       customerId,
+      bookingNo: bookingNo.trim() || undefined,
       bookingAt,
       deliveryAddress: deliveryAddress.trim(),
-      description: headerDescription,
       totalQuantity: totalQty,
       discountPercent: overallDiscountPct,
       discountAmount: overallDiscountAmt,
@@ -379,15 +486,25 @@ export function CreateRentalForm({
 
     setSubmitting(true);
     try {
-      const res = await createRental(payload);
-      toast.success("Rental created successfully");
+      if (isEditMode && rental?.id) {
+        await updateRental(rental.id, payload);
+        toast.success("Rental updated successfully");
+      } else {
+        const res = await createRental(payload);
+        toast.success("Rental created successfully");
+        if (!onSuccess) {
+          router.push(`/protected/rentals/${res.data.rental.id}`);
+        }
+      }
+
       if (onSuccess) {
         onSuccess();
-      } else {
-        router.push(`/protected/rentals/${res.data.rental.id}`);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to create rental";
+      const message =
+        error instanceof Error
+          ? error.message
+          : `Failed to ${isEditMode ? "update" : "create"} rental`;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -395,9 +512,11 @@ export function CreateRentalForm({
   };
 
   return (
-    <div className="w-full max-w-[1220px] space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="w-full max-w-330 space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-[#0e1b17]">Create Rental</h1>
+        <h1 className="text-2xl font-black text-[#0e1b17]">
+          {isEditMode ? "Update Rental" : "Create Rental"}
+        </h1>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
             <X className="h-5 w-5" />
@@ -405,24 +524,24 @@ export function CreateRentalForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
         <div className="flex items-center gap-2">
           <div className="w-full">
             <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
               Customer Name
             </label>
-          <select
-            className="border p-3 rounded-xl w-full"
-            value={customerId}
-            onChange={(event) => setCustomerId(event.target.value)}
-          >
-            <option value="">Select customer</option>
-            {customerList.map((customer) => (
-              <option key={customer.id} value={customer.id}>
-                {customer.name}
-              </option>
-            ))}
-          </select>
+            <Select value={customerId || undefined} onValueChange={setCustomerId}>
+              <SelectTrigger className="w-full h-12 rounded-xl border p-3">
+                <SelectValue placeholder="Select customer" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl p-1">
+                {customerList.map((customer) => (
+                  <SelectItem key={customer.id} value={customer.id} className="py-2 px-3">
+                    {customer.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button variant="outline" size="icon" onClick={openCustomerModal} className="cursor-pointer mt-6">
             <Plus className="h-4 w-4" />
@@ -443,6 +562,19 @@ export function CreateRentalForm({
 
         <div>
           <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
+            Booking No. (Optional)
+          </label>
+          <input
+            inputMode="numeric"
+            className="border p-3 rounded-xl w-full"
+            placeholder="Leave empty to auto-generate"
+            value={bookingNo}
+            onChange={(event) => setBookingNo(event.target.value.replace(/\D/g, ""))}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
             Delivery Address
           </label>
           <input
@@ -454,273 +586,281 @@ export function CreateRentalForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-        <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-          Description
-        </label>
-        <textarea
-          className="border p-3 rounded-xl w-full bg-white"
-          placeholder="Description"
-          value={headerDescription}
-          onChange={(event) => setHeaderDescription(event.target.value)}
-        />
-      </div>
-
       <div className="rounded-xl border border-slate-200 p-5 space-y-4">
         <h3 className="text-base font-bold text-[#0e1b17]">Product Section</h3>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Product
-            </label>
-            <select
-              className="border p-3 rounded-xl w-full"
-              value={itemId}
-              onChange={(event) => {
-                const selectedId = event.target.value;
-                setItemId(selectedId);
-                const product = items.find((i) => i.id === selectedId);
-                if (product) {
-                  setRate(String(product.price));
-                  if (!lineDescription) {
-                    setLineDescription(product.description || "");
-                  }
-                }
-              }}
-              disabled={itemsLoading}
-            >
-              <option value="">Select product</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.fullName}
-                </option>
-              ))}
-            </select>
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_220px] gap-4">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Product
+                </label>
+                <Select
+                  value={itemId || undefined}
+                  onValueChange={(selectedId) => {
+                    setItemId(selectedId);
+                    const product = items.find((i) => i.id === selectedId);
+                    if (product) {
+                      setRate(String(product.price));
+                      if (!lineDescription) {
+                        setLineDescription(product.description || "");
+                      }
+                    }
+                  }}
+                  disabled={itemsLoading}
+                >
+                  <SelectTrigger className="h-10 w-full rounded-lg border px-2 text-sm">
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl p-1">
+                    {items.map((item) => (
+                      <SelectItem key={item.id} value={item.id} className="py-2 px-3">
+                        {item.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  From / Delivery
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  type="datetime-local"
+                  value={fromAt}
+                  onChange={(event) => setFromAt(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  To / Return
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  type="datetime-local"
+                  value={toAt}
+                  onChange={(event) => setToAt(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Qty
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  placeholder="Qty"
+                  type="number"
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-3">
+              <div className="xl:col-span-2">
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Description
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  placeholder="Line description"
+                  value={lineDescription}
+                  onChange={(event) => setLineDescription(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Rate
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  placeholder="Rate"
+                  type="number"
+                  value={rate}
+                  onChange={(event) => setRate(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  GST
+                </label>
+                <Select value={taxPercent} onValueChange={setTaxPercent}>
+                  <SelectTrigger className="h-10 w-full rounded-lg border px-2 text-sm">
+                    <SelectValue placeholder="GST" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl p-1">
+                    {gstRates.map((value) => (
+                      <SelectItem key={value} value={String(value)} className="py-2 px-3">
+                        {value}%
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Disc %
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  placeholder="%"
+                  type="number"
+                  value={lineDiscountPercent}
+                  onChange={(event) => updateLineDiscountFromPercent(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Disc Rs
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  placeholder="Rs"
+                  type="number"
+                  value={lineDiscountAmount}
+                  onChange={(event) => updateLineDiscountFromAmount(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Tax Rs
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border border-slate-300 bg-slate-100 px-2 text-sm text-slate-500 cursor-not-allowed"
+                  value={String(lineTaxAmt)}
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                  Total
+                </label>
+                <input
+                  className="h-10 w-full rounded-lg border border-slate-300 bg-slate-100 px-2 text-sm text-slate-500 cursor-not-allowed"
+                  value={String(lineTotal)}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                variant="brand"
+                onClick={() => void addOrUpdateLine()}
+                disabled={checkingAvailability}
+                className="h-10 min-w-32 cursor-pointer rounded-lg"
+              >
+                {checkingAvailability
+                  ? "Checking..."
+                  : editingLineId
+                    ? "Update"
+                    : "Add"}
+              </Button>
+            </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              From / Delivery
+            <label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+              Product Image
             </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="From (date & time)"
-              type="datetime-local"
-              value={fromAt}
-              onChange={(event) => setFromAt(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              To / Return
-            </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="To (date & time)"
-              type="datetime-local"
-              value={toAt}
-              onChange={(event) => setToAt(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Quantity
-            </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="Quantity"
-              type="number"
-              value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
-            />
+            <div className="h-36 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden">
+              {selectedProduct?.images?.[0] ? (
+                <img
+                  src={selectedProduct.images[0]}
+                  alt={selectedProduct.fullName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-xs font-medium text-slate-400">No image selected</span>
+              )}
+            </div>
           </div>
         </div>
-
-        {selectedProduct?.images?.[0] && (
-          <div className="flex items-center gap-3">
-            <img
-              src={selectedProduct.images[0]}
-              alt={selectedProduct.fullName}
-              className="h-14 w-14 rounded-lg border object-cover"
-            />
-            <p className="text-sm text-slate-600">Selected product image preview</p>
-          </div>
-        )}
-
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Product Description
-          </label>
-          <input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Line description"
-            value={lineDescription}
-            onChange={(event) => setLineDescription(event.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Rate / Quantity
-            </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="Rate / qty"
-              type="number"
-              value={rate}
-              onChange={(event) => setRate(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Tax (GST)
-            </label>
-            <select
-              className="border p-3 rounded-xl w-full"
-              value={taxPercent}
-              onChange={(event) => setTaxPercent(event.target.value)}
-            >
-              {gstRates.map((value) => (
-                <option key={value} value={value}>
-                  GST {value}%
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Discount (%)
-            </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="Discount %"
-              type="number"
-              value={lineDiscountPercent}
-              onChange={(event) => updateLineDiscountFromPercent(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Discount (Rs)
-            </label>
-            <input
-              className="border p-3 rounded-xl w-full"
-              placeholder="Discount Rs"
-              type="number"
-              value={lineDiscountAmount}
-              onChange={(event) => updateLineDiscountFromAmount(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Tax (Rs)
-            </label>
-            <input
-              className="border p-3 rounded-xl bg-slate-50 w-full"
-              placeholder="Tax Rs"
-              value={String(lineTaxAmt)}
-              readOnly
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Total
-            </label>
-            <input
-              className="border p-3 rounded-xl bg-slate-50 w-full"
-              placeholder="Total"
-              value={String(lineTotal)}
-              readOnly
-            />
-          </div>
-        </div>
-
-        <Button variant="brand" onClick={addOrUpdateLine} className="cursor-pointer min-w-32">
-          {editingLineId ? "Update Line" : "Add"}
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Total Quantity
-          </label>
-          <input className="border p-3 rounded-xl bg-slate-50 w-full" value={String(totalQty)} readOnly placeholder="Total qty" />
+      <div className="flex justify-end">
+        <div className="w-full max-w-140 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+        <div className="grid grid-cols-[120px_1fr_90px_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Total</div>
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">₹ {linesSubtotal}</div>
+          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">
+            Qty
+          </div>
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">{totalQty}</div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Discount (%)
-          </label>
+
+        <div className="grid grid-cols-[120px_60px_1fr_60px_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Discount</div>
+          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">%</div>
           <input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Discount %"
+            className="min-w-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
             type="number"
             value={globalDiscountPercent}
             onChange={(event) => updateDiscountFromPercent(event.target.value)}
           />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Discount (Rs)
-          </label>
+          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">₹</div>
           <input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Discount Rs"
+            className="min-w-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
             type="number"
             value={globalDiscountAmount}
             onChange={(event) => updateDiscountFromAmount(event.target.value)}
           />
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Advance
-          </label>
+
+        <div className="grid grid-cols-[120px_150px_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Advance</div>
+          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90]">
+            CASH IN HAND
+          </div>
           <input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Advance"
+            className="min-w-0 border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
             type="number"
             value={advanceAmount}
             onChange={(event) => setAdvanceAmount(event.target.value)}
           />
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Outstanding
-          </label>
-          <input className="border p-3 rounded-xl bg-slate-50 w-full" value={String(pending)} readOnly placeholder="Outstanding" />
+
+        <div className="grid grid-cols-[160px_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding</div>
+          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17]">
+            ₹ {pending}
+          </div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Deposit
-          </label>
+
+        <div className="grid grid-cols-[120px_150px_1fr_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#2f6feb]">Deposit</div>
+          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90]">
+            CASH IN HAND
+          </div>
           <input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Deposit"
+            className="min-w-0 border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-red-600 outline-none"
             type="number"
             value={depositAmount}
             onChange={(event) => setDepositAmount(event.target.value)}
           />
+          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-green-600">
+            ₹ {Number(depositAmount) || 0}
+          </div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Outstanding + Deposit
-          </label>
-          <input
-            className="border p-3 rounded-xl bg-slate-50 w-full"
-            value={String(outstandingWithDeposit)}
-            readOnly
-            placeholder="Outstanding + Deposit"
-          />
+
+        <div className="grid grid-cols-[220px_1fr] overflow-hidden rounded-lg border border-slate-300">
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding + Deposit</div>
+          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17]">
+            ₹ {outstandingWithDeposit}
+          </div>
         </div>
+      </div>
       </div>
 
       {lines.length > 0 && (
@@ -791,11 +931,15 @@ export function CreateRentalForm({
         disabled={submitting}
         className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
       >
-        {submitting ? "Saving..." : "Save"}
+        {submitting
+          ? `${isEditMode ? "Updating" : "Saving"}...`
+          : isEditMode
+            ? "Update Rental"
+            : "Save"}
       </Button>
 
       {customerModalOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/45 p-4" onClick={() => setCustomerModalOpen(false)}>
+        <div className="fixed inset-0 z-60 bg-black/45 p-4" onClick={() => setCustomerModalOpen(false)}>
           <div className="min-h-full flex items-center justify-center">
             <div className="w-full max-w-2xl" onClick={(event) => event.stopPropagation()}>
               <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
@@ -872,7 +1016,7 @@ export function CreateRentalForm({
                   />
                 </div>
 
-                {hasFoundCustomer && (
+                {foundCustomer && hasFoundCustomer && (
                   <div className="rounded-xl border overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-slate-50">

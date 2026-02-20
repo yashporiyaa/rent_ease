@@ -35,9 +35,9 @@ export type UserContextType = {
 
 export type CreateRentalPayload = {
   customerId: string;
+  bookingNo?: string;
   bookingAt: string | Date;
   deliveryAddress: string;
-  description?: string;
   totalQuantity: number;
   discountPercent: number;
   discountAmount: number;
@@ -161,16 +161,20 @@ export type RentalStatus = "ACTIVE" | "COMPLETED" | "OVERDUE" | "CANCELLED";
 
 export type RentalItemLine = {
   id: string;
+  itemId?: string;
   item: {
     fullName: string;
     images?: string[];
+    description?: string | null;
   };
   quantity: number;
   price: number;
   description?: string;
   fromAt?: string;
   toAt?: string;
+  discountPercent?: number;
   discountAmount?: number;
+  taxPercent?: number;
   taxAmount?: number;
   totalAmount?: number;
   status?: string;
@@ -179,6 +183,7 @@ export type RentalItemLine = {
 
 export type RentalRecord = {
   id: string;
+  bookingNo?: string | null;
   bookingAt: string;
   customer: {
     name: string;
@@ -188,15 +193,24 @@ export type RentalRecord = {
   endDate: string;
   totalAmount: number;
   discountAmount?: number;
+  discountPercent?: number;
+  taxPercent?: number;
   taxAmountValue?: number;
+  totalQuantity?: number;
+  customerId?: string;
+  deliveryAddress?: string | null;
+  description?: string | null;
   advanceAmount?: number;
   pendingAmount?: number;
   depositAmount?: number;
+  outstandingWithDeposit?: number;
   status: RentalStatus;
 };
 
 export type RentalsTableProps = {
   rentals: RentalRecord[];
+  onEdit: (rental: RentalRecord) => void;
+  onDelete: (rental: RentalRecord) => void;
 };
 
 export type RentalHeaderProps = {

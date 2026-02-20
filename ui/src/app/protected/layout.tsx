@@ -1,7 +1,7 @@
 "use client";
 
-import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { UserContext } from "@/app/context/user-context";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
@@ -55,12 +55,11 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f6f8f7]">
+    <SidebarProvider defaultOpen>
       <Sidebar />
-      <main className="flex-1 ml-64">
-        {/* <Header /> */}
+      <SidebarInset className="bg-[#f6f8f7]">
         <div className="p-8">{children}</div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

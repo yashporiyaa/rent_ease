@@ -4,16 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import { RentalsTable } from "@/components/rentals/rentals-table";
 import { RentalsEmptyState } from "@/components/rentals/rentals-empty-state";
 import { Button } from "@/components/ui/button";
-import { getRentals } from "@/lib/api/rentals";
+import { deleteRental, getRentalById, getRentals } from "@/lib/api/rentals";
 import { getCustomers } from "@/lib/api/customers";
 import { toast } from "react-toastify";
 import { CreateRentalForm } from "@/components/rentals/create-rental-form";
 import { CustomerListItem, RentalRecord } from "@/types";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 export default function RentalsPage() {
   const [rentals, setRentals] = useState<RentalRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingRental, setEditingRental] = useState<RentalRecord | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [deletingRental, setDeletingRental] = useState<RentalRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formCustomers, setFormCustomers] = useState<CustomerListItem[]>([]);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -35,7 +40,7 @@ export default function RentalsPage() {
   }, [fetchRentals]);
 
   useEffect(() => {
-    if (!isCreateOpen) return;
+    if (!isCreateOpen && !editingRental) return;
 
     const fetchFormData = async () => {
       setFormLoading(true);
@@ -54,7 +59,41 @@ export default function RentalsPage() {
     };
 
     void fetchFormData();
-  }, [isCreateOpen]);
+  }, [isCreateOpen, editingRental]);
+
+  const handleEditRental = async (rental: RentalRecord) => {
+    setEditLoading(true);
+    try {
+      const res = await getRentalById(rental.id);
+      setEditingRental(res.data as RentalRecord);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch rental details";
+      toast.error(message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteRental = async () => {
+    if (!deletingRental) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteRental(deletingRental.id);
+      toast.success("Rental deleted successfully");
+      setRentals((prev) => prev.filter((rental) => rental.id !== deletingRental.id));
+      setDeletingRental(null);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to delete rental";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -84,7 +123,11 @@ export default function RentalsPage() {
       {rentals.length === 0 ? (
         <RentalsEmptyState onClick={() => setIsCreateOpen(true)} />
       ) : (
-        <RentalsTable rentals={rentals} />
+        <RentalsTable
+          rentals={rentals}
+          onEdit={(rental) => void handleEditRental(rental)}
+          onDelete={(rental) => setDeletingRental(rental)}
+        />
       )}
 
       {isCreateOpen && (
@@ -94,7 +137,7 @@ export default function RentalsPage() {
         >
           <div className="min-h-full flex items-center justify-center">
             <div
-              className="w-full max-w-7xl"
+              className="w-full max-w-345"
               onClick={(e) => e.stopPropagation()}
             >
               {formLoading ? (
@@ -116,6 +159,58 @@ export default function RentalsPage() {
           </div>
         </div>
       )}
+
+      {(editLoading || editingRental) && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          onClick={() => {
+            if (!editLoading) {
+              setEditingRental(null);
+            }
+          }}
+        >
+          <div className="min-h-full flex items-center justify-center">
+            <div
+              className="w-full max-w-345"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {editLoading || formLoading ? (
+                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
+                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : editingRental ? (
+                <CreateRentalForm
+                  rental={editingRental}
+                  customers={formCustomers}
+                  onClose={() => setEditingRental(null)}
+                  onSuccess={async () => {
+                    setEditingRental(null);
+                    setLoading(true);
+                    await fetchRentals();
+                  }}
+                />
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={Boolean(deletingRental)}
+        title="Delete Rental"
+        description={
+          deletingRental
+            ? `Are you sure you want to delete rental for \"${deletingRental.customer.name}\"? This action cannot be undone.`
+            : ""
+        }
+        loading={isDeleting}
+        onConfirm={() => void handleDeleteRental()}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            setDeletingRental(null);
+          }
+        }}
+      />
     </div>
   );
 }

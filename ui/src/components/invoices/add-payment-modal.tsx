@@ -4,6 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createPayment } from "@/lib/api/payments";
 import { toast } from "react-toastify";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const METHODS = ["CASH", "UPI", "CARD", "BANK_TRANSFER"];
 
@@ -56,17 +63,18 @@ export function AddPaymentModal({
               onChange={(e) => setAmount(e.target.value)}
             />
 
-            <select
-              className="border p-3 rounded-xl w-full"
-              value={method}
-              onChange={(e) => setMethod(e.target.value)}
-            >
-              {METHODS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            <Select value={method} onValueChange={setMethod}>
+              <SelectTrigger className="w-full h-12 rounded-xl border px-3">
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl p-1">
+                {METHODS.map((m) => (
+                  <SelectItem key={m} value={m} className="py-2 px-3">
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <input
               placeholder="Reference (optional)"
