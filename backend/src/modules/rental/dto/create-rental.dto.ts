@@ -2,6 +2,7 @@ import {
   IsArray,
   IsDateString,
   IsNumber,
+  IsNumberString,
   IsOptional,
   IsString,
   ValidateNested,
@@ -60,15 +61,15 @@ export class CreateRentalDto {
   @IsString()
   customerId: string;
 
+  @IsNumberString()
+  @IsOptional()
+  bookingNo?: string;
+
   @IsDateString()
   bookingAt: string;
 
   @IsString()
   deliveryAddress: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
 
   @IsNumber()
   totalQuantity: number;

@@ -6,6 +6,7 @@ import {
 import { RentalRepository } from './rental.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
+import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 
 @Injectable()
 export class RentalService {
@@ -20,7 +21,7 @@ export class RentalService {
       throw new NotFoundException('User not found');
     }
 
-    await this.rentalRepository.assertItemsAvailable(dto);
+    await this.rentalRepository.assertItemsAvailable(user.id, dto);
 
     const appliedTaxRate =
       dto.taxPercent > 0 ? dto.taxPercent : (user.taxRate ?? 0);
@@ -70,6 +71,61 @@ export class RentalService {
     return {
       success: true,
       data: rental,
+    };
+  }
+
+  async update(supabaseId: string, rentalId: string, dto: CreateRentalDto) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const existingRental = await this.rentalRepository.findByIdAndUser(
+      rentalId,
+      user.id,
+    );
+    if (!existingRental) {
+      throw new NotFoundException('Rental not found');
+    }
+
+    await this.rentalRepository.assertItemsAvailable(user.id, dto, rentalId);
+
+    const appliedTaxRate =
+      dto.taxPercent > 0 ? dto.taxPercent : (user.taxRate ?? 0);
+
+    const rental = await this.rentalRepository.updateRentalWithInvoice(
+      rentalId,
+      user.id,
+      dto,
+      appliedTaxRate,
+    );
+
+    return {
+      success: true,
+      data: rental,
+    };
+  }
+
+  async remove(supabaseId: string, rentalId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const existingRental = await this.rentalRepository.findByIdAndUser(
+      rentalId,
+      user.id,
+    );
+    if (!existingRental) {
+      throw new NotFoundException('Rental not found');
+    }
+
+    await this.rentalRepository.deleteById(user.id, rentalId);
+
+    return {
+      success: true,
+      message: 'Rental deleted successfully',
+      data: { id: rentalId },
     };
   }
 
@@ -146,6 +202,30 @@ export class RentalService {
       success: true,
       message: 'Calendar data fetched successfully',
       data: result,
+    };
+  }
+
+  async checkItemAvailability(
+    supabaseId: string,
+    dto: CheckItemAvailabilityDto,
+  ) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const availability = await this.rentalRepository.checkItemAvailability(
+      user.id,
+      dto.itemId,
+      dto.quantity,
+      dto.fromAt,
+      dto.toAt,
+      dto.excludeRentalId,
+    );
+
+    return {
+      success: true,
+      data: availability,
     };
   }
 }

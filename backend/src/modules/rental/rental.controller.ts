@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -13,6 +14,7 @@ import { RentalService } from './rental.service.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { CalendarQueryDto } from './dto/calendar-query.dto.js';
+import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 
 @Controller('rentals')
 export class RentalController {
@@ -47,9 +49,30 @@ export class RentalController {
   }
 
   @UseGuards(SupabaseAuthGuard)
+  @Post('check-availability')
+  async checkAvailability(
+    @Req() req: any,
+    @Body() dto: CheckItemAvailabilityDto,
+  ) {
+    return await this.rentalService.checkItemAvailability(req.user.sub, dto);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
   @Get(':id')
   async getOne(@Req() req: any, @Param('id') id: string) {
     return await this.rentalService.getOne(req.user.sub, id);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Patch(':id')
+  async update(@Req() req: any, @Param('id') id: string, @Body() dto: CreateRentalDto) {
+    return await this.rentalService.update(req.user.sub, id, dto);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Delete(':id')
+  async remove(@Req() req: any, @Param('id') id: string) {
+    return await this.rentalService.remove(req.user.sub, id);
   }
 
   @UseGuards(SupabaseAuthGuard)

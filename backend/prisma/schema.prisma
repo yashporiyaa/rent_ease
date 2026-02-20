@@ -108,6 +108,7 @@ model ItemSize {
 
 model Rental {
   id          String   @id @default(uuid())
+  bookingNo   String?  @unique
   userId      String
   customerId  String
   startDate   DateTime
