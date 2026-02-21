@@ -3,6 +3,7 @@
 import { useEffect, useState, useContext } from "react";
 import { Building2, Phone, Percent, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { UserContext } from "@/app/context/user-context";
 import { toast } from "react-toastify";
 
@@ -60,21 +61,21 @@ export default function ProfilePage() {
           <h2 className="font-bold text-lg">Business Information</h2>
         </div>
 
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Company Name"
           value={form.companyName}
           onChange={(e) => handleChange("companyName", e.target.value)}
         />
 
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Business Type"
           value={form.businessType}
           onChange={(e) => handleChange("businessType", e.target.value)}
         />
 
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Business Address"
           value={form.businessAddress}
@@ -91,13 +92,13 @@ export default function ProfilePage() {
           <h2 className="font-bold text-lg">Contact</h2>
         </div>
 
-        <input
+        <Input
           disabled
           className="border p-3 rounded-xl w-full bg-slate-100"
           value={user?.email || ""}
         />
 
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Phone"
           value={form.phone}
@@ -112,7 +113,7 @@ export default function ProfilePage() {
           <h2 className="font-bold text-lg">Tax Settings</h2>
         </div>
 
-        <input
+        <Input
           type="number"
           min="0"
           max="100"

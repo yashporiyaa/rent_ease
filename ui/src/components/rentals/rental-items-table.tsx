@@ -1,3 +1,12 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 export function RentalItemsTable({
   items,
 }: {
@@ -16,29 +25,29 @@ export function RentalItemsTable({
         </h2>
       </div>
 
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-600">
-          <tr>
-            <th className="px-6 py-4 text-left">Item</th>
-            <th className="px-6 py-4 text-left">Quantity</th>
-            <th className="px-6 py-4 text-left">Price</th>
-            <th className="px-6 py-4 text-right">Subtotal</th>
-          </tr>
-        </thead>
+      <Table>
+        <TableHeader className="bg-slate-50 text-slate-600">
+          <TableRow>
+            <TableHead className="px-6 py-4 text-left">Item</TableHead>
+            <TableHead className="px-6 py-4 text-left">Quantity</TableHead>
+            <TableHead className="px-6 py-4 text-left">Price</TableHead>
+            <TableHead className="px-6 py-4 text-right">Subtotal</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <tbody className="divide-y">
+        <TableBody className="divide-y">
           {items.map((item) => (
-            <tr key={item.id}>
-              <td className="px-6 py-4 font-medium">{item.item.fullName}</td>
-              <td className="px-6 py-4">{item.quantity}</td>
-              <td className="px-6 py-4 font-semibold">₹{item.price}</td>
-              <td className="px-6 py-4 text-right font-semibold">
+            <TableRow key={item.id}>
+              <TableCell className="px-6 py-4 font-medium">{item.item.fullName}</TableCell>
+              <TableCell className="px-6 py-4">{item.quantity}</TableCell>
+              <TableCell className="px-6 py-4 font-semibold">₹{item.price}</TableCell>
+              <TableCell className="px-6 py-4 text-right font-semibold">
                 ₹{item.price * item.quantity}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

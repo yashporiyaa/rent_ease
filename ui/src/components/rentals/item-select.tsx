@@ -1,4 +1,5 @@
 import { Plus, Minus } from "lucide-react";
+import { Button } from "../ui/button";
 
 export function ItemSelect({
   selectedItems,
@@ -44,24 +45,24 @@ export function ItemSelect({
               </div>
 
               <div className="flex items-center gap-3">
-                <button
+                <Button
                   onClick={() =>
                     updateQty(item.id, (selectedItems[item.id] || 0) - 1)
                   }
                   className="p-2 rounded-lg border"
                 >
                   <Minus size={14} />
-                </button>
+                </Button>
 
                 <span className="w-6 text-center">{currentQty}</span>
 
-                <button
+                <Button
                   onClick={() => updateQty(item.id, currentQty + 1)}
                   className="p-2 rounded-lg border disabled:opacity-50"
                   disabled={!canIncrease}
                 >
                   <Plus size={14} />
-                </button>
+                </Button>
               </div>
             </div>
           );

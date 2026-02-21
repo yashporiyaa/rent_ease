@@ -1,4 +1,12 @@
 import { Package } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function InvoiceItemsTable({
   items,
@@ -10,36 +18,36 @@ export function InvoiceItemsTable({
     price: number;
   }[];
 }) {
-  if(!items || items.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
   return (
     <div className="bg-white rounded-xl border shadow-sm">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50">
-          <tr>
-            <th className="px-6 py-4 text-left">Item</th>
-            <th className="px-6 py-4 text-right">Qty</th>
-            <th className="px-6 py-4 text-right">Price</th>
-            <th className="px-6 py-4 text-right">Subtotal</th>
-          </tr>
-        </thead>
+      <Table>
+        <TableHeader className="bg-slate-50">
+          <TableRow>
+            <TableHead className="px-6 py-4 text-left">Item</TableHead>
+            <TableHead className="px-6 py-4 text-right">Qty</TableHead>
+            <TableHead className="px-6 py-4 text-right">Price</TableHead>
+            <TableHead className="px-6 py-4 text-right">Subtotal</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <tbody className="divide-y">
+        <TableBody className="divide-y">
           {items.map((ri) => (
-            <tr key={ri.id}>
-              <td className="px-6 py-4 flex items-center gap-2">
+            <TableRow key={ri.id}>
+              <TableCell className="px-6 py-4 flex items-center gap-2">
                 <Package size={16} className="text-[#17cf91]" />
                 {ri.item.fullName}
-              </td>
-              <td className="px-6 py-4 text-right">{ri.quantity}</td>
-              <td className="px-6 py-4 text-right">₹{ri.price}</td>
-              <td className="px-6 py-4 text-right font-bold">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-right">{ri.quantity}</TableCell>
+              <TableCell className="px-6 py-4 text-right">₹{ri.price}</TableCell>
+              <TableCell className="px-6 py-4 text-right font-bold">
                 ₹{ri.quantity * ri.price}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

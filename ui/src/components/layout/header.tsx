@@ -2,6 +2,7 @@ import { UserContext } from "@/app/context/user-context";
 import { Bell, HelpCircle, Search } from "lucide-react";
 import { useRouter } from "next/dist/client/components/navigation";
 import { useContext } from "react";
+import { Input } from "@/components/ui/input";
 
 export function Header() {
   const { user } = useContext(UserContext);
@@ -15,7 +16,7 @@ export function Header() {
         {/* Search */}
         <div className="relative max-w-xl w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
+          <Input
             className="w-full bg-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-sm"
             placeholder="Search rentals, customers, assets..."
           />

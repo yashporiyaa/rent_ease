@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { Eye, User } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function CustomersTable({
   customers,
@@ -8,31 +16,31 @@ export function CustomersTable({
 }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-600">
-          <tr>
-            <th className="px-6 py-4 text-left">Name</th>
-            <th className="px-6 py-4 text-left">Phone</th>
-            <th className="px-6 py-4 text-right">Action</th>
-          </tr>
-        </thead>
+      <Table>
+        <TableHeader className="bg-slate-50 text-slate-600">
+          <TableRow>
+            <TableHead className="px-6 py-4 text-left">Name</TableHead>
+            <TableHead className="px-6 py-4 text-left">Phone</TableHead>
+            <TableHead className="px-6 py-4 text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <tbody className="divide-y">
+        <TableBody className="divide-y">
           {customers.map((customer) => (
-            <tr
+            <TableRow
               key={customer.id}
               className="hover:bg-slate-50 transition"
             >
-              <td className="px-6 py-4 font-medium text-[#0e1b17] flex items-center gap-2">
+              <TableCell className="px-6 py-4 font-medium text-[#0e1b17] flex items-center gap-2">
                 <User size={16} className="text-[#17cf91]" />
                 {customer.name}
-              </td>
+              </TableCell>
 
-              <td className="px-6 py-4 text-slate-600">
+              <TableCell className="px-6 py-4 text-slate-600">
                 {customer.phone || "-"}
-              </td>
+              </TableCell>
 
-              <td className="px-6 py-4 text-right">
+              <TableCell className="px-6 py-4 text-right">
                 <Link
                   href={`/protected/customers/${customer.id}`}
                   className="inline-flex items-center gap-2 text-[#17cf91] font-bold hover:underline"
@@ -40,11 +48,11 @@ export function CustomersTable({
                   <Eye size={16} />
                   View
                 </Link>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

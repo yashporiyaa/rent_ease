@@ -2,6 +2,8 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { createItem, updateItem } from "@/lib/api/items";
 import { toast } from "react-toastify";
@@ -231,14 +233,14 @@ export function CreateItemForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Short name"
           value={shortName}
           onChange={(e) => setShortName(e.target.value)}
         />
 
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Full name"
           value={fullName}
@@ -288,20 +290,20 @@ export function CreateItemForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Price"
           type="number"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
         />
-        <input
+        <Input
           type="date"
           className="border p-3 rounded-xl w-full"
           value={entryDate}
           onChange={(e) => setEntryDate(e.target.value)}
         />
-        <input
+        <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Quantity"
           type="number"
@@ -333,7 +335,7 @@ export function CreateItemForm({
                 </div>
               )}
 
-              <input
+              <Input
                 id={`item-image-slot-${index}`}
                 type="file"
                 accept="image/*"
@@ -341,12 +343,12 @@ export function CreateItemForm({
                 onChange={(event) => void handleImageSlotChange(index, event)}
               />
 
-              <label
+              <Label
                 htmlFor={`item-image-slot-${index}`}
                 className="absolute top-0 right-0 h-7 w-7 rounded-full bg-white/95 border shadow-sm flex items-center justify-center cursor-pointer"
               >
                 <ImagePlus className="h-4 w-4 text-[#0e1b17]" />
-              </label>
+              </Label>
 
               {image && (
                 <button

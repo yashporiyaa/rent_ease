@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   createItemSize,
   deleteItemSize,
@@ -142,57 +151,67 @@ export default function SizesPage() {
       </div>
 
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-4 text-left">ID</th>
-              <th className="px-6 py-4 text-left">Size</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+        <Table>
+          <TableHeader className="bg-slate-50">
+            <TableRow>
+              <TableHead className="px-6 py-4 text-left">ID</TableHead>
+              <TableHead className="px-6 py-4 text-left">Size</TableHead>
+              <TableHead className="px-6 py-4 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y">
             {loading ? (
-              <tr>
-                <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+              <TableRow>
+                <TableCell
+                  colSpan={3}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   Loading sizes...
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : sizes.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+              <TableRow>
+                <TableCell
+                  colSpan={3}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   No sizes created yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               sizes.map((size) => (
-                <tr key={size.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 text-slate-600">{size.id}</td>
-                  <td className="px-6 py-4 font-medium text-[#0e1b17]">{size.name}</td>
-                  <td className="px-6 py-4">
+                <TableRow key={size.id} className="hover:bg-slate-50">
+                  <TableCell className="px-6 py-4 text-slate-600">{size.id}</TableCell>
+                  <TableCell className="px-6 py-4 font-medium text-[#0e1b17]">
+                    {size.name}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button
+                      <Button
+                        variant="destructive"
                         type="button"
                         onClick={() => openEditModal(size)}
-                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-green-600 bg-white hover:bg-green-100 cursor-pointer"
                         aria-label={`Edit ${size.name}`}
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="destructive"
                         type="button"
                         onClick={() => setDeletingSize(size)}
-                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-red-600 hover:bg-red-50 cursor-pointer"
+                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-red-600 bg-white hover:bg-red-100 cursor-pointer"
                         aria-label={`Delete ${size.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {isModalOpen && (
@@ -219,7 +238,7 @@ export default function SizesPage() {
                   </Button>
                 </div>
 
-                <input
+                <Input
                   className="border p-3 rounded-xl w-full mb-6"
                   placeholder="Size name"
                   value={form.name}

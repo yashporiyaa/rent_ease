@@ -7,6 +7,14 @@ import { InvoiceStatusBadge } from "./invoice-status-badge";
 import { getAllInvoices } from "@/lib/api/invoice";
 import { InvoiceRow } from "@/types";
 import { toast } from "react-toastify";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function InvoicesTable() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -46,31 +54,31 @@ export function InvoicesTable() {
         </p>
       </div>
 
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-600">
-          <tr>
-            <th className="px-6 py-4 text-left">Invoice</th>
-            <th className="px-6 py-4 text-left">Customer</th>
-            <th className="px-6 py-4 text-left">Date</th>
-            <th className="px-6 py-4 text-left">Amount</th>
-            <th className="px-6 py-4 text-left">Status</th>
-            <th className="px-6 py-4 text-right">Action</th>
-          </tr>
-        </thead>
+      <Table>
+        <TableHeader className="bg-slate-50 text-slate-600">
+          <TableRow>
+            <TableHead className="px-6 py-4 text-left">Invoice</TableHead>
+            <TableHead className="px-6 py-4 text-left">Customer</TableHead>
+            <TableHead className="px-6 py-4 text-left">Date</TableHead>
+            <TableHead className="px-6 py-4 text-left">Amount</TableHead>
+            <TableHead className="px-6 py-4 text-left">Status</TableHead>
+            <TableHead className="px-6 py-4 text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <tbody className="divide-y">
+        <TableBody className="divide-y">
           {invoices.map((invoice) => (
-            <tr key={invoice.id} className="hover:bg-slate-50">
-              <td className="px-6 py-4 font-medium">{invoice.invoiceNo}</td>
-              <td className="px-6 py-4">{invoice.customer}</td>
-              <td className="px-6 py-4 text-slate-600">
+            <TableRow key={invoice.id} className="hover:bg-slate-50">
+              <TableCell className="px-6 py-4 font-medium">{invoice.invoiceNo}</TableCell>
+              <TableCell className="px-6 py-4">{invoice.customer}</TableCell>
+              <TableCell className="px-6 py-4 text-slate-600">
                 {new Date(invoice.createdAt).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-4 font-semibold">₹{invoice.amount}</td>
-              <td className="px-6 py-4">
+              </TableCell>
+              <TableCell className="px-6 py-4 font-semibold">₹{invoice.amount}</TableCell>
+              <TableCell className="px-6 py-4">
                 <InvoiceStatusBadge status={invoice.status} />
-              </td>
-              <td className="px-6 py-4 text-right">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-right">
                 <Link
                   href={`/protected/invoices/${invoice.id}`}
                   className="inline-flex items-center gap-2 text-[#17cf91] font-bold hover:underline"
@@ -78,11 +86,11 @@ export function InvoicesTable() {
                   <Eye size={16} />
                   View
                 </Link>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

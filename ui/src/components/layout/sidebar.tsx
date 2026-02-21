@@ -43,7 +43,10 @@ const groupedNavItems = [
     key: "rent",
     label: "Rent",
     icon: Receipt,
-    children: [{ href: "/protected/rentals", label: "Rent Invoice" }],
+    children: [
+      { href: "/protected/rentals", label: "Rent Invoice" },
+      { href: "/protected/rentals/delivery", label: "Delivery" },
+    ],
   },
   {
     key: "master",

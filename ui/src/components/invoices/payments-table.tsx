@@ -1,5 +1,13 @@
 import { CreditCard } from "lucide-react";
 import { PaymentsTableProps } from "@/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function PaymentsTable({ payments }: PaymentsTableProps) {
   if (!payments) return null;
@@ -20,36 +28,36 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
         </h2>
       </div>
 
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50">
-          <tr>
-            <th className="px-6 py-4 text-left">Date</th>
-            <th className="px-6 py-4 text-left">Method</th>
-            <th className="px-6 py-4 text-left">Reference</th>
-            <th className="px-6 py-4 text-right">Amount</th>
-          </tr>
-        </thead>
+      <Table>
+        <TableHeader className="bg-slate-50">
+          <TableRow>
+            <TableHead className="px-6 py-4 text-left">Date</TableHead>
+            <TableHead className="px-6 py-4 text-left">Method</TableHead>
+            <TableHead className="px-6 py-4 text-left">Reference</TableHead>
+            <TableHead className="px-6 py-4 text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <tbody className="divide-y">
+        <TableBody className="divide-y">
           {payments.map((p) => (
-            <tr key={p.id}>
-              <td className="px-6 py-4">
+            <TableRow key={p.id}>
+              <TableCell className="px-6 py-4">
                 {new Date(p.paidAt).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-4 flex items-center gap-2">
+              </TableCell>
+              <TableCell className="px-6 py-4 flex items-center gap-2">
                 <CreditCard size={14} className="text-[#17cf91]" />
                 {p.method}
-              </td>
-              <td className="px-6 py-4 text-slate-600">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-slate-600">
                 {p.reference || "—"}
-              </td>
-              <td className="px-6 py-4 text-right font-bold">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-right font-bold">
                 ₹{p.amount}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/common/form-input";
+import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
@@ -145,9 +146,9 @@ export default function LoginPage() {
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-semibold text-[#0e1b17]">
+                <Label className="text-sm font-semibold text-[#0e1b17]">
                   Password
-                </label>
+                </Label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-sm font-medium text-[#17cf91] hover:underline"

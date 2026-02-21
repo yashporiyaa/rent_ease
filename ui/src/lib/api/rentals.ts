@@ -1,4 +1,4 @@
-import { CreateRentalPayload } from "@/types";
+import { CreateRentalPayload, DeliveryFilterStatus } from "@/types";
 
 export const createRental = async (payload: CreateRentalPayload) => {
   try {
@@ -143,6 +143,76 @@ export const checkRentalItemAvailability = async (payload: {
     return data;
   } catch (error) {
     console.error("checkRentalItemAvailability failed:", error);
+    throw error;
+  }
+};
+
+export const getDeliveryRentals = async (params: {
+  fromDate?: string;
+  toDate?: string;
+  categoryId?: string;
+  status?: DeliveryFilterStatus;
+}) => {
+  try {
+    const searchParams = new URLSearchParams();
+
+    if (params.fromDate) {
+      searchParams.set("fromDate", params.fromDate);
+    }
+    if (params.toDate) {
+      searchParams.set("toDate", params.toDate);
+    }
+    if (params.categoryId) {
+      searchParams.set("categoryId", params.categoryId);
+    }
+    if (params.status) {
+      searchParams.set("status", params.status);
+    }
+
+    const query = searchParams.toString();
+    const url = query
+      ? `http://localhost:3001/rentals/delivery?${query}`
+      : "http://localhost:3001/rentals/delivery";
+
+    const res = await fetch(url, {
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Fetch delivery rentals failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("getDeliveryRentals failed:", error);
+    throw error;
+  }
+};
+
+export const updateDeliveryRentalStatus = async (
+  rentalItemId: string,
+  status: "picked" | "pending",
+) => {
+  try {
+    const res = await fetch(
+      `http://localhost:3001/rentals/delivery/${rentalItemId}/status`,
+      {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      },
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Update delivery status failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("updateDeliveryRentalStatus failed:", error);
     throw error;
   }
 };

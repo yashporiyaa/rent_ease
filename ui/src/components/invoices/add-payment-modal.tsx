@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { createPayment } from "@/lib/api/payments";
 import { toast } from "react-toastify";
 import {
@@ -55,7 +56,7 @@ export function AddPaymentModal({
           <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
             <h2 className="text-xl font-bold text-[#0e1b17]">Add Payment</h2>
 
-            <input
+            <Input
               type="number"
               placeholder="Amount"
               className="border p-3 rounded-xl w-full"
@@ -76,14 +77,14 @@ export function AddPaymentModal({
               </SelectContent>
             </Select>
 
-            <input
+            <Input
               placeholder="Reference (optional)"
               className="border p-3 rounded-xl w-full"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
 
-            <input
+            <Input
               type="datetime-local"
               className="border p-3 rounded-xl w-full"
               value={paidAt}

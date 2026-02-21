@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   createItemCategory,
   deleteItemCategory,
@@ -155,33 +164,39 @@ export default function ItemCategoriesPage() {
       </div>
 
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-4 text-left">ID</th>
-              <th className="px-6 py-4 text-left">Image</th>
-              <th className="px-6 py-4 text-left">Category</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+        <Table>
+          <TableHeader className="bg-slate-50">
+            <TableRow>
+              <TableHead className="px-6 py-4 text-left">ID</TableHead>
+              <TableHead className="px-6 py-4 text-left">Image</TableHead>
+              <TableHead className="px-6 py-4 text-left">Category</TableHead>
+              <TableHead className="px-6 py-4 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y">
             {loading ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   Loading categories...
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : categories.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   No categories created yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               categories.map((category) => (
-                <tr key={category.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 text-slate-600">{category.id}</td>
-                  <td className="px-6 py-4">
+                <TableRow key={category.id} className="hover:bg-slate-50">
+                  <TableCell className="px-6 py-4 text-slate-600">{category.id}</TableCell>
+                  <TableCell className="px-6 py-4">
                     {category.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -192,33 +207,37 @@ export default function ItemCategoriesPage() {
                     ) : (
                       <div className="h-10 w-10 rounded-lg border bg-slate-100" />
                     )}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-[#0e1b17]">{category.name}</td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 font-medium text-[#0e1b17]">
+                    {category.name}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button
+                      <Button
+                        variant="destructive"
                         type="button"
                         onClick={() => openEditModal(category)}
-                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-green-600 bg-white hover:bg-green-100 cursor-pointer"
                         aria-label={`Edit ${category.name}`}
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="destructive"
                         type="button"
                         onClick={() => setDeletingCategory(category)}
-                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-red-600 hover:bg-red-50 cursor-pointer"
+                        className="h-8 w-8 rounded-lg border flex items-center justify-center text-red-600 bg-white hover:bg-red-100 cursor-pointer"
                         aria-label={`Delete ${category.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {isModalOpen && (
@@ -233,7 +252,9 @@ export default function ItemCategoriesPage() {
             >
               <div className="bg-white p-8 rounded-xl border shadow-sm">
                 <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-black text-[#0e1b17]">{pageTitle}</h2>
+                  <h2 className="text-2xl font-black text-[#0e1b17]">
+                    {pageTitle}
+                  </h2>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -245,7 +266,7 @@ export default function ItemCategoriesPage() {
                   </Button>
                 </div>
 
-                <input
+                <Input
                   className="border p-3 rounded-xl w-full mb-4"
                   placeholder="Category name"
                   value={form.name}
@@ -254,12 +275,15 @@ export default function ItemCategoriesPage() {
                   }
                 />
 
-                <input
+                <Input
                   className="border p-3 rounded-xl w-full mb-6"
                   placeholder="Image URL"
                   value={form.imageUrl}
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, imageUrl: event.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      imageUrl: event.target.value,
+                    }))
                   }
                 />
 

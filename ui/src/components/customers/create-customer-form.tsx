@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { User, Phone, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createCustomer } from "@/lib/api/customers";
@@ -60,12 +62,12 @@ export function CreateCustomerForm({
 
       {/* Name */}
       <div className="mb-4">
-        <label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
+        <Label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
           Customer Name
-        </label>
+        </Label>
         <div className="relative">
           <User className="absolute left-3 top-3 text-slate-400" size={18} />
-          <input
+          <Input
             className="w-full pl-10 pr-4 py-3 border rounded-xl"
             placeholder="John Doe"
             value={name}
@@ -79,12 +81,12 @@ export function CreateCustomerForm({
 
       {/* Phone */}
       <div className="mb-4">
-        <label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
+        <Label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
           Phone (optional)
-        </label>
+        </Label>
         <div className="relative">
           <Phone className="absolute left-3 top-3 text-slate-400" size={18} />
-          <input
+          <Input
             className="w-full pl-10 pr-4 py-3 border rounded-xl"
             placeholder="9876543210"
             value={phone}

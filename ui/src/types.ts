@@ -213,6 +213,41 @@ export type RentalsTableProps = {
   onDelete: (rental: RentalRecord) => void;
 };
 
+export type DeliveryFilterStatus = "all" | "pending" | "picked";
+
+export type DeliveryItemStatus = "PENDING" | "PICKED";
+
+export type DeliveryFilters = {
+  fromDate: string;
+  toDate: string;
+  categoryId: string;
+  status: DeliveryFilterStatus;
+};
+
+export type DeliveryRentalItem = {
+  id: string;
+  fromAt?: string | null;
+  toAt?: string | null;
+  description?: string | null;
+  image?: string | null;
+  deliveryStatus: DeliveryItemStatus;
+  pickedAt?: string | null;
+  item?: {
+    fullName: string;
+    description?: string | null;
+    images?: string[];
+    category?: string | null;
+    categoryId?: string | null;
+  };
+  rental: {
+    bookingNo?: string | null;
+    depositAmount?: number | null;
+    customer: {
+      name: string;
+    };
+  };
+};
+
 export type RentalHeaderProps = {
   rental: RentalRecord;
 };
@@ -248,4 +283,64 @@ export type InvoiceSummaryProps = {
 export type RevenueData = {
   month: string;
   revenue: number;
+};
+
+export type RentalLine = {
+  id: string;
+  itemId: string;
+  productName: string;
+  image?: string;
+  description?: string;
+  fromAt: string;
+  toAt: string;
+  quantity: number;
+  rate: number;
+  discountPercent: number;
+  discountAmount: number;
+  taxPercent: number;
+  taxAmount: number;
+  total: number;
+  status: string;
+};
+
+export type CustomerModalState = {
+  name: string;
+  phone1: string;
+  phone2: string;
+  address: string;
+};
+
+export type RentalFormState = {
+  customerId: string;
+  bookingNo: string;
+  bookingAt: string;
+  deliveryAddress: string;
+};
+
+export type RentalLineFormState = {
+  itemId: string;
+  lineDescription: string;
+  fromAt: string;
+  toAt: string;
+  quantity: string;
+  rate: string;
+  taxPercent: string;
+  lineDiscountPercent: string;
+  lineDiscountAmount: string;
+  editingLineId: string | null;
+};
+
+export type RentalSummaryState = {
+  globalDiscountPercent: string;
+  globalDiscountAmount: string;
+  advanceAmount: string;
+  depositAmount: string;
+};
+
+export type CustomerModalUiState = {
+  open: boolean;
+  form: CustomerModalState;
+  foundCustomer: CustomerListItem | null;
+  isEditCustomer: boolean;
+  submittingCustomer: boolean;
 };
