@@ -7,6 +7,7 @@ import { RentalRepository } from './rental.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
+import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
 
 @Injectable()
 export class RentalService {
@@ -226,6 +227,52 @@ export class RentalService {
     return {
       success: true,
       data: availability,
+    };
+  }
+
+  async getDeliveryList(supabaseId: string, query: DeliveryQueryDto) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const deliveries = await this.rentalRepository.findDeliveryList(
+      user.id,
+      query,
+    );
+
+    return {
+      success: true,
+      data: deliveries,
+    };
+  }
+
+  async updateDeliveryStatus(
+    supabaseId: string,
+    rentalItemId: string,
+    status: 'picked' | 'pending',
+  ) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const rentalItem = await this.rentalRepository.findDeliveryItemById(
+      user.id,
+      rentalItemId,
+    );
+    if (!rentalItem) {
+      throw new NotFoundException('Delivery item not found');
+    }
+
+    const updated = await this.rentalRepository.updateDeliveryStatus(
+      rentalItemId,
+      status,
+    );
+
+    return {
+      success: true,
+      data: updated,
     };
   }
 }

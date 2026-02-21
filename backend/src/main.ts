@@ -13,8 +13,21 @@ async function bootstrap() {
   });
 
   // Allow larger payloads for item creation with multiple base64 images.
-  app.use(json({ limit: '15mb' }));
-  app.use(urlencoded({ limit: '15mb', extended: true }));
+  app.use((req, res, next) => {
+    if (req.originalUrl === '/stripe/webhook') {
+      next(); // skip json parsing for webhook
+    } else {
+      json({ limit: '15mb' })(req, res, next);
+    }
+  });
+
+  app.use((req, res, next) => {
+    if (req.originalUrl === '/stripe/webhook') {
+      next();
+    } else {
+      urlencoded({ limit: '15mb', extended: true })(req, res, next);
+    }
+  });
 
   app.use(cookieParser());
 

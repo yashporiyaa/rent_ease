@@ -15,6 +15,8 @@ import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { CalendarQueryDto } from './dto/calendar-query.dto.js';
 import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
+import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
+import { UpdateDeliveryStatusDto } from './dto/update-delivery-status.dto.js';
 
 @Controller('rentals')
 export class RentalController {
@@ -49,6 +51,26 @@ export class RentalController {
   }
 
   @UseGuards(SupabaseAuthGuard)
+  @Get('delivery')
+  getDeliveryList(@Req() req: any, @Query() query: DeliveryQueryDto) {
+    return this.rentalService.getDeliveryList(req.user.sub, query);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Patch('delivery/:rentalItemId/status')
+  updateDeliveryStatus(
+    @Req() req: any,
+    @Param('rentalItemId') rentalItemId: string,
+    @Body() dto: UpdateDeliveryStatusDto,
+  ) {
+    return this.rentalService.updateDeliveryStatus(
+      req.user.sub,
+      rentalItemId,
+      dto.status,
+    );
+  }
+
+  @UseGuards(SupabaseAuthGuard)
   @Post('check-availability')
   async checkAvailability(
     @Req() req: any,
@@ -65,7 +87,11 @@ export class RentalController {
 
   @UseGuards(SupabaseAuthGuard)
   @Patch(':id')
-  async update(@Req() req: any, @Param('id') id: string, @Body() dto: CreateRentalDto) {
+  async update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: CreateRentalDto,
+  ) {
     return await this.rentalService.update(req.user.sub, id, dto);
   }
 

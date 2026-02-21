@@ -153,6 +153,8 @@ model RentalItem {
   taxAmount Float       @default(0)
   totalAmount Float     @default(0)
   status   String       @default("ACTIVE")
+  deliveryStatus RentalDeliveryStatus @default(PENDING)
+  pickedAt DateTime?
 
   rental Rental @relation(fields: [rentalId], references: [id])
   item   Item   @relation(fields: [itemId], references: [id])
@@ -210,6 +212,11 @@ enum RentalStatus {
   COMPLETED
   OVERDUE
   CANCELLED
+}
+
+enum RentalDeliveryStatus {
+  PENDING
+  PICKED
 }
 
 enum InvoiceStatus {
