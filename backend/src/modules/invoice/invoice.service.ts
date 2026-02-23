@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InvoiceTemplate } from '@prisma/client';
+import { InvoiceStatus, InvoiceTemplate } from '@prisma/client';
 import { UserRepository } from '../user/user.repository.js';
 import { InvoiceRepository } from './invoice.repository.js';
 import { InvoicePdfService } from './invoice-pdf.service.js';
@@ -26,7 +26,10 @@ export class InvoiceService {
 
     return {
       success: true,
-      data: invoice,
+      data: {
+        ...invoice,
+        status: this.resolveInvoiceStatus(invoice),
+      },
     };
   }
 
@@ -45,7 +48,7 @@ export class InvoiceService {
         invoiceNo: inv.invoiceNo,
         customer: inv.rental.customer.name,
         amount: inv.totalAmount,
-        status: inv.status,
+        status: this.resolveInvoiceStatus(inv),
         createdAt: inv.createdAt,
       })),
     };
@@ -79,15 +82,19 @@ export class InvoiceService {
     const tax = invoice.taxAmount ?? 0;
     const taxRate = invoice.taxRate ?? 0;
     const grandTotal = subtotal + tax;
-    const amountPaid = (invoice.payments ?? []).reduce(
+    const amountPaidFromPayments = (invoice.payments ?? []).reduce(
       (sum: number, payment: any) => sum + (payment.amount ?? 0),
       0,
     );
-    const outstanding = Math.max(grandTotal - amountPaid, 0);
+    const rentalPending = Number(invoice.rental?.pendingAmount ?? NaN);
+    const outstanding = Number.isFinite(rentalPending)
+      ? Math.max(rentalPending, 0)
+      : Math.max(grandTotal - amountPaidFromPayments, 0);
+    const amountPaid = Math.max(grandTotal - outstanding, 0);
 
     return {
       invoiceNo: invoice.invoiceNo,
-      status: invoice.status,
+      status: this.resolveInvoiceStatus(invoice),
       issueDate: invoice.createdAt,
       customer: {
         name: invoice.rental.customer.name,
@@ -112,5 +119,18 @@ export class InvoiceService {
         outstanding,
       },
     };
+  }
+
+  private resolveInvoiceStatus(invoice: any): InvoiceStatus {
+    const pending = Math.max(Number(invoice?.rental?.pendingAmount ?? 0), 0);
+    const total = Math.max(Number(invoice?.totalAmount ?? 0), 0);
+
+    if (pending <= 0) {
+      return InvoiceStatus.PAID;
+    }
+    if (pending < total) {
+      return InvoiceStatus.PARTIAL;
+    }
+    return InvoiceStatus.PENDING;
   }
 }

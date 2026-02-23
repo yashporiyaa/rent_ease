@@ -3,10 +3,12 @@
 import { Fragment, useState } from "react";
 import Link from "next/link";
 import { RentalStatusBadge } from "./rental-status-badge";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, FileDown, Pencil, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils/date";
 import { RentalsTableProps } from "@/types";
 import { Button } from "../ui/button";
+import { downloadInvoicePDF } from "@/lib/api/invoice";
+import { toast } from "react-toastify";
 import {
   Table,
   TableBody,
@@ -49,6 +51,7 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
             <TableHead className="px-6 py-4 text-right font-semibold">Pending</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Deposit</TableHead>
             <TableHead className="px-6 py-4 text-left font-semibold">Status</TableHead>
+            <TableHead className="px-6 py-4 text-right font-semibold">PDF</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Edit</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Delete</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Action</TableHead>
@@ -91,11 +94,60 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
                   <TableCell className="px-6 py-4 text-right">₹{rental.taxAmountValue ?? 0}</TableCell>
                   <TableCell className="px-6 py-4 text-right font-semibold">₹{rental.totalAmount}</TableCell>
                   <TableCell className="px-6 py-4 text-right">₹{rental.advanceAmount ?? 0}</TableCell>
-                  <TableCell className="px-6 py-4 text-right">₹{rental.pendingAmount ?? 0}</TableCell>
-                  <TableCell className="px-6 py-4 text-right">₹{rental.depositAmount ?? 0}</TableCell>
+                  <TableCell className="px-6 py-4 text-right">
+                    {(rental.pendingAmount ?? 0) > 0 ? (
+                      <Link
+                        href={`/protected/finance/receipts?rentalId=${rental.id}`}
+                        className="font-semibold text-[#17cf91] hover:underline"
+                      >
+                        ₹{rental.pendingAmount ?? 0}
+                      </Link>
+                    ) : (
+                      <>₹{rental.pendingAmount ?? 0}</>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-right">
+                    {(rental.depositAmount ?? 0) > 0 ? (
+                      <Link
+                        href={`/protected/finance/payments?rentalId=${rental.id}`}
+                        className="font-semibold text-red-600 hover:underline"
+                      >
+                        ₹{rental.depositAmount ?? 0}
+                      </Link>
+                    ) : (
+                      <>₹{rental.depositAmount ?? 0}</>
+                    )}
+                  </TableCell>
 
                   <TableCell className="px-6 py-4">
                     <RentalStatusBadge status={rental.status} />
+                  </TableCell>
+
+                  <TableCell className="px-6 py-4 text-right">
+                    <Button
+                      variant="destructive"
+                      type="button"
+                      onClick={async () => {
+                        if (!rental.invoice?.id) {
+                          toast.error("Invoice not found for this rental");
+                          return;
+                        }
+
+                        try {
+                          await downloadInvoicePDF({ id: rental.invoice.id });
+                        } catch (error) {
+                          const message =
+                            error instanceof Error
+                              ? error.message
+                              : "Failed to download invoice PDF";
+                          toast.error(message);
+                        }
+                      }}
+                      className="text-red-600 bg-white hover:bg-red-100 cursor-pointer"
+                      aria-label={`Download invoice PDF for rental ${rental.id}`}
+                    >
+                      <FileDown size={16} />
+                    </Button>
                   </TableCell>
 
                   <TableCell className="px-6 py-4 text-right">
@@ -134,7 +186,7 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
                 </TableRow>
                 {isExpanded && (
                   <TableRow className="bg-slate-50/40">
-                    <TableCell colSpan={14} className="p-0">
+                    <TableCell colSpan={15} className="p-0">
                       <div className="border-t border-slate-200">
                         <Table>
                           <TableHeader className="bg-slate-100 text-slate-600">

@@ -6,9 +6,10 @@ import { RentalsEmptyState } from "@/components/rentals/rentals-empty-state";
 import { Button } from "@/components/ui/button";
 import { deleteRental, getRentalById, getRentals } from "@/lib/api/rentals";
 import { getCustomers } from "@/lib/api/customers";
+import { getItems } from "@/lib/api/items";
 import { toast } from "react-toastify";
 import { CreateRentalForm } from "@/components/rentals/create-rental-form";
-import { CustomerListItem, RentalRecord } from "@/types";
+import { CustomerListItem, InventoryItem, RentalRecord } from "@/types";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 export default function RentalsPage() {
@@ -16,11 +17,11 @@ export default function RentalsPage() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRental, setEditingRental] = useState<RentalRecord | null>(null);
-  const [editLoading, setEditLoading] = useState(false);
   const [deletingRental, setDeletingRental] = useState<RentalRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formCustomers, setFormCustomers] = useState<CustomerListItem[]>([]);
-  const [formLoading, setFormLoading] = useState(false);
+  const [formItems, setFormItems] = useState<InventoryItem[]>([]);
+  const [formBootstrapLoading, setFormBootstrapLoading] = useState(false);
 
   const fetchRentals = useCallback(async () => {
     try {
@@ -39,39 +40,44 @@ export default function RentalsPage() {
     void fetchRentals();
   }, [fetchRentals]);
 
-  useEffect(() => {
-    if (!isCreateOpen && !editingRental) return;
-
-    const fetchFormData = async () => {
-      setFormLoading(true);
-      try {
-        const customersRes = await getCustomers();
-        setFormCustomers(customersRes.data);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Failed to load rental form data";
-        toast.error(message);
-      } finally {
-        setFormLoading(false);
-      }
-    };
-
-    void fetchFormData();
-  }, [isCreateOpen, editingRental]);
-
-  const handleEditRental = async (rental: RentalRecord) => {
-    setEditLoading(true);
+  const handleOpenCreate = async () => {
+    setFormBootstrapLoading(true);
     try {
-      const res = await getRentalById(rental.id);
-      setEditingRental(res.data as RentalRecord);
+      const [customersRes, itemsRes] = await Promise.all([getCustomers(), getItems()]);
+      setFormCustomers(customersRes.data);
+      setFormItems(itemsRes.data);
+      setIsCreateOpen(true);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to fetch rental details";
+        error instanceof Error
+          ? error.message
+          : "Failed to load rental form data";
       toast.error(message);
     } finally {
-      setEditLoading(false);
+      setFormBootstrapLoading(false);
+    }
+  };
+
+  const handleEditRental = async (rental: RentalRecord) => {
+    setFormBootstrapLoading(true);
+    try {
+      const [rentalRes, customersRes, itemsRes] = await Promise.all([
+        getRentalById(rental.id),
+        getCustomers(),
+        getItems(),
+      ]);
+
+      setEditingRental(rentalRes.data as RentalRecord);
+      setFormCustomers(customersRes.data);
+      setFormItems(itemsRes.data);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load rental form data";
+      toast.error(message);
+    } finally {
+      setFormBootstrapLoading(false);
     }
   };
 
@@ -114,14 +120,16 @@ export default function RentalsPage() {
         </div>
         <Button
           variant="brand"
-          onClick={() => setIsCreateOpen(true)}
+          onClick={() => void handleOpenCreate()}
+          disabled={formBootstrapLoading}
           className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
         >
           Create Rental
         </Button>
       </div>
+
       {rentals.length === 0 ? (
-        <RentalsEmptyState onClick={() => setIsCreateOpen(true)} />
+        <RentalsEmptyState onClick={() => void handleOpenCreate()} />
       ) : (
         <RentalsTable
           rentals={rentals}
@@ -140,56 +148,42 @@ export default function RentalsPage() {
               className="w-full max-w-345"
               onClick={(e) => e.stopPropagation()}
             >
-              {formLoading ? (
-                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
-                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : (
-                <CreateRentalForm
-                  customers={formCustomers}
-                  onClose={() => setIsCreateOpen(false)}
-                  onSuccess={async () => {
-                    setIsCreateOpen(false);
-                    setLoading(true);
-                    await fetchRentals();
-                  }}
-                />
-              )}
+              <CreateRentalForm
+                customers={formCustomers}
+                items={formItems}
+                onClose={() => setIsCreateOpen(false)}
+                onSuccess={async () => {
+                  setIsCreateOpen(false);
+                  setLoading(true);
+                  await fetchRentals();
+                }}
+              />
             </div>
           </div>
         </div>
       )}
 
-      {(editLoading || editingRental) && (
+      {editingRental && (
         <div
           className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
-          onClick={() => {
-            if (!editLoading) {
-              setEditingRental(null);
-            }
-          }}
+          onClick={() => setEditingRental(null)}
         >
           <div className="min-h-full flex items-center justify-center">
             <div
               className="w-full max-w-345"
               onClick={(e) => e.stopPropagation()}
             >
-              {editLoading || formLoading ? (
-                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
-                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : editingRental ? (
-                <CreateRentalForm
-                  rental={editingRental}
-                  customers={formCustomers}
-                  onClose={() => setEditingRental(null)}
-                  onSuccess={async () => {
-                    setEditingRental(null);
-                    setLoading(true);
-                    await fetchRentals();
-                  }}
-                />
-              ) : null}
+              <CreateRentalForm
+                rental={editingRental}
+                customers={formCustomers}
+                items={formItems}
+                onClose={() => setEditingRental(null)}
+                onSuccess={async () => {
+                  setEditingRental(null);
+                  setLoading(true);
+                  await fetchRentals();
+                }}
+              />
             </div>
           </div>
         </div>
@@ -211,6 +205,12 @@ export default function RentalsPage() {
           }
         }}
       />
+
+      {formBootstrapLoading ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : null}
     </div>
   );
 }

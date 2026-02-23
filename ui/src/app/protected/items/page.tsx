@@ -5,9 +5,11 @@ import { ItemsTable } from "@/components/items/items-table";
 import { ItemsEmptyState } from "@/components/items/items-empty-state";
 import { Button } from "@/components/ui/button";
 import { deleteItem, getItems } from "@/lib/api/items";
+import { getItemCategories } from "@/lib/api/item-categories";
+import { getItemSizes } from "@/lib/api/item-sizes";
 import { toast } from "react-toastify";
 import { CreateItemForm } from "@/components/items/create-item-form";
-import { InventoryItem } from "@/types";
+import { InventoryItem, ItemCategory, ItemSize } from "@/types";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 export default function ItemsPage() {
@@ -17,6 +19,9 @@ export default function ItemsPage() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [formCategories, setFormCategories] = useState<ItemCategory[]>([]);
+  const [formSizes, setFormSizes] = useState<ItemSize[]>([]);
+  const [formBootstrapLoading, setFormBootstrapLoading] = useState(false);
 
   const fetchItemsData = useCallback(async () => {
     try {
@@ -34,6 +39,48 @@ export default function ItemsPage() {
   useEffect(() => {
     void fetchItemsData();
   }, [fetchItemsData]);
+
+  const loadItemFormOptions = async () => {
+    const [categoriesRes, sizesRes] = await Promise.all([
+      getItemCategories(),
+      getItemSizes(),
+    ]);
+
+    setFormCategories(categoriesRes.data);
+    setFormSizes(sizesRes.data);
+  };
+
+  const handleOpenCreate = async () => {
+    setFormBootstrapLoading(true);
+    try {
+      await loadItemFormOptions();
+      setIsCreateOpen(true);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load item form data";
+      toast.error(message);
+    } finally {
+      setFormBootstrapLoading(false);
+    }
+  };
+
+  const handleOpenEdit = async (item: InventoryItem) => {
+    setFormBootstrapLoading(true);
+    try {
+      await loadItemFormOptions();
+      setEditingItem(item);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load item form data";
+      toast.error(message);
+    } finally {
+      setFormBootstrapLoading(false);
+    }
+  };
 
   const handleDeleteItem = async () => {
     if (!deletingItem) {
@@ -78,18 +125,19 @@ export default function ItemsPage() {
         </div>
         <Button
           variant="brand"
-          onClick={() => setIsCreateOpen(true)}
+          onClick={() => void handleOpenCreate()}
+          disabled={formBootstrapLoading}
           className="rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
         >
           Add Item
         </Button>
       </div>
       {items.length === 0 ? (
-        <ItemsEmptyState onClick={() => setIsCreateOpen(true)} />
+        <ItemsEmptyState onClick={() => void handleOpenCreate()} />
       ) : (
         <ItemsTable
           items={items}
-          onEdit={(item) => setEditingItem(item)}
+          onEdit={(item) => void handleOpenEdit(item)}
           onDelete={(item) => setDeletingItem(item)}
         />
       )}
@@ -105,6 +153,8 @@ export default function ItemsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <CreateItemForm
+                categories={formCategories}
+                sizes={formSizes}
                 onClose={() => setIsCreateOpen(false)}
                 onSuccess={async () => {
                   setIsCreateOpen(false);
@@ -129,6 +179,8 @@ export default function ItemsPage() {
             >
               <CreateItemForm
                 item={editingItem}
+                categories={formCategories}
+                sizes={formSizes}
                 onClose={() => setEditingItem(null)}
                 onSuccess={async () => {
                   setEditingItem(null);
@@ -157,6 +209,12 @@ export default function ItemsPage() {
           }
         }}
       />
+
+      {formBootstrapLoading ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : null}
     </div>
   );
 }

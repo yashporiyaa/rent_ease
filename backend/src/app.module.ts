@@ -12,6 +12,8 @@ import { PaymentModule } from './modules/payment/payment.module.js';
 import { StripeModule } from './modules/stripe/stripe.module.js';
 import { ItemCategoryModule } from './modules/item-category/item-category.module.js';
 import { ItemSizeModule } from './modules/item-size/item-size.module.js';
+import { ReceiptModule } from './modules/receipt/receipt.module.js';
+import { RentalPaymentModule } from './modules/rental-payment/rental-payment.module.js';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ItemSizeModule } from './modules/item-size/item-size.module.js';
     RentalModule,
     InvoiceModule,
     PaymentModule,
+    ReceiptModule,
+    RentalPaymentModule,
     StripeModule,
   ],
   controllers: [AppController],

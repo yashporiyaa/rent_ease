@@ -1,4 +1,8 @@
-import { CreateRentalPayload, DeliveryFilterStatus } from "@/types";
+import {
+  CreateRentalPayload,
+  DeliveryFilterStatus,
+  ReturnFilterStatus,
+} from "@/types";
 
 export const createRental = async (payload: CreateRentalPayload) => {
   try {
@@ -126,6 +130,7 @@ export const checkRentalItemAvailability = async (payload: {
   fromAt: string;
   toAt: string;
   excludeRentalId?: string;
+  sizeId?: string;
 }) => {
   try {
     const res = await fetch("http://localhost:3001/rentals/check-availability", {
@@ -213,6 +218,73 @@ export const updateDeliveryRentalStatus = async (
     return data;
   } catch (error) {
     console.error("updateDeliveryRentalStatus failed:", error);
+    throw error;
+  }
+};
+
+export const getReturnRentals = async (params: {
+  fromDate?: string;
+  toDate?: string;
+  categoryId?: string;
+  status?: ReturnFilterStatus;
+}) => {
+  try {
+    const searchParams = new URLSearchParams();
+
+    if (params.fromDate) {
+      searchParams.set("fromDate", params.fromDate);
+    }
+    if (params.toDate) {
+      searchParams.set("toDate", params.toDate);
+    }
+    if (params.categoryId) {
+      searchParams.set("categoryId", params.categoryId);
+    }
+    if (params.status) {
+      searchParams.set("status", params.status);
+    }
+
+    const query = searchParams.toString();
+    const url = query
+      ? `http://localhost:3001/rentals/return?${query}`
+      : "http://localhost:3001/rentals/return";
+
+    const res = await fetch(url, {
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Fetch return rentals failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("getReturnRentals failed:", error);
+    throw error;
+  }
+};
+
+export const updateReturnRentalStatus = async (
+  rentalItemId: string,
+  status: "picked" | "returned" | "pending",
+) => {
+  try {
+    const res = await fetch(`http://localhost:3001/rentals/return/${rentalItemId}/status`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Update return status failed");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("updateReturnRentalStatus failed:", error);
     throw error;
   }
 };

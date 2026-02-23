@@ -8,8 +8,6 @@ import { useRouter } from "next/navigation";
 import { createItem, updateItem } from "@/lib/api/items";
 import { toast } from "react-toastify";
 import { ImagePlus, Trash2, X } from "lucide-react";
-import { getItemCategories } from "@/lib/api/item-categories";
-import { getItemSizes } from "@/lib/api/item-sizes";
 import { ItemCategory, InventoryItem, ItemSize } from "@/types";
 import {
   Select,
@@ -38,10 +36,14 @@ const getInitialImageSlots = (images?: string[] | null) => {
 };
 
 export function CreateItemForm({
+  categories,
+  sizes,
   onSuccess,
   onClose,
   item,
 }: {
+  categories: ItemCategory[];
+  sizes: ItemSize[];
   onSuccess?: () => void;
   onClose?: () => void;
   item?: InventoryItem | null;
@@ -64,10 +66,6 @@ export function CreateItemForm({
   const [imageSlots, setImageSlots] = useState<string[]>(
     getInitialImageSlots(item?.images),
   );
-  const [categories, setCategories] = useState<ItemCategory[]>([]);
-  const [sizes, setSizes] = useState<ItemSize[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [loadingSizes, setLoadingSizes] = useState(true);
   const [activeImageSlot, setActiveImageSlot] = useState<number | null>(null);
   const [error, setError] = useState("");
 
@@ -77,51 +75,26 @@ export function CreateItemForm({
   );
 
   useEffect(() => {
-    const fetchFormOptions = async () => {
-      setLoadingCategories(true);
-      setLoadingSizes(true);
-      try {
-        const [categoryRes, sizeRes] = await Promise.all([
-          getItemCategories(),
-          getItemSizes(),
-        ]);
+    if (item?.categoryId) {
+      setCategoryId(item.categoryId);
+    } else if (item?.category) {
+      const matchedCategory = categories.find(
+        (category) => category.name === item.category,
+      );
+      setCategoryId(matchedCategory?.id ?? "");
+    } else {
+      setCategoryId("");
+    }
 
-        setCategories(categoryRes.data);
-        setSizes(sizeRes.data);
-
-        if (item?.categoryId) {
-          setCategoryId(item.categoryId);
-        } else if (item?.category) {
-          const matchedCategory = categoryRes.data.find(
-            (category: ItemCategory) => category.name === item.category,
-          );
-          if (matchedCategory) {
-            setCategoryId(matchedCategory.id);
-          }
-        }
-
-        if (item?.sizeId) {
-          setSizeId(item.sizeId);
-        } else if (item?.size) {
-          const matchedSize = sizeRes.data.find(
-            (size: ItemSize) => size.name === item.size,
-          );
-          if (matchedSize) {
-            setSizeId(matchedSize.id);
-          }
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to fetch form options";
-        setError(message);
-      } finally {
-        setLoadingCategories(false);
-        setLoadingSizes(false);
-      }
-    };
-
-    void fetchFormOptions();
-  }, [item?.category, item?.categoryId, item?.size, item?.sizeId]);
+    if (item?.sizeId) {
+      setSizeId(item.sizeId);
+    } else if (item?.size) {
+      const matchedSize = sizes.find((size) => size.name === item.size);
+      setSizeId(matchedSize?.id ?? "");
+    } else {
+      setSizeId("");
+    }
+  }, [categories, item?.category, item?.categoryId, item?.size, item?.sizeId, sizes]);
 
   const handleImageSlotChange = async (
     slotIndex: number,
@@ -259,9 +232,7 @@ export function CreateItemForm({
         <Select value={categoryId} onValueChange={setCategoryId}>
           <SelectTrigger className="w-full border p-3 rounded-xl h-12">
             <SelectValue
-              placeholder={
-                loadingCategories ? "Loading categories..." : "Select category"
-              }
+              placeholder="Select category"
             />
           </SelectTrigger>
           <SelectContent className="max-h-60">
@@ -276,7 +247,7 @@ export function CreateItemForm({
         <Select value={sizeId} onValueChange={setSizeId}>
           <SelectTrigger className="w-full border p-3 rounded-xl h-12">
             <SelectValue
-              placeholder={loadingSizes ? "Loading sizes..." : "Select size"}
+              placeholder="Select size"
             />
           </SelectTrigger>
           <SelectContent className="max-h-60">
@@ -373,8 +344,6 @@ export function CreateItemForm({
         variant="brand"
         onClick={submit}
         disabled={
-          loadingCategories ||
-          loadingSizes ||
           activeImageSlot !== null ||
           categories.length === 0 ||
           sizes.length === 0

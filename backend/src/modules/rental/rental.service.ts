@@ -8,6 +8,7 @@ import { UserRepository } from '../user/user.repository.js';
 import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
+import { ReturnQueryDto } from './dto/return-query.dto.js';
 
 @Injectable()
 export class RentalService {
@@ -222,6 +223,7 @@ export class RentalService {
       dto.fromAt,
       dto.toAt,
       dto.excludeRentalId,
+      dto.sizeId,
     );
 
     return {
@@ -266,6 +268,55 @@ export class RentalService {
     }
 
     const updated = await this.rentalRepository.updateDeliveryStatus(
+      rentalItemId,
+      status,
+    );
+
+    return {
+      success: true,
+      data: updated,
+    };
+  }
+
+  async getReturnList(supabaseId: string, query: ReturnQueryDto) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const returns = await this.rentalRepository.findReturnList(user.id, query);
+
+    return {
+      success: true,
+      data: returns,
+    };
+  }
+
+  async updateReturnStatus(
+    supabaseId: string,
+    rentalItemId: string,
+    status: 'picked' | 'returned' | 'pending',
+  ) {
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const rentalItem = await this.rentalRepository.findDeliveryItemById(
+      user.id,
+      rentalItemId,
+    );
+    if (!rentalItem) {
+      throw new NotFoundException('Return item not found');
+    }
+
+    if (rentalItem.status === 'RETURNED' && status === 'picked') {
+      throw new BadRequestException(
+        'Cannot set status to picked after item is returned',
+      );
+    }
+
+    const updated = await this.rentalRepository.updateReturnStatus(
       rentalItemId,
       status,
     );

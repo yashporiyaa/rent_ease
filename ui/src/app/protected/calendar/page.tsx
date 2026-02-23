@@ -186,7 +186,7 @@ export default function CalendarPage() {
               : 35;
           const weekCount = Math.max(
             4,
-            Math.min(6, Math.ceil(visibleDays / 7)),
+            Math.min(6, Math.ceil(visibleDays / 7)),  
           );
 
           // Keep date cells readable even in 6-week months.

@@ -15,10 +15,27 @@ import {
   type Prisma,
 } from '@prisma/client';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
+import { ReturnQueryDto } from './dto/return-query.dto.js';
 
 @Injectable()
 export class RentalRepository {
   constructor(private prisma: PrismaService) {}
+
+  private resolveInvoiceStatusFromPending(
+    pendingAmount: number,
+    totalAmount: number,
+  ): InvoiceStatus {
+    const pending = Math.max(Number(pendingAmount ?? 0), 0);
+    const total = Math.max(Number(totalAmount ?? 0), 0);
+
+    if (pending <= 0) {
+      return InvoiceStatus.PAID;
+    }
+    if (pending < total) {
+      return InvoiceStatus.PARTIAL;
+    }
+    return InvoiceStatus.PENDING;
+  }
 
   private async getAvailability(
     userId: string,
@@ -155,7 +172,10 @@ export class RentalRepository {
           taxRate,
           totalAmount: dto.totalAmount,
           taxAmount: dto.taxAmountValue,
-          status: InvoiceStatus.PENDING,
+          status: this.resolveInvoiceStatusFromPending(
+            dto.pendingAmount,
+            dto.totalAmount,
+          ),
         },
       });
 
@@ -241,6 +261,10 @@ export class RentalRepository {
           totalAmount: dto.totalAmount,
           taxAmount: dto.taxAmountValue,
           taxRate,
+          status: this.resolveInvoiceStatusFromPending(
+            dto.pendingAmount,
+            dto.totalAmount,
+          ),
         },
       });
 
@@ -277,7 +301,28 @@ export class RentalRepository {
     fromAt: string,
     toAt: string,
     excludeRentalId?: string,
+    sizeId?: string,
   ) {
+    if (sizeId) {
+      const selectedItem = await this.prisma.item.findFirst({
+        where: {
+          id: itemId,
+          userId,
+        },
+        select: {
+          sizeId: true,
+        },
+      });
+
+      if (!selectedItem) {
+        throw new NotFoundException('Item not found');
+      }
+
+      if ((selectedItem.sizeId ?? null) !== sizeId) {
+        throw new BadRequestException('Selected product does not match size');
+      }
+    }
+
     const { itemName, availableStock } = await this.getAvailability(
       userId,
       itemId,
@@ -286,10 +331,63 @@ export class RentalRepository {
       excludeRentalId,
     );
 
+    const recentRentals = await this.prisma.rentalItem.findMany({
+      where: {
+        itemId,
+        rental: {
+          userId,
+        },
+      },
+      select: {
+        id: true,
+        fromAt: true,
+        toAt: true,
+        quantity: true,
+        discountAmount: true,
+        status: true,
+        item: {
+          select: {
+            fullName: true,
+            size: true,
+          },
+        },
+        rental: {
+          select: {
+            bookingNo: true,
+            bookingAt: true,
+            customer: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        rental: {
+          bookingAt: 'desc',
+        },
+      },
+      take: 10,
+    });
+
     return {
       itemName,
       availableStock,
       available: quantity <= availableStock,
+      recentRentals: recentRentals.map((row) => ({
+        id: row.id,
+        bookingNo: row.rental.bookingNo,
+        product: row.item.fullName,
+        size: row.item.size,
+        deliveryDate: row.fromAt,
+        bookingDate: row.rental.bookingAt,
+        returnDate: row.toAt,
+        customerName: row.rental.customer.name,
+        quantity: row.quantity,
+        discount: row.discountAmount,
+        status: row.status,
+      })),
     };
   }
 
@@ -298,6 +396,9 @@ export class RentalRepository {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
+        invoice: {
+          select: { id: true },
+        },
         customer: {
           select: { name: true },
         },
@@ -319,6 +420,9 @@ export class RentalRepository {
         userId,
       },
       include: {
+        invoice: {
+          select: { id: true },
+        },
         customer: {
           select: { name: true },
         },
@@ -491,6 +595,7 @@ export class RentalRepository {
       },
       select: {
         id: true,
+        status: true,
       },
     });
   }
@@ -516,6 +621,104 @@ export class RentalRepository {
             fullName: true,
             description: true,
             images: true,
+          },
+        },
+        rental: {
+          select: {
+            bookingNo: true,
+            depositAmount: true,
+            customer: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findReturnList(userId: string, query: ReturnQueryDto) {
+    const where: Prisma.RentalItemWhereInput = {
+      rental: { userId },
+    };
+
+    if (query.fromDate || query.toDate) {
+      const toDate = query.toDate ? new Date(query.toDate) : undefined;
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+
+      where.toAt = {
+        ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}),
+        ...(toDate ? { lte: toDate } : {}),
+      };
+    }
+
+    if (query.categoryId) {
+      where.item = { categoryId: query.categoryId };
+    }
+
+    if (query.status === 'returned') {
+      where.status = 'RETURNED';
+    }
+
+    return this.prisma.rentalItem.findMany({
+      where,
+      include: {
+        item: {
+          select: {
+            fullName: true,
+            description: true,
+            images: true,
+            category: true,
+            categoryId: true,
+          },
+        },
+        rental: {
+          select: {
+            bookingNo: true,
+            depositAmount: true,
+            customer: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        toAt: 'asc',
+      },
+    });
+  }
+
+  async updateReturnStatus(
+    rentalItemId: string,
+    status: 'picked' | 'returned' | 'pending',
+  ) {
+    const resolvedStatus =
+      status === 'returned'
+        ? 'RETURNED'
+        : status === 'picked'
+          ? 'PICKED'
+          : 'ACTIVE';
+
+    return this.prisma.rentalItem.update({
+      where: {
+        id: rentalItemId,
+      },
+      data: {
+        status: resolvedStatus,
+      },
+      include: {
+        item: {
+          select: {
+            fullName: true,
+            description: true,
+            images: true,
+            category: true,
+            categoryId: true,
           },
         },
         rental: {

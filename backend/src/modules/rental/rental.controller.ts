@@ -17,6 +17,8 @@ import { CalendarQueryDto } from './dto/calendar-query.dto.js';
 import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
 import { UpdateDeliveryStatusDto } from './dto/update-delivery-status.dto.js';
+import { ReturnQueryDto } from './dto/return-query.dto.js';
+import { UpdateReturnStatusDto } from './dto/update-return-status.dto.js';
 
 @Controller('rentals')
 export class RentalController {
@@ -64,6 +66,26 @@ export class RentalController {
     @Body() dto: UpdateDeliveryStatusDto,
   ) {
     return this.rentalService.updateDeliveryStatus(
+      req.user.sub,
+      rentalItemId,
+      dto.status,
+    );
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Get('return')
+  getReturnList(@Req() req: any, @Query() query: ReturnQueryDto) {
+    return this.rentalService.getReturnList(req.user.sub, query);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Patch('return/:rentalItemId/status')
+  updateReturnStatus(
+    @Req() req: any,
+    @Param('rentalItemId') rentalItemId: string,
+    @Body() dto: UpdateReturnStatusDto,
+  ) {
+    return this.rentalService.updateReturnStatus(
       req.user.sub,
       rentalItemId,
       dto.status,

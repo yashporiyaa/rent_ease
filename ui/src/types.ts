@@ -183,6 +183,9 @@ export type RentalItemLine = {
 
 export type RentalRecord = {
   id: string;
+  invoice?: {
+    id: string;
+  } | null;
   bookingNo?: string | null;
   bookingAt: string;
   customer: {
@@ -246,6 +249,61 @@ export type DeliveryRentalItem = {
       name: string;
     };
   };
+};
+
+export type ReturnFilterStatus = "all" | "returned";
+
+export type ReturnItemStatus = "ACTIVE" | "PICKED" | "RETURNED";
+
+export type ReturnFilters = {
+  fromDate: string;
+  toDate: string;
+  categoryId: string;
+  status: ReturnFilterStatus;
+};
+
+export type ReturnRentalItem = {
+  id: string;
+  fromAt?: string | null;
+  toAt?: string | null;
+  description?: string | null;
+  image?: string | null;
+  status: ReturnItemStatus;
+  item?: {
+    fullName: string;
+    description?: string | null;
+    images?: string[];
+    category?: string | null;
+    categoryId?: string | null;
+  };
+  rental: {
+    bookingNo?: string | null;
+    depositAmount?: number | null;
+    customer: {
+      name: string;
+    };
+  };
+};
+
+export type AvailabilityHistoryRow = {
+  id: string;
+  bookingNo?: string | null;
+  product: string;
+  size?: string | null;
+  deliveryDate?: string | null;
+  bookingDate: string;
+  returnDate?: string | null;
+  customerName: string;
+  quantity: number;
+  discount: number;
+  status: string;
+};
+
+export type ItemAvailabilityResult = {
+  itemName: string;
+  availableStock: number;
+  available: boolean;
+  recentRentals: AvailabilityHistoryRow[];
 };
 
 export type RentalHeaderProps = {
@@ -343,4 +401,130 @@ export type CustomerModalUiState = {
   foundCustomer: CustomerListItem | null;
   isEditCustomer: boolean;
   submittingCustomer: boolean;
+};
+
+export type ReceiptPaymentMode = "CASH" | "UPI" | "CARD" | "BANK_TRANSFER";
+
+export type ReceiptListFilters = {
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type ReceiptCustomerOption = {
+  id: string;
+  name: string;
+  pendingTotal: number;
+};
+
+export type ReceiptPendingRental = {
+  id: string;
+  bookingNo?: string | null;
+  bookingAt: string;
+  totalAmount: number;
+  pendingAmount: number;
+};
+
+export type ReceiptDraftLine = {
+  rentalId: string;
+  description: string;
+  receivedAmount: string;
+};
+
+export type ReceiptPayload = {
+  customerId: string;
+  entryDate: string;
+  paymentMode: ReceiptPaymentMode;
+  discountAmount: number;
+  lineItems: {
+    rentalId: string;
+    description?: string;
+    receivedAmount: number;
+  }[];
+};
+
+export type ReceiptLineRecord = {
+  id: string;
+  description?: string | null;
+  receivedAmount: number;
+  discountAmount: number;
+  rental: {
+    id: string;
+    bookingNo?: string | null;
+    bookingAt: string;
+    totalAmount: number;
+    pendingAmount: number;
+  };
+};
+
+export type ReceiptRecord = {
+  id: string;
+  entryDate: string;
+  paymentMode: ReceiptPaymentMode;
+  discountAmount: number;
+  totalReceived: number;
+  customer: {
+    id: string;
+    name: string;
+  };
+  lineItems: ReceiptLineRecord[];
+};
+
+export type RentalPaymentMode = "CASH" | "UPI" | "CARD" | "BANK_TRANSFER";
+
+export type RentalPaymentListFilters = {
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type RentalPaymentCustomerOption = {
+  id: string;
+  name: string;
+  pendingTotal: number;
+};
+
+export type RentalPaymentPendingRental = {
+  id: string;
+  bookingNo?: string | null;
+  bookingAt: string;
+  totalAmount: number;
+  depositAmount: number;
+};
+
+export type RentalPaymentPayload = {
+  customerId: string;
+  entryDate: string;
+  paymentMode: RentalPaymentMode;
+  discountAmount: number;
+  lineItems: {
+    rentalId: string;
+    description?: string;
+    paidAmount: number;
+  }[];
+};
+
+export type RentalPaymentLineRecord = {
+  id: string;
+  description?: string | null;
+  paidAmount: number;
+  discountAmount: number;
+  rental: {
+    id: string;
+    bookingNo?: string | null;
+    bookingAt: string;
+    totalAmount: number;
+    depositAmount: number;
+  };
+};
+
+export type RentalPaymentRecord = {
+  id: string;
+  entryDate: string;
+  paymentMode: RentalPaymentMode;
+  discountAmount: number;
+  totalPaid: number;
+  customer: {
+    id: string;
+    name: string;
+  };
+  lineItems: RentalPaymentLineRecord[];
 };

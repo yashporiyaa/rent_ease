@@ -20,7 +20,6 @@ import {
 import { toast } from "react-toastify";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { createCustomer, findCustomerByPhone, updateCustomer } from "@/lib/api/customers";
-import { getItems } from "@/lib/api/items";
 import { CustomerListItem, CreateRentalPayload, InventoryItem, RentalRecord, CustomerModalState, RentalFormState, RentalLineFormState, RentalSummaryState, CustomerModalUiState, RentalLine } from "@/types";
 import {
   Table,
@@ -93,11 +92,13 @@ const toLocalDateTimeInput = (value?: string | Date | null) => {
 
 export function CreateRentalForm({
   customers,
+  items,
   rental,
   onSuccess,
   onClose,
 }: {
   customers: CustomerListItem[];
+  items: InventoryItem[];
   rental?: RentalRecord | null;
   onSuccess?: () => void;
   onClose?: () => void;
@@ -107,9 +108,6 @@ export function CreateRentalForm({
 
   const [customerList, setCustomerList] = useState<CustomerListItem[]>(customers);
   const [rentalForm, setRentalForm] = useState<RentalFormState>(createInitialRentalForm);
-
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [itemsLoading, setItemsLoading] = useState(false);
 
   const [lineForm, setLineForm] = useState<RentalLineFormState>(createInitialLineForm);
 
@@ -172,25 +170,6 @@ export function CreateRentalForm({
     );
     setLineForm((prev) => ({ ...prev, editingLineId: null }));
   }, [rental]);
-
-  useEffect(() => {
-    if (items.length > 0) return;
-
-    const fetchItems = async () => {
-      setItemsLoading(true);
-      try {
-        const res = await getItems();
-        setItems(res.data);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to fetch products";
-        toast.error(message);
-      } finally {
-        setItemsLoading(false);
-      }
-    };
-
-    void fetchItems();
-  }, [items.length]);
 
   const selectedProduct = items.find((item) => item.id === lineForm.itemId);
 
@@ -664,7 +643,6 @@ export function CreateRentalForm({
                       setLineForm((prev) => ({ ...prev, itemId: selectedId }));
                     }
                   }}
-                  disabled={itemsLoading}
                 >
                   <SelectTrigger className="h-10 w-full rounded-lg border px-2 text-sm">
                     <SelectValue placeholder="Select product" />

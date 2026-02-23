@@ -169,7 +169,6 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
   const outstanding = Number(
     data?.totals?.outstanding ?? data.totals.grandTotal - amountPaid,
   );
-  const showOutstanding = outstanding > 0;
 
   doc.fillColor('#64748b').fontSize(10);
 
@@ -208,48 +207,44 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
 
   y += 16;
 
-  if (showOutstanding) {
-    const outstandingBoxX = totalsX;
-    const outstandingBoxY = y;
-    const outstandingBoxHeight = 36;
-    const outstandingBoxPaddingX = 12;
-    const outstandingText = `Rs. ${outstanding}`;
+  const outstandingBoxX = totalsX;
+  const outstandingBoxY = y;
+  const outstandingBoxHeight = 36;
+  const outstandingBoxPaddingX = 12;
+  const outstandingText = `Rs. ${outstanding}`;
 
-    doc
-      .roundedRect(outstandingBoxX, outstandingBoxY, totalsWidth, outstandingBoxHeight, 10)
-      .fill(bg);
+  doc
+    .roundedRect(outstandingBoxX, outstandingBoxY, totalsWidth, outstandingBoxHeight, 10)
+    .fill(bg);
 
-    const outstandingLabelFontSize = 12;
-    const outstandingAmountFontSize = 12;
+  const outstandingLabelFontSize = 12;
+  const outstandingAmountFontSize = 12;
 
-    doc.fillColor(text).font('Helvetica-Bold').fontSize(outstandingAmountFontSize);
-    const outstandingTextWidth = doc.widthOfString(outstandingText);
-    const outstandingTextX =
-      outstandingBoxX + totalsWidth - outstandingBoxPaddingX - outstandingTextWidth;
-    const outstandingTextY =
-      outstandingBoxY + (outstandingBoxHeight - outstandingAmountFontSize) / 2 - 1;
-    const outstandingLabelX = outstandingBoxX + outstandingBoxPaddingX;
-    const outstandingLabelWidth = Math.max(
-      0,
-      outstandingTextX - outstandingLabelX - 8,
-    );
+  doc.fillColor(text).font('Helvetica-Bold').fontSize(outstandingAmountFontSize);
+  const outstandingTextWidth = doc.widthOfString(outstandingText);
+  const outstandingTextX =
+    outstandingBoxX + totalsWidth - outstandingBoxPaddingX - outstandingTextWidth;
+  const outstandingTextY =
+    outstandingBoxY + (outstandingBoxHeight - outstandingAmountFontSize) / 2 - 1;
+  const outstandingLabelX = outstandingBoxX + outstandingBoxPaddingX;
+  const outstandingLabelWidth = Math.max(
+    0,
+    outstandingTextX - outstandingLabelX - 8,
+  );
 
-    doc.fontSize(outstandingLabelFontSize);
-    doc.text('OUTSTANDING', outstandingLabelX - 35, outstandingTextY + 2, {
-      width: outstandingLabelWidth,
-      align: 'center',
-      lineBreak: false,
-    });
-    doc.fontSize(outstandingAmountFontSize);
-    doc.text(outstandingText, outstandingTextX, outstandingTextY + 2, {
-      lineBreak: false,
-      align: 'center',
-    });
+  doc.fontSize(outstandingLabelFontSize);
+  doc.text('OUTSTANDING', outstandingLabelX - 35, outstandingTextY + 2, {
+    width: outstandingLabelWidth,
+    align: 'center',
+    lineBreak: false,
+  });
+  doc.fontSize(outstandingAmountFontSize);
+  doc.text(outstandingText, outstandingTextX, outstandingTextY + 2, {
+    lineBreak: false,
+    align: 'center',
+  });
 
-    y += outstandingBoxHeight + 12;
-  } else {
-    y += 10;
-  }
+  y += outstandingBoxHeight + 12;
 
   /* ---------------- FOOTER ---------------- */
 

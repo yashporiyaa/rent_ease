@@ -16,4 +16,8 @@ export class CheckItemAvailabilityDto {
   @IsString()
   @IsOptional()
   excludeRentalId?: string;
+
+  @IsString()
+  @IsOptional()
+  sizeId?: string;
 }

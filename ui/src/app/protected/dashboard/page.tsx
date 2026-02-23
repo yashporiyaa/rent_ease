@@ -7,8 +7,9 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { UpcomingReturns } from "@/components/dashboard/upcoming-returns";
 import { getCustomers } from "@/lib/api/customers";
+import { getItems } from "@/lib/api/items";
 import { getUserDashboardData } from "@/lib/api/user";
-import { CustomerListItem } from "@/types";
+import { CustomerListItem, InventoryItem } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -23,7 +24,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [formCustomers, setFormCustomers] = useState<CustomerListItem[]>([]);
-  const [formLoading, setFormLoading] = useState(false);
+  const [formItems, setFormItems] = useState<InventoryItem[]>([]);
+  const [formBootstrapLoading, setFormBootstrapLoading] = useState(false);
 
   const fetchUserDashboardData = useCallback(async () => {
     try {
@@ -40,30 +42,26 @@ export default function DashboardPage() {
     void fetchUserDashboardData();
   }, [fetchUserDashboardData]);
 
-  useEffect(() => {
-    if (!isCreateOpen) return;
-
-    const fetchFormData = async () => {
-      setFormLoading(true);
-      try {
-        const customersRes = await getCustomers();
-        setFormCustomers(customersRes.data);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Failed to load rental form data";
-        toast.error(message);
-      } finally {
-        setFormLoading(false);
-      }
-    };
-
-    void fetchFormData();
-  }, [isCreateOpen]);
+  const handleOpenCreate = async () => {
+    setFormBootstrapLoading(true);
+    try {
+      const [customersRes, itemsRes] = await Promise.all([getCustomers(), getItems()]);
+      setFormCustomers(customersRes.data);
+      setFormItems(itemsRes.data);
+      setIsCreateOpen(true);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load rental form data";
+      toast.error(message);
+    } finally {
+      setFormBootstrapLoading(false);
+    }
+  };
 
   if (!stats) return null;
-  
+
   const dashboardStats = [
     {
       id: 1,
@@ -108,7 +106,7 @@ export default function DashboardPage() {
           <RevenueChart />
         </div>
         <div className="col-span-12 lg:col-span-4">
-          <QuickActions onCreateRental={() => setIsCreateOpen(true)} />
+          <QuickActions onCreateRental={() => void handleOpenCreate()} />
         </div>
       </div>
 
@@ -131,24 +129,25 @@ export default function DashboardPage() {
               className="w-full max-w-7xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {formLoading ? (
-                <div className="bg-white rounded-xl border shadow-sm p-10 flex justify-center">
-                  <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : (
-                <CreateRentalForm
-                  customers={formCustomers}
-                  onClose={() => setIsCreateOpen(false)}
-                  onSuccess={async () => {
-                    setIsCreateOpen(false);
-                    await fetchUserDashboardData();
-                  }}
-                />
-              )}
+              <CreateRentalForm
+                customers={formCustomers}
+                items={formItems}
+                onClose={() => setIsCreateOpen(false)}
+                onSuccess={async () => {
+                  setIsCreateOpen(false);
+                  await fetchUserDashboardData();
+                }}
+              />
             </div>
           </div>
         </div>
       )}
+
+      {formBootstrapLoading ? (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="h-8 w-8 border-4 border-[#17cf91] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : null}
     </>
   );
 }

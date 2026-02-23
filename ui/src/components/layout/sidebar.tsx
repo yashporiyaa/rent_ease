@@ -32,13 +32,20 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { href: "/protected/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/protected/invoices", label: "Invoices", icon: FileText },
   { href: "/protected/customers", label: "Customers", icon: Users },
   { href: "/protected/reports", label: "Reports", icon: BarChart3 },
 ];
 
 const groupedNavItems = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    children: [
+      { href: "/protected/dashboard", label: "Finance Dashboard" },
+      { href: "/protected/calendar", label: "Calendar" },
+    ],
+  },
   {
     key: "rent",
     label: "Rent",
@@ -46,6 +53,18 @@ const groupedNavItems = [
     children: [
       { href: "/protected/rentals", label: "Rent Invoice" },
       { href: "/protected/rentals/delivery", label: "Delivery" },
+      { href: "/protected/rentals/return", label: "Return" },
+      { href: "/protected/rentals/check-availability", label: "Check Availability" },
+    ],
+  },
+  {
+    key: "finance",
+    label: "Finance",
+    icon: FileText,
+    children: [
+      { href: "/protected/invoices", label: "Invoices" },
+      { href: "/protected/finance/receipts", label: "Receipts" },
+      { href: "/protected/finance/payments", label: "Payments" },
     ],
   },
   {
@@ -67,7 +86,9 @@ export function Sidebar() {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    dashboard: false,
     rent: false,
+    finance: false,
     master: false,
   });
 
