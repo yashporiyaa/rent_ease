@@ -80,8 +80,9 @@ export class UserService {
   }
 
   async forgotPassword(email: string) {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:3000/auth/reset-password',
+      redirectTo: `${frontendUrl}/auth/reset-password`,
     });
 
     if (error) {

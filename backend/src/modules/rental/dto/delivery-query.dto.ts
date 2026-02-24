@@ -3,6 +3,10 @@ import { IsIn, IsOptional, IsString } from 'class-validator';
 export class DeliveryQueryDto {
   @IsOptional()
   @IsString()
+  rentalId?: string;
+
+  @IsOptional()
+  @IsString()
   fromDate?: string;
 
   @IsOptional()

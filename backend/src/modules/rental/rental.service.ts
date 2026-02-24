@@ -17,7 +17,40 @@ export class RentalService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  private parseDateOrThrow(value: string, field: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid ${field}`);
+    }
+    return date;
+  }
+
+  private ensureRange(fromAt: string, toAt: string, context: string) {
+    const fromDate = this.parseDateOrThrow(fromAt, `${context} fromAt`);
+    const toDate = this.parseDateOrThrow(toAt, `${context} toAt`);
+
+    if (toDate <= fromDate) {
+      throw new BadRequestException(
+        `${context} toAt must be later than fromAt`,
+      );
+    }
+  }
+
+  private validateRentalTimeline(dto: CreateRentalDto) {
+    this.parseDateOrThrow(dto.bookingAt, 'bookingAt');
+
+    if (!dto.lineItems?.length) {
+      throw new BadRequestException('At least one rental line item is required');
+    }
+
+    dto.lineItems.forEach((item, index) => {
+      this.ensureRange(item.fromAt, item.toAt, `lineItems[${index}]`);
+    });
+  }
+
   async create(supabaseId: string, dto: CreateRentalDto) {
+    this.validateRentalTimeline(dto);
+
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -77,6 +110,8 @@ export class RentalService {
   }
 
   async update(supabaseId: string, rentalId: string, dto: CreateRentalDto) {
+    this.validateRentalTimeline(dto);
+
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -177,7 +212,10 @@ export class RentalService {
       new Date(end),
     );
 
-    const grouped: Record<string, { label: string; rentalId: string }[]> = {};
+    const grouped: Record<
+      string,
+      { label: string; rentalId: string; isDelivered: boolean }[]
+    > = {};
 
     for (const rental of rentals) {
       const dateKey = rental.startDate.toISOString().slice(0, 10);
@@ -189,6 +227,9 @@ export class RentalService {
       grouped[dateKey].push({
         label: rental.invoice?.invoiceNo ?? rental.id.slice(0, 8),
         rentalId: rental.id,
+        isDelivered:
+          rental.rentalItems.length > 0 &&
+          rental.rentalItems.every((item) => item.deliveryStatus === 'PICKED'),
       });
     }
 
@@ -211,6 +252,8 @@ export class RentalService {
     supabaseId: string,
     dto: CheckItemAvailabilityDto,
   ) {
+    this.ensureRange(dto.fromAt, dto.toAt, 'availability');
+
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -267,6 +310,12 @@ export class RentalService {
       throw new NotFoundException('Delivery item not found');
     }
 
+    if (rentalItem.deliveryStatus === 'PICKED' && status === 'pending') {
+      throw new BadRequestException(
+        'Cannot set status back to pending after item is picked',
+      );
+    }
+
     const updated = await this.rentalRepository.updateDeliveryStatus(
       rentalItemId,
       status,
@@ -295,7 +344,6 @@ export class RentalService {
   async updateReturnStatus(
     supabaseId: string,
     rentalItemId: string,
-    status: 'picked' | 'returned' | 'pending',
   ) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
@@ -310,16 +358,17 @@ export class RentalService {
       throw new NotFoundException('Return item not found');
     }
 
-    if (rentalItem.status === 'RETURNED' && status === 'picked') {
+    if (rentalItem.deliveryStatus !== 'PICKED') {
       throw new BadRequestException(
-        'Cannot set status to picked after item is returned',
+        'Item must be picked in Delivery before marking returned',
       );
     }
 
-    const updated = await this.rentalRepository.updateReturnStatus(
-      rentalItemId,
-      status,
-    );
+    if (rentalItem.status === 'RETURNED') {
+      throw new BadRequestException('Item is already returned');
+    }
+
+    const updated = await this.rentalRepository.updateReturnStatus(rentalItemId);
 
     return {
       success: true,

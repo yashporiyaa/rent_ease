@@ -49,6 +49,14 @@ export class UserRepository {
     
     const user = await this.prisma.user.findUnique({
       where: { supabaseId },
+      include: {
+        subscription: {
+          select: {
+            currentPeriodEnd: true,
+            status: true,
+          },
+        },
+      },
     });
     return user;
   }

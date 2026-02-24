@@ -1,5 +1,9 @@
 import Stripe from 'stripe';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { StripeRepository } from './stripe.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 
@@ -29,6 +33,13 @@ export class StripeService {
     if (!user) {
       throw new Error('User not found');
     }
+
+    if (user.subscriptionStatus === 'ACTIVE') {
+      throw new BadRequestException(
+        'Subscription is already active. Wait until it expires or cancel it before subscribing again.',
+      );
+    }
+
     let customerId = user.stripeCustomerId;
     if (!customerId) {
       try {
@@ -36,7 +47,7 @@ export class StripeService {
           email: user.email,
         });
 
-        const data = await this.stripeRepository.updateStripeCustomerId(
+        await this.stripeRepository.updateStripeCustomerId(
           user.id,
           customer.id,
         );
@@ -79,15 +90,15 @@ export class StripeService {
 
       switch (event.type) {
         case 'checkout.session.completed':
-          await this.onCheckoutCompleted(
-            event.data.object as Stripe.Checkout.Session,
-          );
+          await this.onCheckoutCompleted(event.data.object);
+          break;
+
+        case 'customer.subscription.updated':
+          await this.onSubscriptionUpdated(event.data.object);
           break;
 
         case 'customer.subscription.deleted':
-          await this.onSubscriptionDeleted(
-            event.data.object as Stripe.Subscription,
-          );
+          await this.onSubscriptionDeleted(event.data.object);
           break;
       }
 
@@ -103,10 +114,28 @@ export class StripeService {
 
     if (!subscriptionId) return;
 
+    await this.syncSubscriptionById(subscriptionId);
+  }
+
+  private async onSubscriptionUpdated(subscription: Stripe.Subscription) {
+    await this.syncSubscriptionFromStripe(subscription);
+  }
+
+  private async onSubscriptionDeleted(subscription: Stripe.Subscription) {
+    await this.syncSubscriptionFromStripe(subscription);
+  }
+
+  private async syncSubscriptionById(subscriptionId: string) {
     const subscription =
       await this.stripe.subscriptions.retrieve(subscriptionId);
+    await this.syncSubscriptionFromStripe(subscription);
+  }
 
+  private async syncSubscriptionFromStripe(subscription: Stripe.Subscription) {
     const item = subscription.items.data[0];
+    if (!item?.price?.id) {
+      return;
+    }
 
     await this.stripeRepository.createOrUpdateSubscription({
       stripeSubscriptionId: subscription.id,
@@ -115,9 +144,5 @@ export class StripeService {
       currentPeriodEnd: new Date(item.current_period_end * 1000),
       status: subscription.status,
     });
-  }
-
-  private async onSubscriptionDeleted(subscription: Stripe.Subscription) {
-    await this.stripeRepository.cancelSubscription(subscription.id);
   }
 }

@@ -11,8 +11,8 @@ import {
 } from '../../common/utils/invoice.util.js';
 import {
   InvoiceStatus,
+  Prisma,
   RentalDeliveryStatus,
-  type Prisma,
 } from '@prisma/client';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
 import { ReturnQueryDto } from './dto/return-query.dto.js';
@@ -20,6 +20,46 @@ import { ReturnQueryDto } from './dto/return-query.dto.js';
 @Injectable()
 export class RentalRepository {
   constructor(private prisma: PrismaService) {}
+
+  private getDateRange(fromDate?: string, toDate?: string) {
+    const gte = fromDate ? new Date(`${fromDate}T00:00:00.000`) : undefined;
+    const lte = toDate ? new Date(`${toDate}T23:59:59.999`) : undefined;
+
+    return { gte, lte };
+  }
+
+  private async delay(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private isSerializableConflict(error: unknown) {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2034'
+    );
+  }
+
+  private async runSerializableTransaction<T>(
+    callback: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    const maxAttempts = 3;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await this.prisma.$transaction(callback, {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        });
+      } catch (error) {
+        if (!this.isSerializableConflict(error) || attempt === maxAttempts) {
+          throw error;
+        }
+
+        await this.delay(30 * attempt);
+      }
+    }
+
+    throw new BadRequestException('Failed to complete rental transaction');
+  }
 
   private resolveInvoiceStatusFromPending(
     pendingAmount: number,
@@ -76,6 +116,86 @@ export class RentalRepository {
     return { itemName: item.fullName, availableStock };
   }
 
+  private async getAvailabilityInTransaction(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    itemId: string,
+    fromAt: string,
+    toAt: string,
+    excludeRentalId?: string,
+  ) {
+    const item = await tx.item.findFirst({
+      where: { id: itemId, userId },
+      select: { id: true, fullName: true, stock: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException('Item not found');
+    }
+
+    const overlappingRentals = await tx.rentalItem.findMany({
+      where: {
+        itemId,
+        rental: {
+          userId,
+          status: 'ACTIVE',
+          ...(excludeRentalId ? { id: { not: excludeRentalId } } : {}),
+          startDate: { lte: new Date(toAt) },
+          endDate: { gte: new Date(fromAt) },
+        },
+      },
+      select: { quantity: true },
+    });
+
+    const alreadyBooked = overlappingRentals.reduce(
+      (sum, ri) => sum + ri.quantity,
+      0,
+    );
+    const availableStock = item.stock - alreadyBooked;
+
+    return { itemName: item.fullName, availableStock };
+  }
+
+  private async assertItemsAvailableInTransaction(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    dto: CreateRentalDto,
+    excludeRentalId?: string,
+  ) {
+    const uniqueItemIds = [...new Set(dto.lineItems.map((item) => item.itemId))].sort();
+
+    for (const itemId of uniqueItemIds) {
+      const itemRows = await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT id
+        FROM "Item"
+        WHERE id = ${itemId}
+          AND "userId" = ${userId}
+        FOR UPDATE
+      `;
+
+      if (itemRows.length === 0) {
+        throw new NotFoundException('Item not found');
+      }
+    }
+
+    for (const requestedItem of dto.lineItems) {
+      const { itemName, availableStock } = await this.getAvailabilityInTransaction(
+        tx,
+        userId,
+        requestedItem.itemId,
+        requestedItem.fromAt,
+        requestedItem.toAt,
+        excludeRentalId,
+      );
+
+      if (requestedItem.quantity > availableStock) {
+        throw new BadRequestException(
+          `${itemName} has only ${availableStock} available for selected dates`,
+        );
+      }
+    }
+  }
+
   private async resolveBookingNo(bookingNo?: string) {
     const provided = bookingNo?.trim();
 
@@ -124,7 +244,9 @@ export class RentalRepository {
     const endDate =
       sortedToDates[sortedToDates.length - 1] ?? new Date(dto.bookingAt);
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.runSerializableTransaction(async (tx) => {
+      await this.assertItemsAvailableInTransaction(tx, userId, dto);
+
       const rental = await tx.rental.create({
         data: {
           userId,
@@ -214,7 +336,9 @@ export class RentalRepository {
     const endDate =
       sortedToDates[sortedToDates.length - 1] ?? new Date(dto.bookingAt);
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.runSerializableTransaction(async (tx) => {
+      await this.assertItemsAvailableInTransaction(tx, userId, dto, rentalId);
+
       const rental = await tx.rental.update({
         where: { id: rentalId },
         data: {
@@ -495,6 +619,11 @@ export class RentalRepository {
             invoiceNo: true,
           },
         },
+        rentalItems: {
+          select: {
+            deliveryStatus: true,
+          },
+        },
       },
       orderBy: {
         startDate: 'asc',
@@ -533,15 +662,16 @@ export class RentalRepository {
       rental: { userId },
     };
 
+    if (query.rentalId) {
+      where.rentalId = query.rentalId;
+    }
+
     if (query.fromDate || query.toDate) {
-      const toDate = query.toDate ? new Date(query.toDate) : undefined;
-      if (toDate) {
-        toDate.setHours(23, 59, 59, 999);
-      }
+      const { gte, lte } = this.getDateRange(query.fromDate, query.toDate);
 
       where.fromAt = {
-        ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}),
-        ...(toDate ? { lte: toDate } : {}),
+        ...(gte ? { gte } : {}),
+        ...(lte ? { lte } : {}),
       };
     }
 
@@ -569,6 +699,7 @@ export class RentalRepository {
         },
         rental: {
           select: {
+            id: true,
             bookingNo: true,
             depositAmount: true,
             customer: {
@@ -596,6 +727,7 @@ export class RentalRepository {
       select: {
         id: true,
         status: true,
+        deliveryStatus: true,
       },
     });
   }
@@ -641,17 +773,19 @@ export class RentalRepository {
   async findReturnList(userId: string, query: ReturnQueryDto) {
     const where: Prisma.RentalItemWhereInput = {
       rental: { userId },
+      deliveryStatus: RentalDeliveryStatus.PICKED,
     };
 
+    if (query.rentalId) {
+      where.rentalId = query.rentalId;
+    }
+
     if (query.fromDate || query.toDate) {
-      const toDate = query.toDate ? new Date(query.toDate) : undefined;
-      if (toDate) {
-        toDate.setHours(23, 59, 59, 999);
-      }
+      const { gte, lte } = this.getDateRange(query.fromDate, query.toDate);
 
       where.toAt = {
-        ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}),
-        ...(toDate ? { lte: toDate } : {}),
+        ...(gte ? { gte } : {}),
+        ...(lte ? { lte } : {}),
       };
     }
 
@@ -677,6 +811,7 @@ export class RentalRepository {
         },
         rental: {
           select: {
+            id: true,
             bookingNo: true,
             depositAmount: true,
             customer: {
@@ -693,23 +828,13 @@ export class RentalRepository {
     });
   }
 
-  async updateReturnStatus(
-    rentalItemId: string,
-    status: 'picked' | 'returned' | 'pending',
-  ) {
-    const resolvedStatus =
-      status === 'returned'
-        ? 'RETURNED'
-        : status === 'picked'
-          ? 'PICKED'
-          : 'ACTIVE';
-
+  async updateReturnStatus(rentalItemId: string) {
     return this.prisma.rentalItem.update({
       where: {
         id: rentalItemId,
       },
       data: {
-        status: resolvedStatus,
+        status: 'RETURNED',
       },
       include: {
         item: {

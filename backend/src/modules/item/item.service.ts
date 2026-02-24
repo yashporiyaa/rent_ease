@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ItemRepository } from './item,repository.js';
+import { ItemRepository } from './item.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CreateItemDto } from './dto/create-item.dto.js';
 import { ItemCategoryRepository } from '../item-category/item-category.repository.js';

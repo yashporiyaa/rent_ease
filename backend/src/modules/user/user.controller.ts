@@ -1,42 +1,56 @@
 import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
+import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { UpdateTaxDto } from './dto/update-tax.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
+import type { CookieOptions } from 'express';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  private getAccessTokenCookieOptions(): CookieOptions {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const secure =
+      process.env.COOKIE_SECURE === 'true' ||
+      (process.env.COOKIE_SECURE !== 'false' && isProduction);
+
+    const envSameSite = process.env.COOKIE_SAME_SITE as
+      | 'lax'
+      | 'strict'
+      | 'none'
+      | undefined;
+    const sameSite = envSameSite ?? (secure ? 'none' : 'lax');
+
+    return {
+      httpOnly: true,
+      secure,
+      sameSite,
+      path: '/',
+    };
+  }
+
   @Post('signup')
   async signup(@Res({ passthrough: true }) res, @Body() dto: CreateUserDto) {
     const { accessToken, user } = await this.userService.signup(dto);
 
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
-    });
+    res.cookie('accessToken', accessToken, this.getAccessTokenCookieOptions());
 
     return user;
   }
 
   @Post('login')
-  async login(@Res({ passthrough: true }) res, @Body() dto) {
+  async login(@Res({ passthrough: true }) res, @Body() dto: LoginDto) {
     const { accessToken, user } = await this.userService.login(dto);
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false, // true in production (https)
-    });
+    res.cookie('accessToken', accessToken, this.getAccessTokenCookieOptions());
 
     return user;
   }
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res) {
-    res.clearCookie('accessToken');
+    res.clearCookie('accessToken', this.getAccessTokenCookieOptions());
     return { success: true };
   }
 
