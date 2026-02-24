@@ -1,4 +1,4 @@
-export const API_URL = process.env.BASE_URL || "http://localhost:3001";
+import { API_URL } from "./config";
 
 export const createUser = async (createUsersData: {
   companyName: string;
@@ -32,7 +32,7 @@ export const createUser = async (createUsersData: {
 
 export const loginUser = async (data: { email: string; password: string }) => {
   try {
-    const res = await fetch("http://localhost:3001/users/login", {
+    const res = await fetch(`${API_URL}/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +55,7 @@ export const loginUser = async (data: { email: string; password: string }) => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const res = await fetch("http://localhost:3001/users/forgot-password", {
+    const res = await fetch(`${API_URL}/users/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -75,7 +75,7 @@ export const forgotPassword = async (email: string) => {
 
 export const logoutUser = async () => {
   try {
-    const res = await fetch("http://localhost:3001/users/logout", {
+    const res = await fetch(`${API_URL}/users/logout`, {
       method: "POST",
       credentials: "include",
     });
@@ -94,7 +94,7 @@ export const logoutUser = async () => {
 
 export const getUser = async () => {
   try {
-    const res = await fetch("http://localhost:3001/users/me", {
+    const res = await fetch(`${API_URL}/users/me`, {
       credentials: "include",
     });
 
@@ -112,7 +112,7 @@ export const getUser = async () => {
 
 export const getUserDashboardData = async () => {
   try {
-    const res = await fetch("http://localhost:3001/users/dashboard", {
+    const res = await fetch(`${API_URL}/users/dashboard`, {
       credentials: "include",
     });
 
@@ -130,7 +130,7 @@ export const getUserDashboardData = async () => {
 
 export const updateUserTaxSettings = async (taxRate: string) => {
   try {
-    const res = await fetch("http://localhost:3001/users/settings/tax", {
+    const res = await fetch(`${API_URL}/users/settings/tax`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

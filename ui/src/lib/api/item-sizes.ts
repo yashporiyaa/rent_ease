@@ -1,10 +1,12 @@
+import { API_URL } from "./config";
+
 export type ItemSizePayload = {
   name: string;
 };
 
 export const getItemSizes = async () => {
   try {
-    const res = await fetch("http://localhost:3001/item-sizes", {
+    const res = await fetch(`${API_URL}/item-sizes`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -22,7 +24,7 @@ export const getItemSizes = async () => {
 
 export const createItemSize = async (payload: ItemSizePayload) => {
   try {
-    const res = await fetch("http://localhost:3001/item-sizes", {
+    const res = await fetch(`${API_URL}/item-sizes`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -43,7 +45,7 @@ export const createItemSize = async (payload: ItemSizePayload) => {
 
 export const updateItemSize = async (id: string, payload: ItemSizePayload) => {
   try {
-    const res = await fetch(`http://localhost:3001/item-sizes/${id}`, {
+    const res = await fetch(`${API_URL}/item-sizes/${id}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -64,7 +66,7 @@ export const updateItemSize = async (id: string, payload: ItemSizePayload) => {
 
 export const deleteItemSize = async (id: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/item-sizes/${id}`, {
+    const res = await fetch(`${API_URL}/item-sizes/${id}`, {
       method: "DELETE",
       credentials: "include",
     });

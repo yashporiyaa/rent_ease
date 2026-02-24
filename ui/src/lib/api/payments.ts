@@ -1,3 +1,5 @@
+import { API_URL } from "./config";
+
 export const createPayment = async (
   invoiceId: string,
   amount: number,
@@ -6,7 +8,7 @@ export const createPayment = async (
   paidAt?: string,
 ) => {
   try {
-    const res = await fetch("http://localhost:3001/payments", {
+    const res = await fetch(`${API_URL}/payments`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

@@ -3,6 +3,7 @@ import {
   RentalPaymentListFilters,
   RentalPaymentPayload,
 } from "@/types";
+import { API_URL } from "./config";
 
 export const getRentalPayments = async (params: RentalPaymentListFilters = {}) => {
   try {
@@ -17,8 +18,8 @@ export const getRentalPayments = async (params: RentalPaymentListFilters = {}) =
 
     const query = searchParams.toString();
     const url = query
-      ? `http://localhost:3001/rental-payments?${query}`
-      : "http://localhost:3001/rental-payments";
+      ? `${API_URL}/rental-payments?${query}`
+      : `${API_URL}/rental-payments`;
 
     const res = await fetch(url, {
       credentials: "include",
@@ -43,7 +44,7 @@ export const searchRentalPaymentCustomers = async (search: string) => {
       : "";
 
     const res = await fetch(
-      `http://localhost:3001/rental-payments/customers${query}`,
+      `${API_URL}/rental-payments/customers${query}`,
       {
         credentials: "include",
       },
@@ -67,7 +68,7 @@ export const searchRentalPaymentCustomers = async (search: string) => {
 export const getRentalPaymentPendingRentals = async (customerId: string) => {
   try {
     const res = await fetch(
-      `http://localhost:3001/rental-payments/customers/${customerId}/pending-rentals`,
+      `${API_URL}/rental-payments/customers/${customerId}/pending-rentals`,
       {
         credentials: "include",
       },
@@ -87,7 +88,7 @@ export const getRentalPaymentPendingRentals = async (customerId: string) => {
 
 export const createRentalPayment = async (payload: RentalPaymentPayload) => {
   try {
-    const res = await fetch("http://localhost:3001/rental-payments", {
+    const res = await fetch(`${API_URL}/rental-payments`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -111,7 +112,7 @@ export const updateRentalPayment = async (
   payload: RentalPaymentPayload,
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/rental-payments/${rentalPaymentId}`, {
+    const res = await fetch(`${API_URL}/rental-payments/${rentalPaymentId}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -132,7 +133,7 @@ export const updateRentalPayment = async (
 
 export const deleteRentalPayment = async (rentalPaymentId: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/rental-payments/${rentalPaymentId}`, {
+    const res = await fetch(`${API_URL}/rental-payments/${rentalPaymentId}`, {
       method: "DELETE",
       credentials: "include",
     });

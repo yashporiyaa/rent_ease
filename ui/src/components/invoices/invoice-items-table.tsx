@@ -1,4 +1,5 @@
 import { Package } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 export function InvoiceItemsTable({
   items,
@@ -18,7 +20,17 @@ export function InvoiceItemsTable({
     price: number;
   }[];
 }) {
-  if (!items || items.length === 0) return null;
+  const invoiceItems = useMemo(() => items ?? [], [items]);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(invoiceItems.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return invoiceItems.slice(start, start + pageSize);
+  }, [currentPage, invoiceItems]);
+
+  if (invoiceItems.length === 0) return null;
 
   return (
     <div className="bg-white rounded-xl border shadow-sm">
@@ -33,7 +45,7 @@ export function InvoiceItemsTable({
         </TableHeader>
 
         <TableBody className="divide-y">
-          {items.map((ri) => (
+          {pagedItems.map((ri) => (
             <TableRow key={ri.id}>
               <TableCell className="px-6 py-4 flex items-center gap-2">
                 <Package size={16} className="text-[#17cf91]" />
@@ -48,6 +60,12 @@ export function InvoiceItemsTable({
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={invoiceItems.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

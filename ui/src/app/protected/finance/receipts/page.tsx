@@ -39,6 +39,7 @@ import {
 } from "@/types";
 import { Pencil, Trash2, X } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { TablePagination } from "@/components/common/table-pagination";
 
 type ReceiptFormRow = {
   rentalId: string;
@@ -100,6 +101,7 @@ export default function ReceiptsPage() {
     toDate: today,
   });
   const [receipts, setReceipts] = useState<ReceiptRecord[]>([]);
+  const [receiptsPage, setReceiptsPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
 
@@ -119,10 +121,12 @@ export default function ReceiptsPage() {
 
   const [pendingRentalsLoading, setPendingRentalsLoading] = useState(false);
   const [formRows, setFormRows] = useState<ReceiptFormRow[]>([]);
+  const [formRowsPage, setFormRowsPage] = useState(1);
 
   const [entryDate, setEntryDate] = useState(today);
   const [paymentMode, setPaymentMode] = useState<ReceiptPaymentMode>("CASH");
   const [discountAmount, setDiscountAmount] = useState("0");
+  const tablePageSize = 10;
 
   const fetchReceipts = useCallback(async (fromDate?: string, toDate?: string) => {
     try {
@@ -168,6 +172,30 @@ export default function ReceiptsPage() {
 
     return () => clearTimeout(timer);
   }, [customerSearch, isCreateOpen]);
+
+  const receiptsTotalPages = Math.max(1, Math.ceil(receipts.length / tablePageSize));
+  const pagedReceipts = useMemo(() => {
+    const start = (receiptsPage - 1) * tablePageSize;
+    return receipts.slice(start, start + tablePageSize);
+  }, [receipts, receiptsPage]);
+
+  const formRowsTotalPages = Math.max(1, Math.ceil(formRows.length / tablePageSize));
+  const pagedFormRows = useMemo(() => {
+    const start = (formRowsPage - 1) * tablePageSize;
+    return formRows.slice(start, start + tablePageSize);
+  }, [formRows, formRowsPage]);
+
+  useEffect(() => {
+    if (receiptsPage > receiptsTotalPages) {
+      setReceiptsPage(receiptsTotalPages);
+    }
+  }, [receiptsPage, receiptsTotalPages]);
+
+  useEffect(() => {
+    if (formRowsPage > formRowsTotalPages) {
+      setFormRowsPage(formRowsTotalPages);
+    }
+  }, [formRowsPage, formRowsTotalPages]);
 
   const resetCreateForm = () => {
     setCustomerSearch("");
@@ -574,7 +602,7 @@ export default function ReceiptsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              receipts.map((receipt) => (
+              pagedReceipts.map((receipt) => (
                 <TableRow key={receipt.id} className="hover:bg-slate-50">
                   <TableCell className="px-4 py-3">{formatDateTime(receipt.entryDate)}</TableCell>
                   <TableCell className="px-4 py-3 font-medium">{getReceiptNo(receipt.id)}</TableCell>
@@ -613,6 +641,12 @@ export default function ReceiptsPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          page={receiptsPage}
+          pageSize={tablePageSize}
+          totalItems={receipts.length}
+          onPageChange={setReceiptsPage}
+        />
       </div>
 
       {isCreateOpen && (
@@ -746,9 +780,11 @@ export default function ReceiptsPage() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        formRows.map((row, index) => (
+                        pagedFormRows.map((row, index) => (
                           <TableRow key={row.rentalId} className="align-top">
-                            <TableCell className="px-3 py-3">{index + 1}</TableCell>
+                            <TableCell className="px-3 py-3">
+                              {(formRowsPage - 1) * tablePageSize + index + 1}
+                            </TableCell>
                             <TableCell className="px-3 py-3 font-mono text-xs">{row.rentalId}</TableCell>
                             <TableCell className="px-3 py-3">{row.bookingNo || "-"}</TableCell>
                             <TableCell className="px-3 py-3">{formatDateTime(row.bookingAt)}</TableCell>
@@ -807,6 +843,12 @@ export default function ReceiptsPage() {
                       )}
                     </TableBody>
                   </Table>
+                  <TablePagination
+                    page={formRowsPage}
+                    pageSize={tablePageSize}
+                    totalItems={formRows.length}
+                    onPageChange={setFormRowsPage}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">

@@ -9,13 +9,14 @@ import { PaymentsTable } from "./payments-table";
 import { downloadInvoicePDF, getInvoice } from "@/lib/api/invoice";
 import { toast } from "react-toastify";
 import { Button } from "../ui/button";
+import { InvoiceDetail } from "@/types";
 
 export default function InvoiceDetailsInfo({
   invoiceId,
 }: {
   invoiceId: string;
 }) {
-  const [invoice, setInvoice] = useState<any>(null);
+  const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 import { getItems } from "@/lib/api/items";
 import { getItemSizes } from "@/lib/api/item-sizes";
 import { checkRentalItemAvailability } from "@/lib/api/rentals";
@@ -62,6 +63,8 @@ export default function CheckAvailabilityPage() {
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<ItemAvailabilityResult | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     const loadData = async () => {
@@ -100,6 +103,22 @@ export default function CheckAvailabilityPage() {
 
     return "Not available";
   }, [result]);
+
+  const recentRentals = useMemo(
+    () => result?.recentRentals ?? [],
+    [result?.recentRentals],
+  );
+  const totalPages = Math.max(1, Math.ceil(recentRentals.length / pageSize));
+  const pagedRecentRentals = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return recentRentals.slice(start, start + pageSize);
+  }, [recentRentals, page]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const handleSizeChange = (nextSizeId: string) => {
     setSizeId(nextSizeId);
@@ -266,8 +285,8 @@ export default function CheckAvailabilityPage() {
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-slate-200">
-            {result?.recentRentals?.length ? (
-              result.recentRentals.map((row) => (
+            {recentRentals.length ? (
+              pagedRecentRentals.map((row) => (
                 <TableRow key={row.id} className="hover:bg-slate-50 transition">
                   <TableCell className="px-4 py-3">{row.bookingNo || "-"}</TableCell>
                   <TableCell className="px-4 py-3">{row.product}</TableCell>
@@ -292,6 +311,12 @@ export default function CheckAvailabilityPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={recentRentals.length}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

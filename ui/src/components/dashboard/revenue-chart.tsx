@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { API_URL } from "@/lib/api/config";
 
 const ranges = [
   { label: "7D", value: "7d" },
@@ -15,7 +16,7 @@ export function RevenueChart() {
   const [range, setRange] = useState("30d");
 
   useEffect(() => {
-    fetch(`http://localhost:3001/users/revenue-analytics?range=${range}`, {
+    fetch(`${API_URL}/users/revenue-analytics?range=${range}`, {
       credentials: "include",
     })
       .then((res) => res.json())

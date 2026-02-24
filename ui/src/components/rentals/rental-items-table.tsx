@@ -6,6 +6,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useMemo, useState } from "react";
+import { TablePagination } from "@/components/common/table-pagination";
 
 export function RentalItemsTable({
   items,
@@ -17,6 +19,15 @@ export function RentalItemsTable({
     price: number;
   }[];
 }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [currentPage, items]);
+
   return (
     <div className="bg-white rounded-xl border shadow-sm mb-8">
       <div className="p-6 border-b">
@@ -36,7 +47,7 @@ export function RentalItemsTable({
         </TableHeader>
 
         <TableBody className="divide-y">
-          {items.map((item) => (
+          {pagedItems.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="px-6 py-4 font-medium">{item.item.fullName}</TableCell>
               <TableCell className="px-6 py-4">{item.quantity}</TableCell>
@@ -48,6 +59,12 @@ export function RentalItemsTable({
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={items.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

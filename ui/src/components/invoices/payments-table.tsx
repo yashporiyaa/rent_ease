@@ -1,4 +1,5 @@
 import { CreditCard } from "lucide-react";
+import { useMemo, useState } from "react";
 import { PaymentsTableProps } from "@/types";
 import {
   Table,
@@ -8,11 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 export function PaymentsTable({ payments }: PaymentsTableProps) {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const paymentRows = useMemo(() => payments ?? [], [payments]);
+  const totalPages = Math.max(1, Math.ceil(paymentRows.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedPayments = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return paymentRows.slice(start, start + pageSize);
+  }, [currentPage, paymentRows]);
+
   if (!payments) return null;
 
-  if (payments.length === 0) {
+  if (paymentRows.length === 0) {
     return (
       <div className="bg-white p-6 rounded-xl border text-slate-500">
         No payments recorded yet.
@@ -39,7 +51,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
         </TableHeader>
 
         <TableBody className="divide-y">
-          {payments.map((p) => (
+          {pagedPayments.map((p) => (
             <TableRow key={p.id}>
               <TableCell className="px-6 py-4">
                 {new Date(p.paidAt).toLocaleDateString()}
@@ -58,6 +70,12 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={paymentRows.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

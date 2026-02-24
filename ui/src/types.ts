@@ -20,6 +20,10 @@ export type User = {
   stripeCustomerId?: string | null;
   subscriptionStatus?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
   trialEndsAt?: string | Date | null;
+  subscription?: {
+    currentPeriodEnd?: string | Date | null;
+    status?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
+  } | null;
   invoiceTemplate: string;
   onboardingDone: boolean;
   createdAt: Date;
@@ -243,6 +247,7 @@ export type DeliveryRentalItem = {
     categoryId?: string | null;
   };
   rental: {
+    id?: string;
     bookingNo?: string | null;
     depositAmount?: number | null;
     customer: {
@@ -527,4 +532,13 @@ export type RentalPaymentRecord = {
     name: string;
   };
   lineItems: RentalPaymentLineRecord[];
+};
+
+export type ProfileForm = {
+  companyName: string;
+  phone: string;
+  businessType: string;
+  businessAddress: string;
+  taxRate: number;
+  invoiceTemplate: string;
 };

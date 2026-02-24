@@ -1,47 +1,42 @@
 "use client";
 
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { Building2, Phone, Percent, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserContext } from "@/app/context/user-context";
+import { API_URL } from "@/lib/api/config";
 import { toast } from "react-toastify";
+import { ProfileForm } from "@/types";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useContext(UserContext);
 
-  const [form, setForm] = useState({
-    companyName: "",
-    phone: "",
-    businessType: "",
-    businessAddress: "",
-    taxRate: 0,
-    invoiceTemplate: "minimal",
-  });
+  const [form, setForm] = useState<ProfileForm | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      setForm({
-        companyName: user.companyName || "",
-        phone: user.phone || "",
-        businessType: user.businessType || "",
-        businessAddress: user.businessAddress || "",
-        taxRate: user.taxRate || 0,
-        invoiceTemplate: user.invoiceTemplate || "minimal",
-      });
-    }
-  }, [user]);
+  if (!user) {
+    return null;
+  }
 
-  const handleChange = (key: string, value: any) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const currentForm: ProfileForm = form ?? {
+    companyName: user.companyName || "",
+    phone: user.phone || "",
+    businessType: user.businessType || "",
+    businessAddress: user.businessAddress || "",
+    taxRate: user.taxRate || 0,
+    invoiceTemplate: user.invoiceTemplate || "minimal",
+  };
+
+  const handleChange = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) => {
+    setForm((prev) => ({ ...(prev ?? currentForm), [key]: value }));
   };
 
   const saveProfile = async () => {
-    await fetch("http://localhost:3001/users/profile", {
+    await fetch(`${API_URL}/users/profile`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(currentForm),
     });
 
     await refreshUser();
@@ -64,21 +59,21 @@ export default function ProfilePage() {
         <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Company Name"
-          value={form.companyName}
+          value={currentForm.companyName}
           onChange={(e) => handleChange("companyName", e.target.value)}
         />
 
         <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Business Type"
-          value={form.businessType}
+          value={currentForm.businessType}
           onChange={(e) => handleChange("businessType", e.target.value)}
         />
 
         <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Business Address"
-          value={form.businessAddress}
+          value={currentForm.businessAddress}
           onChange={(e) =>
             handleChange("businessAddress", e.target.value)
           }
@@ -101,7 +96,7 @@ export default function ProfilePage() {
         <Input
           className="border p-3 rounded-xl w-full"
           placeholder="Phone"
-          value={form.phone}
+          value={currentForm.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
         />
       </div>
@@ -119,7 +114,7 @@ export default function ProfilePage() {
           max="100"
           className="border p-3 rounded-xl w-full"
           placeholder="Default Tax Rate (%)"
-          value={form.taxRate}
+          value={currentForm.taxRate}
           onChange={(e) =>
             handleChange("taxRate", Number(e.target.value))
           }
@@ -142,7 +137,7 @@ export default function ProfilePage() {
               }
               className={`px-4 py-2 rounded-xl border font-medium
               ${
-                form.invoiceTemplate === template
+                currentForm.invoiceTemplate === template
                   ? "bg-[#17cf91] text-white"
                   : "bg-slate-50"
               }`}

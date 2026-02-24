@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye } from "lucide-react";
 import { InvoiceStatusBadge } from "./invoice-status-badge";
@@ -15,10 +15,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 export function InvoicesTable() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(invoices.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return invoices.slice(start, start + pageSize);
+  }, [invoices, currentPage]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -67,7 +76,7 @@ export function InvoicesTable() {
         </TableHeader>
 
         <TableBody className="divide-y">
-          {invoices.map((invoice) => (
+          {pagedInvoices.map((invoice) => (
             <TableRow key={invoice.id} className="hover:bg-slate-50">
               <TableCell className="px-6 py-4 font-medium">{invoice.invoiceNo}</TableCell>
               <TableCell className="px-6 py-4">{invoice.customer}</TableCell>
@@ -91,6 +100,12 @@ export function InvoicesTable() {
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={invoices.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

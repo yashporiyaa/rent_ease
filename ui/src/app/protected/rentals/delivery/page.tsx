@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 const getTodayDateValue = () => {
   const date = new Date();
@@ -42,14 +44,20 @@ const getTodayDateValue = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getInitialFilters = (): DeliveryFilters => {
-  const today = getTodayDateValue();
+const isValidDateValue = (value?: string | null) =>
+  Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+
+const getInitialFilters = (
+  initialDate?: string | null,
+  hasRentalFilter?: boolean,
+): DeliveryFilters => {
+  const defaultDate = isValidDateValue(initialDate) ? initialDate : getTodayDateValue();
 
   return {
-    fromDate: today,
-    toDate: today,
+    fromDate: defaultDate as string,
+    toDate: defaultDate as string,
     categoryId: "all",
-    status: "pending",
+    status: hasRentalFilter ? "all" : "pending",
   };
 };
 
@@ -70,18 +78,29 @@ const getSelectValue = (status: DeliveryItemStatus) =>
   status === "PICKED" ? "picked" : "pending";
 
 export default function DeliveryPage() {
-  const [filters, setFilters] = useState<DeliveryFilters>(getInitialFilters);
-  const [appliedFilters, setAppliedFilters] =
-    useState<DeliveryFilters>(getInitialFilters);
+  const searchParams = useSearchParams();
+  const rentalIdFilter = searchParams.get("rentalId") || undefined;
+  const dateFilter = searchParams.get("date");
+
+  const [filters, setFilters] = useState<DeliveryFilters>(
+    getInitialFilters(dateFilter, Boolean(rentalIdFilter)),
+  );
+  const [appliedFilters, setAppliedFilters] = useState<DeliveryFilters>(
+    getInitialFilters(dateFilter, Boolean(rentalIdFilter)),
+  );
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [rows, setRows] = useState<DeliveryRentalItem[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [updatingRowId, setUpdatingRowId] = useState<string | null>(null);
 
-  const fetchRows = useCallback(async (nextFilters: DeliveryFilters) => {
+  const fetchRows = useCallback(
+    async (nextFilters: DeliveryFilters, nextRentalId?: string) => {
     try {
       const res = await getDeliveryRentals({
+        rentalId: nextRentalId,
         fromDate: nextFilters.fromDate || undefined,
         toDate: nextFilters.toDate || undefined,
         categoryId:
@@ -99,32 +118,34 @@ export default function DeliveryPage() {
           : "Failed to fetch delivery rentals";
       toast.error(message);
     }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
-        const defaultFilters = getInitialFilters();
+        const defaultFilters = getInitialFilters(dateFilter, Boolean(rentalIdFilter));
 
         const categoriesRes = await getItemCategories();
         setCategories(categoriesRes.data as ItemCategory[]);
 
         setFilters(defaultFilters);
         setAppliedFilters(defaultFilters);
-        await fetchRows(defaultFilters);
+        await fetchRows(defaultFilters, rentalIdFilter);
       } finally {
         setLoading(false);
       }
     };
 
     void loadInitialData();
-  }, [fetchRows]);
+  }, [dateFilter, fetchRows, rentalIdFilter]);
 
   const handleSearch = async () => {
     setSearching(true);
     setAppliedFilters(filters);
-    await fetchRows(filters);
+    await fetchRows(filters, rentalIdFilter);
     setSearching(false);
   };
 
@@ -132,6 +153,11 @@ export default function DeliveryPage() {
     row: DeliveryRentalItem,
     nextStatus: "picked" | "pending",
   ) => {
+    if (row.deliveryStatus === "PICKED" && nextStatus === "pending") {
+      toast.error("Picked status cannot be reversed");
+      return;
+    }
+
     setUpdatingRowId(row.id);
     try {
       const res = await updateDeliveryRentalStatus(row.id, nextStatus);
@@ -143,10 +169,6 @@ export default function DeliveryPage() {
         );
 
         if (appliedFilters.status === "pending" && nextStatus === "picked") {
-          return nextRows.filter((item) => item.id !== updated.id);
-        }
-
-        if (appliedFilters.status === "picked" && nextStatus === "pending") {
           return nextRows.filter((item) => item.id !== updated.id);
         }
 
@@ -164,6 +186,10 @@ export default function DeliveryPage() {
   };
 
   const noResultsText = useMemo(() => {
+    if (rentalIdFilter) {
+      return "No delivery items found for selected booking.";
+    }
+
     if (appliedFilters.status === "picked") {
       return "No picked deliveries found for selected filters.";
     }
@@ -173,7 +199,19 @@ export default function DeliveryPage() {
     }
 
     return "No deliveries found for selected filters.";
-  }, [appliedFilters.status]);
+  }, [appliedFilters.status, rentalIdFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const pagedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return rows.slice(start, start + pageSize);
+  }, [rows, page]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   if (loading) {
     return (
@@ -190,6 +228,11 @@ export default function DeliveryPage() {
         <p className="text-slate-500 mt-1">
           Filter rentals by delivery date, product category, and picked status.
         </p>
+        {rentalIdFilter ? (
+          <p className="mt-1 text-xs font-medium text-[#17cf91]">
+            Showing delivery items for selected calendar booking.
+          </p>
+        ) : null}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5">
@@ -308,7 +351,7 @@ export default function DeliveryPage() {
                 </TableRow>
               )}
 
-              {rows.map((row) => {
+              {pagedRows.map((row) => {
                 const rowImage = row.image || row.item?.images?.[0] || "";
                 const rowDescription = row.description || row.item?.description || "-";
                 const selectedValue = getSelectValue(row.deliveryStatus);
@@ -361,7 +404,12 @@ export default function DeliveryPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pending for Delivery</SelectItem>
+                          <SelectItem
+                            value="pending"
+                            disabled={row.deliveryStatus === "PICKED"}
+                          >
+                            Pending for Delivery
+                          </SelectItem>
                           <SelectItem value="picked">Picked</SelectItem>
                         </SelectContent>
                       </Select>
@@ -377,6 +425,12 @@ export default function DeliveryPage() {
               })}
           </TableBody>
         </Table>
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={rows.length}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

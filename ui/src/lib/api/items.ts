@@ -1,3 +1,5 @@
+import { API_URL } from "./config";
+
 export const createItem = async (
   shortName: string,
   fullName: string,
@@ -10,7 +12,7 @@ export const createItem = async (
   images: string[],
 ) => {
   try {
-    const res = await fetch("http://localhost:3001/items", {
+    const res = await fetch(`${API_URL}/items`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -41,7 +43,7 @@ export const createItem = async (
 
 export const getItems = async () => {
   try {
-    const res = await fetch("http://localhost:3001/items", {
+    const res = await fetch(`${API_URL}/items`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -72,7 +74,7 @@ export const updateItem = async (
   },
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/items/${id}`, {
+    const res = await fetch(`${API_URL}/items/${id}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -93,7 +95,7 @@ export const updateItem = async (
 
 export const deleteItem = async (id: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/items/${id}`, {
+    const res = await fetch(`${API_URL}/items/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -114,7 +116,7 @@ export const getAvailability = async (startDate: string, endDate: string) => {
   try {
     const params = new URLSearchParams({ startDate, endDate });
     const res = await fetch(
-      `http://localhost:3001/items/availability?${params.toString()}`,
+      `${API_URL}/items/availability?${params.toString()}`,
       {
         credentials: "include",
       },

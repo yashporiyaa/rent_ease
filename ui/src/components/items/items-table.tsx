@@ -1,4 +1,5 @@
 import { Package, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { InventoryItem } from "@/types";
 import { Button } from "../ui/button";
 import {
@@ -9,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { TablePagination } from "../common/table-pagination";
 
 export function ItemsTable({
   items,
@@ -19,6 +21,15 @@ export function ItemsTable({
   onEdit: (item: InventoryItem) => void;
   onDelete: (item: InventoryItem) => void;
 }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [items, currentPage]);
+
   return (
     <div className="bg-white rounded-xl border shadow-sm">
       <Table>
@@ -36,7 +47,7 @@ export function ItemsTable({
         </TableHeader>
 
         <TableBody className="divide-y">
-          {items.map((item) => (
+          {pagedItems.map((item) => (
             <TableRow key={item.id} className="hover:bg-slate-50">
               <TableCell className="px-6 py-4">
                 {item.images?.[0] ? (
@@ -92,6 +103,12 @@ export function ItemsTable({
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={items.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function QuickActions({ onCreateRental }: QuickActionsProps) {
           </button>
         ) : (
           <Link
-            href="/protected/rentals/new"
+            href="/protected/rentals"
             className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition"
           >
             <PlusCircle className="h-5 w-5" />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { Eye, User } from "lucide-react";
 import {
   Table,
@@ -8,12 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 export function CustomersTable({
   customers,
 }: {
   customers: { id: string; name: string; phone?: string }[];
 }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(customers.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return customers.slice(start, start + pageSize);
+  }, [customers, currentPage]);
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <Table>
@@ -26,7 +37,7 @@ export function CustomersTable({
         </TableHeader>
 
         <TableBody className="divide-y">
-          {customers.map((customer) => (
+          {pagedCustomers.map((customer) => (
             <TableRow
               key={customer.id}
               className="hover:bg-slate-50 transition"
@@ -53,6 +64,12 @@ export function CustomersTable({
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={customers.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

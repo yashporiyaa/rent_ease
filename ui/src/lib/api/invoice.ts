@@ -1,6 +1,8 @@
+import { API_URL } from "./config";
+
 export const getInvoice = async (invoiceId: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/invoices/${invoiceId}`, {
+    const res = await fetch(`${API_URL}/invoices/${invoiceId}`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -18,7 +20,7 @@ export const getInvoice = async (invoiceId: string) => {
 
 export const getAllInvoices = async () => {
   try {
-    const res = await fetch("http://localhost:3001/invoices", {
+    const res = await fetch(`${API_URL}/invoices`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -36,7 +38,7 @@ export const getAllInvoices = async () => {
 
 export const downloadInvoicePDF = async (invoice: { id: string }) => {
   const newWindow = await window.open(
-    `http://localhost:3001/invoices/${invoice.id}/pdf`,
+    `${API_URL}/invoices/${invoice.id}/pdf`,
     "_blank",
   );
 

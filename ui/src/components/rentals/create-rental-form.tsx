@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 const gstRates = [0, 5, 12, 18, 28];
 
@@ -89,6 +90,46 @@ const toLocalDateTimeInput = (value?: string | Date | null) => {
   const tzOffset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 };
+const splitLocalDateTime = (value: string) => {
+  if (!value) return { date: "", time: "" };
+  const [date = "", time = ""] = value.split("T");
+  return { date, time: time.slice(0, 5) };
+};
+const HOURS_12 = Array.from({ length: 12 }, (_, index) =>
+  String(index + 1).padStart(2, "0"),
+);
+const MINUTES = Array.from({ length: 60 }, (_, index) =>
+  String(index).padStart(2, "0"),
+);
+const get12HourParts = (time24?: string) => {
+  const [hoursText = "00", minutesText = "00"] = (time24 || "").split(":");
+  const hoursNumber = Number(hoursText);
+  const minutes = /^\d{2}$/.test(minutesText) ? minutesText : "00";
+
+  if (!Number.isFinite(hoursNumber) || hoursNumber < 0 || hoursNumber > 23) {
+    return { hour: "12", minute: minutes, period: "AM" as "AM" | "PM" };
+  }
+
+  const period = hoursNumber >= 12 ? "PM" : "AM";
+  const normalizedHour = hoursNumber % 12 || 12;
+
+  return {
+    hour: String(normalizedHour).padStart(2, "0"),
+    minute: minutes,
+    period,
+  };
+};
+const to24Hour = (hour12: string, minute: string, period: "AM" | "PM") => {
+  const parsedHour = Number(hour12);
+  const normalizedHour = Number.isFinite(parsedHour) ? parsedHour % 12 : 0;
+  const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
+  return `${String(hour24).padStart(2, "0")}:${minute}`;
+};
+const parseInputDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+};
 
 export function CreateRentalForm({
   customers,
@@ -112,6 +153,7 @@ export function CreateRentalForm({
   const [lineForm, setLineForm] = useState<RentalLineFormState>(createInitialLineForm);
 
   const [lines, setLines] = useState<RentalLine[]>([]);
+  const [lineTablePage, setLineTablePage] = useState(1);
 
   const [summary, setSummary] = useState<RentalSummaryState>(initialSummary);
 
@@ -184,6 +226,13 @@ export function CreateRentalForm({
   const linesSubtotal = round2(lines.reduce((sum, line) => sum + line.total, 0));
   const totalQty = lines.reduce((sum, line) => sum + line.quantity, 0);
   const linesTax = round2(lines.reduce((sum, line) => sum + line.taxAmount, 0));
+  const lineTablePageSize = 10;
+  const lineTableTotalPages = Math.max(1, Math.ceil(lines.length / lineTablePageSize));
+  const currentLineTablePage = Math.min(lineTablePage, lineTableTotalPages);
+  const pagedLines = lines.slice(
+    (currentLineTablePage - 1) * lineTablePageSize,
+    (currentLineTablePage - 1) * lineTablePageSize + lineTablePageSize,
+  );
 
   const overallDiscountAmt = round2(Number(summary.globalDiscountAmount) || 0);
   const overallDiscountPct = Number(summary.globalDiscountPercent) || 0;
@@ -237,6 +286,98 @@ export function CreateRentalForm({
     setLineForm(createInitialLineForm());
   };
 
+  const updateLineDateTime = (
+    field: "fromAt" | "toAt",
+    part: "date" | "time",
+    value: string,
+  ) => {
+    setLineForm((prev) => {
+      const { date, time } = splitLocalDateTime(prev[field]);
+      const nextDate = part === "date" ? value : date;
+      const nextTime = part === "time" ? value : time;
+
+      if (!nextDate) {
+        return { ...prev, [field]: "" };
+      }
+
+      return {
+        ...prev,
+        [field]: `${nextDate}T${nextTime || "00:00"}`,
+      };
+    });
+  };
+
+  const updateBookingDateTime = (part: "date" | "time", value: string) => {
+    setRentalForm((prev) => {
+      const { date, time } = splitLocalDateTime(prev.bookingAt);
+      const nextDate = part === "date" ? value : date;
+      const nextTime = part === "time" ? value : time;
+
+      if (!nextDate) {
+        return { ...prev, bookingAt: "" };
+      }
+
+      return {
+        ...prev,
+        bookingAt: `${nextDate}T${nextTime || "00:00"}`,
+      };
+    });
+  };
+
+  const updateBookingTime12h = (
+    part: "hour" | "minute" | "period",
+    value: string,
+  ) => {
+    setRentalForm((prev) => {
+      const { date, time } = splitLocalDateTime(prev.bookingAt);
+      const current = get12HourParts(time);
+      const next = {
+        ...current,
+        [part]: value,
+      };
+      const fallbackDate = date || splitLocalDateTime(nowLocalDateTime()).date;
+
+      return {
+        ...prev,
+        bookingAt: `${fallbackDate}T${to24Hour(
+          next.hour,
+          next.minute,
+          next.period as "AM" | "PM",
+        )}`,
+      };
+    });
+  };
+
+  const updateLineTime12h = (
+    field: "fromAt" | "toAt",
+    part: "hour" | "minute" | "period",
+    value: string,
+  ) => {
+    setLineForm((prev) => {
+      const { date, time } = splitLocalDateTime(prev[field]);
+      const current = get12HourParts(time);
+      const next = {
+        ...current,
+        [part]: value,
+      };
+      const fallbackDate =
+        date ||
+        splitLocalDateTime(prev.fromAt).date ||
+        splitLocalDateTime(prev.toAt).date ||
+        splitLocalDateTime(rentalForm.bookingAt).date ||
+        splitLocalDateTime(nowLocalDateTime()).date;
+
+      return {
+        ...prev,
+        [field]: `${fallbackDate}T${to24Hour(
+          next.hour,
+          next.minute,
+          next.period as "AM" | "PM",
+        )}`,
+      };
+    });
+  };
+
   const addOrUpdateLine = async () => {
     if (
       !lineForm.itemId ||
@@ -252,6 +393,17 @@ export function CreateRentalForm({
     const item = items.find((current) => current.id === lineForm.itemId);
     if (!item) {
       toast.error("Invalid product selected");
+      return;
+    }
+
+    const fromDate = parseInputDate(lineForm.fromAt);
+    const toDate = parseInputDate(lineForm.toAt);
+    if (!fromDate || !toDate) {
+      toast.error("Select valid delivery and return date/time");
+      return;
+    }
+    if (toDate <= fromDate) {
+      toast.error("Return date/time must be later than delivery date/time");
       return;
     }
 
@@ -464,6 +616,23 @@ export function CreateRentalForm({
       return;
     }
 
+    const bookingDate = parseInputDate(rentalForm.bookingAt);
+    if (!bookingDate) {
+      toast.error("Booking date/time is invalid");
+      return;
+    }
+
+    const hasInvalidLineDate = lines.some((line) => {
+      const fromDate = parseInputDate(line.fromAt);
+      const toDate = parseInputDate(line.toAt);
+      return !fromDate || !toDate || toDate <= fromDate;
+    });
+
+    if (hasInvalidLineDate) {
+      toast.error("Each product line must have a valid return time after delivery time");
+      return;
+    }
+
     const payload: CreateRentalPayload = {
       customerId: rentalForm.customerId,
       bookingNo: rentalForm.bookingNo.trim() || undefined,
@@ -505,7 +674,11 @@ export function CreateRentalForm({
         const res = await createRental(payload);
         toast.success("Rental created successfully");
         if (!onSuccess) {
-          router.push(`/protected/rentals/${res.data.rental.id}`);
+          if (res?.data?.rental?.id) {
+            router.push(`/protected/finance/receipts?rentalId=${res.data.rental.id}`);
+          } else {
+            router.push("/protected/rentals");
+          }
         }
       }
 
@@ -524,9 +697,9 @@ export function CreateRentalForm({
   };
 
   return (
-    <div className="w-full max-w-330 space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-[#0e1b17]">
+    <div className="w-full max-w-330 space-y-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 md:p-8">
+      <div className="flex items-start justify-between gap-3 sm:items-center">
+        <h1 className="text-xl font-black text-[#0e1b17] sm:text-2xl">
           {isEditMode ? "Update Rental" : "Create Rental"}
         </h1>
         {onClose && (
@@ -536,8 +709,8 @@ export function CreateRentalForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-        <div className="flex items-center gap-2">
+      <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div className="w-full">
             <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
               Customer Name
@@ -560,7 +733,12 @@ export function CreateRentalForm({
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="icon" onClick={openCustomerModal} className="cursor-pointer mt-6">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={openCustomerModal}
+            className="mt-1 h-10 w-full cursor-pointer sm:mt-0 sm:h-9 sm:w-9"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -569,14 +747,49 @@ export function CreateRentalForm({
           <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
             Booking Date & Time
           </Label>
-          <Input
-            type="datetime-local"
-            className="border p-3 rounded-xl w-full"
-            value={rentalForm.bookingAt}
-            onChange={(event) =>
-              setRentalForm((prev) => ({ ...prev, bookingAt: event.target.value }))
-            }
-          />
+          <div className="space-y-2">
+            <Input
+              type="date"
+              className="border p-3 rounded-xl w-full"
+              value={splitLocalDateTime(rentalForm.bookingAt).date}
+              onChange={(event) => updateBookingDateTime("date", event.target.value)}
+            />
+            <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
+              <select
+                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).hour}
+                onChange={(event) => updateBookingTime12h("hour", event.target.value)}
+              >
+                {HOURS_12.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {hour}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm font-semibold text-slate-600">:</span>
+              <select
+                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).minute}
+                onChange={(event) => updateBookingTime12h("minute", event.target.value)}
+              >
+                {MINUTES.map((minute) => (
+                  <option key={minute} value={minute}>
+                    {minute}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).period}
+                onChange={(event) =>
+                  updateBookingTime12h("period", event.target.value as "AM" | "PM")
+                }
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -612,12 +825,12 @@ export function CreateRentalForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 p-5 space-y-4">
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4 sm:p-5">
         <h3 className="text-base font-bold text-[#0e1b17]">Product Section</h3>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_220px] gap-4">
           <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[1.1fr_1.5fr_1.5fr_0.7fr]">
               <div>
                 <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
                   Product
@@ -661,28 +874,106 @@ export function CreateRentalForm({
                 <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
                   From / Delivery
                 </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
-                  type="datetime-local"
-                  value={lineForm.fromAt}
-                  onChange={(event) =>
-                    setLineForm((prev) => ({ ...prev, fromAt: event.target.value }))
-                  }
-                />
+                <div className="space-y-2">
+                  <Input
+                    className="h-10 w-full rounded-lg border px-2 text-sm"
+                    type="date"
+                    value={splitLocalDateTime(lineForm.fromAt).date}
+                    onChange={(event) =>
+                      updateLineDateTime("fromAt", "date", event.target.value)
+                    }
+                  />
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).hour}
+                      onChange={(event) => updateLineTime12h("fromAt", "hour", event.target.value)}
+                    >
+                      {HOURS_12.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm font-semibold text-slate-600">:</span>
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).minute}
+                      onChange={(event) =>
+                        updateLineTime12h("fromAt", "minute", event.target.value)
+                      }
+                    >
+                      {MINUTES.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).period}
+                      onChange={(event) =>
+                        updateLineTime12h("fromAt", "period", event.target.value as "AM" | "PM")
+                      }
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
                   To / Return
                 </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
-                  type="datetime-local"
-                  value={lineForm.toAt}
-                  onChange={(event) =>
-                    setLineForm((prev) => ({ ...prev, toAt: event.target.value }))
-                  }
-                />
+                <div className="space-y-2">
+                  <Input
+                    className="h-10 w-full rounded-lg border px-2 text-sm"
+                    type="date"
+                    value={splitLocalDateTime(lineForm.toAt).date}
+                    onChange={(event) =>
+                      updateLineDateTime("toAt", "date", event.target.value)
+                    }
+                  />
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).hour}
+                      onChange={(event) => updateLineTime12h("toAt", "hour", event.target.value)}
+                    >
+                      {HOURS_12.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm font-semibold text-slate-600">:</span>
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).minute}
+                      onChange={(event) =>
+                        updateLineTime12h("toAt", "minute", event.target.value)
+                      }
+                    >
+                      {MINUTES.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
+                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).period}
+                      onChange={(event) =>
+                        updateLineTime12h("toAt", "period", event.target.value as "AM" | "PM")
+                      }
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -811,7 +1102,7 @@ export function CreateRentalForm({
                 variant="brand"
                 onClick={() => void addOrUpdateLine()}
                 disabled={checkingAvailability}
-                className="h-10 min-w-32 cursor-pointer rounded-lg"
+                className="h-10 w-full min-w-32 cursor-pointer rounded-lg sm:w-auto"
               >
                 {checkingAvailability
                   ? "Checking..."
@@ -842,37 +1133,37 @@ export function CreateRentalForm({
       </div>
 
       <div className="flex justify-end">
-        <div className="w-full max-w-140 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-        <div className="grid grid-cols-[120px_1fr_90px_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="w-full max-w-140 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_1fr_90px_1fr]">
           <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Total</div>
           <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">₹ {linesSubtotal}</div>
-          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
             Qty
           </div>
           <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">{totalQty}</div>
         </div>
 
-        <div className="grid grid-cols-[120px_60px_1fr_60px_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_60px_1fr_60px_1fr]">
           <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Discount</div>
-          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">%</div>
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">%</div>
           <Input
-            className="min-w-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
+            className="min-w-0 rounded-none border-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
             type="number"
             value={summary.globalDiscountPercent}
             onChange={(event) => updateDiscountFromPercent(event.target.value)}
           />
-          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17]">₹</div>
+          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">₹</div>
           <Input
-            className="min-w-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
+            className="min-w-0 rounded-none border-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
             type="number"
             value={summary.globalDiscountAmount}
             onChange={(event) => updateDiscountFromAmount(event.target.value)}
           />
         </div>
 
-        <div className="grid grid-cols-[120px_150px_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_150px_1fr]">
           <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Advance</div>
-          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90]">
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90] sm:border-l sm:border-slate-300">
             CASH IN HAND
           </div>
           <Input
@@ -885,16 +1176,16 @@ export function CreateRentalForm({
           />
         </div>
 
-        <div className="grid grid-cols-[160px_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[160px_1fr]">
           <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding</div>
-          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17]">
+          <div className="bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
             ₹ {pending}
           </div>
         </div>
 
-        <div className="grid grid-cols-[120px_150px_1fr_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_150px_1fr_1fr]">
           <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#2f6feb]">Deposit</div>
-          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90]">
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90] sm:border-l sm:border-slate-300">
             CASH IN HAND
           </div>
           <Input
@@ -905,14 +1196,14 @@ export function CreateRentalForm({
               setSummary((prev) => ({ ...prev, depositAmount: event.target.value }))
             }
           />
-          <div className="border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-green-600">
+          <div className="bg-white px-3 py-2 text-sm font-semibold text-green-600 sm:border-l sm:border-slate-300">
             ₹ {Number(summary.depositAmount) || 0}
           </div>
         </div>
 
-        <div className="grid grid-cols-[220px_1fr] overflow-hidden rounded-lg border border-slate-300">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[220px_1fr]">
           <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding + Deposit</div>
-          <div className="border-l border-slate-300 bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17]">
+          <div className="bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
             ₹ {outstandingWithDeposit}
           </div>
         </div>
@@ -924,7 +1215,8 @@ export function CreateRentalForm({
           <div className="px-4 py-3 border-b bg-slate-50">
             <h3 className="text-sm font-semibold text-[#0e1b17]">Added Rental Lines</h3>
           </div>
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="min-w-275">
             <TableHeader className="bg-slate-50">
               <TableRow>
                 <TableHead className="px-4 py-3 text-left">Sr no.</TableHead>
@@ -944,9 +1236,11 @@ export function CreateRentalForm({
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y">
-              {lines.map((line, index) => (
+              {pagedLines.map((line, index) => (
                 <TableRow key={line.id}>
-                  <TableCell className="px-4 py-3">{index + 1}</TableCell>
+                  <TableCell className="px-4 py-3">
+                    {(currentLineTablePage - 1) * lineTablePageSize + index + 1}
+                  </TableCell>
                   <TableCell className="px-4 py-3">{line.productName}</TableCell>
                   <TableCell className="px-4 py-3">
                     {line.image ? (
@@ -979,6 +1273,15 @@ export function CreateRentalForm({
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            page={currentLineTablePage}
+            pageSize={lineTablePageSize}
+            totalItems={lines.length}
+            onPageChange={(nextPage) =>
+              setLineTablePage(Math.max(1, Math.min(nextPage, lineTableTotalPages)))
+            }
+          />
+          </div>
         </div>
       )}
 
@@ -1000,9 +1303,9 @@ export function CreateRentalForm({
           className="fixed inset-0 z-60 bg-black/45 p-4"
           onClick={() => setCustomerModal((prev) => ({ ...prev, open: false }))}
         >
-          <div className="min-h-full flex items-center justify-center">
+          <div className="flex min-h-full items-center justify-center">
             <div className="w-full max-w-2xl" onClick={(event) => event.stopPropagation()}>
-              <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+              <div className="max-h-[85vh] space-y-4 overflow-y-auto rounded-xl border bg-white p-4 shadow-sm sm:p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-[#0e1b17]">Add / Select Customer</h2>
                   <Button
@@ -1095,7 +1398,8 @@ export function CreateRentalForm({
 
                 {customerModal.foundCustomer && hasFoundCustomer && (
                   <div className="rounded-xl border overflow-hidden">
-                    <Table>
+                    <div className="w-full overflow-x-auto">
+                    <Table className="min-w-180">
                       <TableHeader className="bg-slate-50">
                         <TableRow>
                           <TableHead className="px-4 py-2 text-left">Name</TableHead>
@@ -1137,15 +1441,16 @@ export function CreateRentalForm({
                         </TableRow>
                       </TableBody>
                     </Table>
+                    </div>
                   </div>
                 )}
 
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setCustomerModal((prev) => ({ ...prev, open: false }))}
                     disabled={customerModal.submittingCustomer}
-                    className="cursor-pointer"
+                    className="w-full cursor-pointer sm:w-auto"
                   >
                     Cancel
                   </Button>
@@ -1153,7 +1458,7 @@ export function CreateRentalForm({
                     variant="brand"
                     onClick={() => void upsertCustomer(false)}
                     disabled={customerModal.submittingCustomer}
-                    className="cursor-pointer bg-[#17cf91] text-[#0e1b17]"
+                    className="w-full cursor-pointer bg-[#17cf91] text-[#0e1b17] sm:w-auto"
                   >
                     {customerModal.foundCustomer && customerModal.isEditCustomer
                       ? "Update"
@@ -1163,7 +1468,7 @@ export function CreateRentalForm({
                     variant="outline"
                     onClick={() => void upsertCustomer(true)}
                     disabled={customerModal.submittingCustomer}
-                    className="cursor-pointer"
+                    className="w-full cursor-pointer sm:w-auto"
                   >
                     Save New
                   </Button>

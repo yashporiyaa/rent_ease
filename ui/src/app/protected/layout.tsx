@@ -1,8 +1,9 @@
 "use client";
 
 import { Sidebar } from "@/components/layout/sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { UserContext } from "@/app/context/user-context";
+import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
@@ -58,8 +59,28 @@ export default function ProtectedLayout({
     <SidebarProvider defaultOpen>
       <Sidebar />
       <SidebarInset className="bg-[#f6f8f7]">
-        <div className="p-8">{children}</div>
+        <MobileTopbar />
+        <div className="p-4 pt-2 md:p-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+function MobileTopbar() {
+  const { toggleSidebar } = useSidebar();
+
+  return (
+    <div className="sticky top-0 z-40 flex items-center justify-between border-b bg-white/95 px-4 py-3 backdrop-blur md:hidden">
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700"
+        aria-label="Toggle sidebar menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+      <p className="text-sm font-semibold text-[#0e1b17]">RentEase</p>
+      <span className="w-10" aria-hidden />
+    </div>
   );
 }

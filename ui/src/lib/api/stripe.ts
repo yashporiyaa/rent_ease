@@ -1,6 +1,8 @@
+import { API_URL } from "./config";
+
 export const createCheckoutSession = async () => {
   try {
-    const res = await fetch("http://localhost:3001/stripe/create-checkout-session", {
+    const res = await fetch(`${API_URL}/stripe/create-checkout-session`, {
       method: "POST",
       credentials: "include",
     });

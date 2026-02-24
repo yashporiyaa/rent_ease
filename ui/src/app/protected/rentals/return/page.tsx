@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/common/table-pagination";
 
 const getTodayDateValue = () => {
   const date = new Date();
@@ -34,12 +36,15 @@ const getTodayDateValue = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getInitialFilters = (): ReturnFilters => {
-  const today = getTodayDateValue();
+const isValidDateValue = (value?: string | null) =>
+  Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+
+const getInitialFilters = (initialDate?: string | null): ReturnFilters => {
+  const defaultDate = isValidDateValue(initialDate) ? initialDate : getTodayDateValue();
 
   return {
-    fromDate: today,
-    toDate: today,
+    fromDate: defaultDate as string,
+    toDate: defaultDate as string,
     categoryId: "all",
     status: "all",
   };
@@ -60,68 +65,79 @@ const formatDateTime = (value?: string | null) => {
 
 const getSelectValue = (status: ReturnRentalItem["status"]) => {
   if (status === "RETURNED") return "returned";
-  if (status === "PICKED") return "picked";
-  return "pending";
+  return "picked";
 };
 
 export default function ReturnPage() {
-  const [filters, setFilters] = useState<ReturnFilters>(getInitialFilters);
-  const [appliedFilters, setAppliedFilters] = useState<ReturnFilters>(getInitialFilters);
+  const searchParams = useSearchParams();
+  const rentalIdFilter = searchParams.get("rentalId") || undefined;
+  const dateFilter = searchParams.get("date");
+
+  const [filters, setFilters] = useState<ReturnFilters>(getInitialFilters(dateFilter));
+  const [appliedFilters, setAppliedFilters] = useState<ReturnFilters>(
+    getInitialFilters(dateFilter),
+  );
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [rows, setRows] = useState<ReturnRentalItem[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [updatingRowId, setUpdatingRowId] = useState<string | null>(null);
 
-  const fetchRows = useCallback(async (nextFilters: ReturnFilters) => {
-    try {
-      const res = await getReturnRentals({
-        fromDate: nextFilters.fromDate || undefined,
-        toDate: nextFilters.toDate || undefined,
-        categoryId:
+  const fetchRows = useCallback(
+    async (nextFilters: ReturnFilters, nextRentalId?: string) => {
+      try {
+        const res = await getReturnRentals({
+          rentalId: nextRentalId,
+          fromDate: nextFilters.fromDate || undefined,
+          toDate: nextFilters.toDate || undefined,
+          categoryId:
           nextFilters.categoryId && nextFilters.categoryId !== "all"
             ? nextFilters.categoryId
             : undefined,
         status: nextFilters.status,
       });
 
-      setRows(res.data as ReturnRentalItem[]);
-    } catch (error) {
+        setRows(res.data as ReturnRentalItem[]);
+      } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to fetch return rentals";
-      toast.error(message);
-    }
-  }, []);
+        toast.error(message);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
-        const defaultFilters = getInitialFilters();
+        const defaultFilters = getInitialFilters(dateFilter);
         const categoriesRes = await getItemCategories();
 
         setCategories(categoriesRes.data as ItemCategory[]);
         setFilters(defaultFilters);
         setAppliedFilters(defaultFilters);
-        await fetchRows(defaultFilters);
+        await fetchRows(defaultFilters, rentalIdFilter);
       } finally {
         setLoading(false);
       }
     };
 
     void loadInitialData();
-  }, [fetchRows]);
+  }, [dateFilter, fetchRows, rentalIdFilter]);
 
   const handleSearch = async () => {
     setSearching(true);
     setAppliedFilters(filters);
-    await fetchRows(filters);
+    await fetchRows(filters, rentalIdFilter);
     setSearching(false);
   };
 
   const handleStatusChange = async (
     row: ReturnRentalItem,
-    nextStatus: "picked" | "returned" | "pending",
+    nextStatus: "returned",
   ) => {
     setUpdatingRowId(row.id);
     try {
@@ -130,10 +146,6 @@ export default function ReturnPage() {
 
       setRows((prev) => {
         const nextRows = prev.map((item) => (item.id === updated.id ? updated : item));
-
-        if (appliedFilters.status === "returned" && nextStatus !== "returned") {
-          return nextRows.filter((item) => item.id !== updated.id);
-        }
 
         return nextRows;
       });
@@ -149,12 +161,28 @@ export default function ReturnPage() {
   };
 
   const noResultsText = useMemo(() => {
+    if (rentalIdFilter) {
+      return "No return items found for selected booking.";
+    }
+
     if (appliedFilters.status === "returned") {
       return "No returned items found for selected filters.";
     }
 
     return "No items found for selected filters.";
-  }, [appliedFilters.status]);
+  }, [appliedFilters.status, rentalIdFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const pagedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return rows.slice(start, start + pageSize);
+  }, [rows, page]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   if (loading) {
     return (
@@ -171,6 +199,11 @@ export default function ReturnPage() {
         <p className="text-slate-500 mt-1">
           Filter rentals by return date, product category, and returned status.
         </p>
+        {rentalIdFilter ? (
+          <p className="mt-1 text-xs font-medium text-[#17cf91]">
+            Showing return items for selected calendar booking.
+          </p>
+        ) : null}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5">
@@ -284,7 +317,7 @@ export default function ReturnPage() {
               </TableRow>
             )}
 
-            {rows.map((row) => {
+            {pagedRows.map((row) => {
               const rowImage = row.image || row.item?.images?.[0] || "";
               const rowDescription = row.description || row.item?.description || "-";
               const selectedValue = getSelectValue(row.status);
@@ -327,9 +360,11 @@ export default function ReturnPage() {
                   <TableCell className="px-4 py-3">
                     <Select
                       value={selectedValue}
-                      onValueChange={(value: "picked" | "returned" | "pending") => {
+                      onValueChange={(value: "picked" | "returned") => {
                         if (value !== selectedValue) {
-                          void handleStatusChange(row, value);
+                          if (value === "returned") {
+                            void handleStatusChange(row, value);
+                          }
                         }
                       }}
                       disabled={isRowUpdating}
@@ -338,11 +373,12 @@ export default function ReturnPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="picked" disabled={isReturned}>
+                        <SelectItem value="picked" disabled>
                           Picked
                         </SelectItem>
-                        <SelectItem value="returned">Returned</SelectItem>
+                        <SelectItem value="returned" disabled={isReturned}>
+                          Returned
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -351,6 +387,12 @@ export default function ReturnPage() {
             })}
           </TableBody>
         </Table>
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={rows.length}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

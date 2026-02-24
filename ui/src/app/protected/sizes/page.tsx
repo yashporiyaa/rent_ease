@@ -21,6 +21,7 @@ import { ItemSize } from "@/types";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { TablePagination } from "@/components/common/table-pagination";
 
 type SizeForm = {
   name: string;
@@ -39,11 +40,18 @@ export default function SizesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [form, setForm] = useState<SizeForm>(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const pageTitle = useMemo(
     () => (editingSize ? "Edit Size" : "Add Size"),
     [editingSize],
   );
+  const totalPages = Math.max(1, Math.ceil(sizes.length / pageSize));
+  const pagedSizes = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return sizes.slice(start, start + pageSize);
+  }, [sizes, page]);
 
   const fetchSizes = useCallback(async () => {
     try {
@@ -61,6 +69,12 @@ export default function SizesPage() {
   useEffect(() => {
     void fetchSizes();
   }, [fetchSizes]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const openCreateModal = () => {
     setEditingSize(null);
@@ -179,7 +193,7 @@ export default function SizesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              sizes.map((size) => (
+              pagedSizes.map((size) => (
                 <TableRow key={size.id} className="hover:bg-slate-50">
                   <TableCell className="px-6 py-4 text-slate-600">{size.id}</TableCell>
                   <TableCell className="px-6 py-4 font-medium text-[#0e1b17]">
@@ -212,6 +226,12 @@ export default function SizesPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={sizes.length}
+          onPageChange={setPage}
+        />
       </div>
 
       {isModalOpen && (

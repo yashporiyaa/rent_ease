@@ -1,3 +1,5 @@
+import { API_URL } from "./config";
+
 export type ItemCategoryPayload = {
   name: string;
   imageUrl?: string;
@@ -5,7 +7,7 @@ export type ItemCategoryPayload = {
 
 export const getItemCategories = async () => {
   try {
-    const res = await fetch("http://localhost:3001/item-categories", {
+    const res = await fetch(`${API_URL}/item-categories`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -23,7 +25,7 @@ export const getItemCategories = async () => {
 
 export const createItemCategory = async (payload: ItemCategoryPayload) => {
   try {
-    const res = await fetch("http://localhost:3001/item-categories", {
+    const res = await fetch(`${API_URL}/item-categories`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ export const updateItemCategory = async (
   payload: ItemCategoryPayload,
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/item-categories/${id}`, {
+    const res = await fetch(`${API_URL}/item-categories/${id}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +70,7 @@ export const updateItemCategory = async (
 
 export const deleteItemCategory = async (id: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/item-categories/${id}`, {
+    const res = await fetch(`${API_URL}/item-categories/${id}`, {
       method: "DELETE",
       credentials: "include",
     });

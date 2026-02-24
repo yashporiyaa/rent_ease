@@ -21,6 +21,7 @@ import { ItemCategory } from "@/types";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { TablePagination } from "@/components/common/table-pagination";
 
 type CategoryForm = {
   name: string;
@@ -41,11 +42,18 @@ export default function ItemCategoriesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<ItemCategory | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const pageTitle = useMemo(
     () => (editingCategory ? "Edit Category" : "Add Category"),
     [editingCategory],
   );
+  const totalPages = Math.max(1, Math.ceil(categories.length / pageSize));
+  const pagedCategories = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return categories.slice(start, start + pageSize);
+  }, [categories, page]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -63,6 +71,12 @@ export default function ItemCategoriesPage() {
   useEffect(() => {
     void fetchCategories();
   }, [fetchCategories]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const openCreateModal = () => {
     setEditingCategory(null);
@@ -193,7 +207,7 @@ export default function ItemCategoriesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              categories.map((category) => (
+              pagedCategories.map((category) => (
                 <TableRow key={category.id} className="hover:bg-slate-50">
                   <TableCell className="px-6 py-4 text-slate-600">{category.id}</TableCell>
                   <TableCell className="px-6 py-4">
@@ -238,6 +252,12 @@ export default function ItemCategoriesPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={categories.length}
+          onPageChange={setPage}
+        />
       </div>
 
       {isModalOpen && (

@@ -1,9 +1,9 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { RentalStatusBadge } from "./rental-status-badge";
-import { Eye, FileDown, Pencil, Trash2 } from "lucide-react";
+import { FileDown, Pencil, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils/date";
 import { RentalsTableProps } from "@/types";
 import { Button } from "../ui/button";
@@ -17,9 +17,18 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { TablePagination } from "../common/table-pagination";
 
 export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
   const [expandedRentalIds, setExpandedRentalIds] = useState<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(rentals.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedRentals = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return rentals.slice(start, start + pageSize);
+  }, [rentals, currentPage]);
 
   const formatDateTime = (value?: string) => {
     if (!value) return "-";
@@ -54,12 +63,11 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
             <TableHead className="px-6 py-4 text-right font-semibold">PDF</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Edit</TableHead>
             <TableHead className="px-6 py-4 text-right font-semibold">Delete</TableHead>
-            <TableHead className="px-6 py-4 text-right font-semibold">Action</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody className="divide-y">
-          {rentals.map((rental) => {
+          {pagedRentals.map((rental) => {
             const isExpanded = Boolean(expandedRentalIds[rental.id]);
 
             return (
@@ -174,19 +182,10 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
                     </Button>
                   </TableCell>
 
-                  <TableCell className="px-6 py-4 text-right">
-                    <Link
-                      href={`/protected/rentals/${rental.id}`}
-                      className="inline-flex items-center gap-2 text-[#17cf91] font-bold hover:underline"
-                    >
-                      <Eye size={16} />
-                      View
-                    </Link>
-                  </TableCell>
                 </TableRow>
                 {isExpanded && (
                   <TableRow className="bg-slate-50/40">
-                    <TableCell colSpan={15} className="p-0">
+                    <TableCell colSpan={14} className="p-0">
                       <div className="border-t border-slate-200">
                         <Table>
                           <TableHeader className="bg-slate-100 text-slate-600">
@@ -250,6 +249,12 @@ export function RentalsTable({ rentals, onEdit, onDelete }: RentalsTableProps) {
           })}
         </TableBody>
       </Table>
+      <TablePagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={rentals.length}
+        onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+      />
     </div>
   );
 }

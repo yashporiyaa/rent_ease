@@ -46,11 +46,13 @@ type CalendarEvent = {
   isMore?: boolean;
   dateKey: string;
   rentalId?: string;
+  isDelivered?: boolean;
 };
 
 type CalendarBooking = {
   label: string;
   rentalId: string;
+  isDelivered?: boolean;
 };
 
 type CalendarDayData = {
@@ -126,6 +128,7 @@ export default function CalendarPage() {
             end: date,
             dateKey: day.date,
             rentalId: booking.rentalId,
+            isDelivered: booking.isDelivered,
           });
         });
 
@@ -154,7 +157,11 @@ export default function CalendarPage() {
           if (event.isMore) {
             setSelectedDate(event.dateKey);
           } else if (event.rentalId) {
-            router.push(`/protected/rentals/${event.rentalId}`);
+            const params = new URLSearchParams({
+              rentalId: event.rentalId,
+              date: event.dateKey,
+            });
+            router.push(`/protected/rentals/delivery?${params.toString()}`);
           }
         }}
         localizer={localizer}
@@ -170,7 +177,15 @@ export default function CalendarPage() {
                   padding: 0,
                 },
               }
-            : {}
+            : event.isDelivered
+              ? {
+                  style: {
+                    backgroundColor: "#16a34a",
+                    borderColor: "#15803d",
+                    color: "#ffffff",
+                  },
+                }
+              : {}
         }
         date={currentDate}
         onNavigate={(date) => setCurrentDate(date)}
@@ -214,7 +229,11 @@ export default function CalendarPage() {
                   key={booking.rentalId}
                   onClick={() => {
                     setSelectedDate(null);
-                    router.push(`/protected/rentals/${booking.rentalId}`);
+                    const params = new URLSearchParams({ rentalId: booking.rentalId });
+                    if (selectedDate) {
+                      params.set("date", selectedDate);
+                    }
+                    router.push(`/protected/rentals/delivery?${params.toString()}`);
                   }}
                   className="cursor-pointer rounded-lg border p-3 hover:bg-[#17cf91]/10 transition"
                 >

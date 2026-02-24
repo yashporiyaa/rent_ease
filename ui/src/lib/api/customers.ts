@@ -1,3 +1,5 @@
+import { API_URL } from "./config";
+
 export const createCustomer = async (
   name: string,
   phone1?: string,
@@ -5,7 +7,7 @@ export const createCustomer = async (
   address?: string,
 ) => {
   try {
-    const res = await fetch("http://localhost:3001/customers", {
+    const res = await fetch(`${API_URL}/customers`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -31,7 +33,7 @@ export const createCustomer = async (
 
 export const findCustomerByPhone = async (phone: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/customers/by-phone/${phone}`, {
+    const res = await fetch(`${API_URL}/customers/by-phone/${phone}`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -52,7 +54,7 @@ export const updateCustomer = async (
   payload: { name?: string; phone1?: string; phone2?: string; address?: string },
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/customers/${id}`, {
+    const res = await fetch(`${API_URL}/customers/${id}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -73,7 +75,7 @@ export const updateCustomer = async (
 
 export const getCustomers = async () => {
   try {
-    const res = await fetch("http://localhost:3001/customers", {
+    const res = await fetch(`${API_URL}/customers`, {
       credentials: "include",
     });
     const data = await res.json();

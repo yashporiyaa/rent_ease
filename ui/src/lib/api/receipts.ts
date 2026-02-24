@@ -3,6 +3,7 @@ import {
   ReceiptListFilters,
   ReceiptPayload,
 } from "@/types";
+import { API_URL } from "./config";
 
 export const getReceipts = async (params: ReceiptListFilters = {}) => {
   try {
@@ -17,8 +18,8 @@ export const getReceipts = async (params: ReceiptListFilters = {}) => {
 
     const query = searchParams.toString();
     const url = query
-      ? `http://localhost:3001/receipts?${query}`
-      : "http://localhost:3001/receipts";
+      ? `${API_URL}/receipts?${query}`
+      : `${API_URL}/receipts`;
 
     const res = await fetch(url, {
       credentials: "include",
@@ -42,7 +43,7 @@ export const searchReceiptCustomers = async (search: string) => {
       ? `?search=${encodeURIComponent(search.trim())}`
       : "";
 
-    const res = await fetch(`http://localhost:3001/receipts/customers${query}`, {
+    const res = await fetch(`${API_URL}/receipts/customers${query}`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -64,7 +65,7 @@ export const searchReceiptCustomers = async (search: string) => {
 export const getReceiptPendingRentals = async (customerId: string) => {
   try {
     const res = await fetch(
-      `http://localhost:3001/receipts/customers/${customerId}/pending-rentals`,
+      `${API_URL}/receipts/customers/${customerId}/pending-rentals`,
       {
         credentials: "include",
       },
@@ -84,7 +85,7 @@ export const getReceiptPendingRentals = async (customerId: string) => {
 
 export const createReceipt = async (payload: ReceiptPayload) => {
   try {
-    const res = await fetch("http://localhost:3001/receipts", {
+    const res = await fetch(`${API_URL}/receipts`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +106,7 @@ export const createReceipt = async (payload: ReceiptPayload) => {
 
 export const updateReceipt = async (receiptId: string, payload: ReceiptPayload) => {
   try {
-    const res = await fetch(`http://localhost:3001/receipts/${receiptId}`, {
+    const res = await fetch(`${API_URL}/receipts/${receiptId}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -126,7 +127,7 @@ export const updateReceipt = async (receiptId: string, payload: ReceiptPayload) 
 
 export const deleteReceipt = async (receiptId: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/receipts/${receiptId}`, {
+    const res = await fetch(`${API_URL}/receipts/${receiptId}`, {
       method: "DELETE",
       credentials: "include",
     });

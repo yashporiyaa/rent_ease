@@ -3,10 +3,11 @@ import {
   DeliveryFilterStatus,
   ReturnFilterStatus,
 } from "@/types";
+import { API_URL } from "./config";
 
 export const createRental = async (payload: CreateRentalPayload) => {
   try {
-    const res = await fetch("http://localhost:3001/rentals", {
+    const res = await fetch(`${API_URL}/rentals`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -27,7 +28,7 @@ export const createRental = async (payload: CreateRentalPayload) => {
 
 export const getRentals = async () => {
   try {
-    const res = await fetch("http://localhost:3001/rentals", {
+    const res = await fetch(`${API_URL}/rentals`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -45,7 +46,7 @@ export const getRentals = async () => {
 
 export const getRentalById = async (rentalId: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/rentals/${rentalId}`, {
+    const res = await fetch(`${API_URL}/rentals/${rentalId}`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -66,7 +67,7 @@ export const updateRental = async (
   payload: CreateRentalPayload,
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/rentals/${rentalId}`, {
+    const res = await fetch(`${API_URL}/rentals/${rentalId}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -87,7 +88,7 @@ export const updateRental = async (
 
 export const deleteRental = async (rentalId: string) => {
   try {
-    const res = await fetch(`http://localhost:3001/rentals/${rentalId}`, {
+    const res = await fetch(`${API_URL}/rentals/${rentalId}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -107,7 +108,7 @@ export const deleteRental = async (rentalId: string) => {
 export const getCalendarData = async (start: string, end: string) => {
   try {
     const res = await fetch(
-      `http://localhost:3001/rentals/calendar?start=${start}&end=${end}`,
+      `${API_URL}/rentals/calendar?start=${start}&end=${end}`,
       { credentials: "include" },
     );
 
@@ -133,7 +134,7 @@ export const checkRentalItemAvailability = async (payload: {
   sizeId?: string;
 }) => {
   try {
-    const res = await fetch("http://localhost:3001/rentals/check-availability", {
+    const res = await fetch(`${API_URL}/rentals/check-availability`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -153,6 +154,7 @@ export const checkRentalItemAvailability = async (payload: {
 };
 
 export const getDeliveryRentals = async (params: {
+  rentalId?: string;
   fromDate?: string;
   toDate?: string;
   categoryId?: string;
@@ -161,6 +163,9 @@ export const getDeliveryRentals = async (params: {
   try {
     const searchParams = new URLSearchParams();
 
+    if (params.rentalId) {
+      searchParams.set("rentalId", params.rentalId);
+    }
     if (params.fromDate) {
       searchParams.set("fromDate", params.fromDate);
     }
@@ -176,8 +181,8 @@ export const getDeliveryRentals = async (params: {
 
     const query = searchParams.toString();
     const url = query
-      ? `http://localhost:3001/rentals/delivery?${query}`
-      : "http://localhost:3001/rentals/delivery";
+      ? `${API_URL}/rentals/delivery?${query}`
+      : `${API_URL}/rentals/delivery`;
 
     const res = await fetch(url, {
       credentials: "include",
@@ -201,7 +206,7 @@ export const updateDeliveryRentalStatus = async (
 ) => {
   try {
     const res = await fetch(
-      `http://localhost:3001/rentals/delivery/${rentalItemId}/status`,
+      `${API_URL}/rentals/delivery/${rentalItemId}/status`,
       {
         method: "PATCH",
         credentials: "include",
@@ -223,6 +228,7 @@ export const updateDeliveryRentalStatus = async (
 };
 
 export const getReturnRentals = async (params: {
+  rentalId?: string;
   fromDate?: string;
   toDate?: string;
   categoryId?: string;
@@ -231,6 +237,9 @@ export const getReturnRentals = async (params: {
   try {
     const searchParams = new URLSearchParams();
 
+    if (params.rentalId) {
+      searchParams.set("rentalId", params.rentalId);
+    }
     if (params.fromDate) {
       searchParams.set("fromDate", params.fromDate);
     }
@@ -246,8 +255,8 @@ export const getReturnRentals = async (params: {
 
     const query = searchParams.toString();
     const url = query
-      ? `http://localhost:3001/rentals/return?${query}`
-      : "http://localhost:3001/rentals/return";
+      ? `${API_URL}/rentals/return?${query}`
+      : `${API_URL}/rentals/return`;
 
     const res = await fetch(url, {
       credentials: "include",
@@ -267,10 +276,10 @@ export const getReturnRentals = async (params: {
 
 export const updateReturnRentalStatus = async (
   rentalItemId: string,
-  status: "picked" | "returned" | "pending",
+  status: "returned",
 ) => {
   try {
-    const res = await fetch(`http://localhost:3001/rentals/return/${rentalItemId}/status`, {
+    const res = await fetch(`${API_URL}/rentals/return/${rentalItemId}/status`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
