@@ -1,6 +1,10 @@
 import PDFDocument from 'pdfkit';
+import type { ClassicInvoicePdfData } from 'src/interfaces/invoice.interface.js';
 
-export function generateMinimalTemplate(doc: PDFDocument, data: any) {
+export function generateMinimalTemplate(
+  doc: PDFDocument,
+  data: ClassicInvoicePdfData,
+) {
   const margin = 60;
   const pageWidth = doc.page.width;
   const contentWidth = pageWidth - margin * 2;
@@ -101,7 +105,7 @@ export function generateMinimalTemplate(doc: PDFDocument, data: any) {
 
   doc.font('Helvetica').fontSize(11);
 
-  data.items.forEach((item: any) => {
+  data.items.forEach((item) => {
     doc.text(item.name, itemX, rowY);
     doc.text(item.quantity.toString(), qtyX, rowY, {
       width: 40,

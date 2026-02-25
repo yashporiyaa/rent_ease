@@ -5,11 +5,19 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Request, Response } from 'express';
+
+type ExceptionResponseBody = {
+  message?: string | string[];
+};
+
+type PayloadTooLargeLike = {
+  type: string;
+};
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -24,12 +32,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as any).message || message;
+      if (typeof res === 'string') {
+        message = res;
+      } else if (typeof res === 'object' && res !== null) {
+        const maybeResponse = res as ExceptionResponseBody;
+        if (typeof maybeResponse.message === 'string') {
+          message = maybeResponse.message;
+        } else if (
+          Array.isArray(maybeResponse.message) &&
+          maybeResponse.message.length > 0
+        ) {
+          message = maybeResponse.message.join(', ');
+        }
+      }
     } else if (
       typeof exception === 'object' &&
       exception !== null &&
       'type' in exception &&
-      (exception as any).type === 'entity.too.large'
+      (exception as PayloadTooLargeLike).type === 'entity.too.large'
     ) {
       status = HttpStatus.PAYLOAD_TOO_LARGE;
       message = 'Request payload too large';

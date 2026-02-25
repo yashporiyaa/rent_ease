@@ -13,6 +13,7 @@ import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { ItemCategoryService } from './item-category.service.js';
 import { CreateItemCategoryDto } from './dto/create-item-category.dto.js';
 import { UpdateItemCategoryDto } from './dto/update-item-category.dto.js';
+import type { AuthenticatedRequest } from 'src/types/authenticated-request.js';
 
 @Controller('item-categories')
 export class ItemCategoryController {
@@ -20,20 +21,20 @@ export class ItemCategoryController {
 
   @UseGuards(SupabaseAuthGuard)
   @Post()
-  async create(@Req() req: any, @Body() dto: CreateItemCategoryDto) {
+  async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateItemCategoryDto) {
     return this.itemCategoryService.create(req.user.sub, dto);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get()
-  async getAll(@Req() req: any) {
+  async getAll(@Req() req: AuthenticatedRequest) {
     return this.itemCategoryService.getAll(req.user.sub);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Patch(':id')
   async update(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() dto: UpdateItemCategoryDto,
   ) {
@@ -42,7 +43,7 @@ export class ItemCategoryController {
 
   @UseGuards(SupabaseAuthGuard)
   @Delete(':id')
-  async remove(@Req() req: any, @Param('id') id: string) {
+  async remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.itemCategoryService.remove(req.user.sub, id);
   }
 }

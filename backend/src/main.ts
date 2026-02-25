@@ -6,6 +6,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
@@ -20,7 +21,7 @@ async function bootstrap() {
   });
 
   // Allow larger payloads for item creation with multiple base64 images.
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.originalUrl === '/stripe/webhook') {
       next(); // skip json parsing for webhook
     } else {
@@ -28,7 +29,7 @@ async function bootstrap() {
     }
   });
 
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.originalUrl === '/stripe/webhook') {
       next();
     } else {
@@ -39,7 +40,10 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;

@@ -4,7 +4,8 @@ import { CreateUserDto, LoginDto } from './dto/create-user.dto.js';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { UpdateTaxDto } from './dto/update-tax.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
-import type { CookieOptions } from 'express';
+import type { CookieOptions, Response } from 'express';
+import type { AuthenticatedRequest } from 'src/types/authenticated-request.js';
 
 @Controller('users')
 export class UserController {
@@ -32,7 +33,10 @@ export class UserController {
   }
 
   @Post('signup')
-  async signup(@Res({ passthrough: true }) res, @Body() dto: CreateUserDto) {
+  async signup(
+    @Res({ passthrough: true }) res: Response,
+    @Body() dto: CreateUserDto,
+  ) {
     const { accessToken, user } = await this.userService.signup(dto);
 
     res.cookie('accessToken', accessToken, this.getAccessTokenCookieOptions());
@@ -41,7 +45,10 @@ export class UserController {
   }
 
   @Post('login')
-  async login(@Res({ passthrough: true }) res, @Body() dto: LoginDto) {
+  async login(
+    @Res({ passthrough: true }) res: Response,
+    @Body() dto: LoginDto,
+  ) {
     const { accessToken, user } = await this.userService.login(dto);
     res.cookie('accessToken', accessToken, this.getAccessTokenCookieOptions());
 
@@ -49,7 +56,7 @@ export class UserController {
   }
 
   @Post('logout')
-  logout(@Res({ passthrough: true }) res) {
+  logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('accessToken', this.getAccessTokenCookieOptions());
     return { success: true };
   }
@@ -61,32 +68,38 @@ export class UserController {
 
   @UseGuards(SupabaseAuthGuard)
   @Get('me')
-  getMe(@Req() req: any) {
+  getMe(@Req() req: AuthenticatedRequest) {
     const supabaseId = req.user.sub;
     return this.userService.getUser(supabaseId);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get('dashboard')
-  async getDashboardStats(@Req() req: any) {
+  async getDashboardStats(@Req() req: AuthenticatedRequest) {
     return this.userService.getDashboardData(req.user.sub);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get('revenue-analytics')
-  async getRevenue(@Req() req: any, @Query('range') range: string) {
+  async getRevenue(
+    @Req() req: AuthenticatedRequest,
+    @Query('range') range: string,
+  ) {
     return this.userService.getRevenueAnalytics(req.user.sub, range ?? '30d');
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Patch('settings/tax')
-  updateTax(@Req() req: any, @Body() dto: UpdateTaxDto) {
+  updateTax(@Req() req: AuthenticatedRequest, @Body() dto: UpdateTaxDto) {
     return this.userService.updateTax(req.user.sub, dto);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Patch('profile')
-  updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
+  updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpdateProfileDto,
+  ) {
     return this.userService.updateProfile(req.user.sub, dto);
   }
 }

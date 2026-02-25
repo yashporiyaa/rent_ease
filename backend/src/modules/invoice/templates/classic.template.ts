@@ -2,7 +2,10 @@ import PDFDocument from 'pdfkit';
 import { getStatusStyles } from '../../../common/utils/status-color.util.js';
 import { ClassicInvoicePdfData } from 'src/interfaces/invoice.interface.js';
 
-export function generateClassicTemplate(doc: PDFDocument, data: ClassicInvoicePdfData) {
+export function generateClassicTemplate(
+  doc: PDFDocument,
+  data: ClassicInvoicePdfData,
+) {
   const formatDateTime = (value: Date) =>
     new Date(value).toLocaleString('en-US', {
       year: 'numeric',

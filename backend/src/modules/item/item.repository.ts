@@ -16,11 +16,33 @@ export class ItemRepository {
     });
   }
 
-  async findByUserId(userId: string) {
+  async findByUserId(userId: string, skip: number, take: number) {
     return await this.prisma.item.findMany({
       where: { userId },
       orderBy: { fullName: 'asc' },
+      skip,
+      take,
     });
+  }
+
+  async countByUserId(userId: string) {
+    return this.prisma.item.count({
+      where: { userId },
+    });
+  }
+
+  async findByUserIdPaginated(userId: string, skip: number, take: number) {
+    const where = { userId };
+
+    return this.prisma.$transaction([
+      this.prisma.item.findMany({
+        where,
+        orderBy: { fullName: 'asc' },
+        skip,
+        take,
+      }),
+      this.prisma.item.count({ where }),
+    ]);
   }
 
   async findByIdAndUserId(id: string, userId: string) {

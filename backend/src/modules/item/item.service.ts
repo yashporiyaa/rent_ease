@@ -9,6 +9,11 @@ import { CreateItemDto } from './dto/create-item.dto.js';
 import { ItemCategoryRepository } from '../item-category/item-category.repository.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
 import { ItemSizeRepository } from '../item-size/item-size.repository.js';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
+import {
+  buildPaginationMeta,
+  resolvePagination,
+} from '../../common/utils/pagination.util.js';
 
 @Injectable()
 export class ItemService {
@@ -64,18 +69,24 @@ export class ItemService {
     return item;
   }
 
-  async getAll(supabaseId: string) {
+  async getAll(supabaseId: string, query: PaginationQueryDto) {
     const user = await this.userRepository.findById(supabaseId);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const items = await this.itemRepository.findByUserId(user.id);
+    const pagination = resolvePagination(query);
+    const [items, totalItems] = await this.itemRepository.findByUserIdPaginated(
+      user.id,
+      pagination.skip,
+      pagination.take,
+    );
 
     return {
       success: true,
       data: items,
+      meta: buildPaginationMeta(pagination, totalItems),
     };
   }
 

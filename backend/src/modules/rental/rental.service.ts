@@ -9,6 +9,11 @@ import { CreateRentalDto } from './dto/create-rental.dto.js';
 import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
 import { ReturnQueryDto } from './dto/return-query.dto.js';
+import { RentalListQueryDto } from './dto/rental-list-query.dto.js';
+import {
+  buildPaginationMeta,
+  resolvePagination,
+} from '../../common/utils/pagination.util.js';
 
 @Injectable()
 export class RentalService {
@@ -77,17 +82,24 @@ export class RentalService {
     };
   }
 
-  async getAll(supabaseId: string) {
+  async getAll(supabaseId: string, query: RentalListQueryDto) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const rentals = await this.rentalRepository.findByUserId(user.id);
+    const pagination = resolvePagination(query);
+    const [rentals, totalItems] =
+      await this.rentalRepository.findByUserIdPaginated(
+        user.id,
+        pagination.skip,
+        pagination.take,
+      );
 
     return {
       success: true,
       data: rentals,
+      meta: buildPaginationMeta(pagination, totalItems),
     };
   }
 

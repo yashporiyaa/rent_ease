@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule, seconds } from '@nestjs/throttler';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { validateEnv } from './config/env.validation.js';
 import { UserModule } from './modules/user/user.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { CustomerModule } from './modules/customer/customer.module.js';
@@ -19,6 +22,15 @@ import { RentalPaymentModule } from './modules/rental-payment/rental-payment.mod
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: seconds(60),
+          limit: 30,
+        },
+      ],
     }),
     PrismaModule,
     UserModule,
@@ -34,6 +46,12 @@ import { RentalPaymentModule } from './modules/rental-payment/rental-payment.mod
     StripeModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

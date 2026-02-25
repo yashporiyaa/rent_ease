@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class UserRepository {
@@ -32,7 +32,7 @@ export class UserRepository {
     };
   }
 
-  async updateUser(supabaseId: string, data: any) {
+  async updateUser(supabaseId: string, data: Prisma.UserUpdateInput) {
     try {
       const user = await this.prisma.user.update({
         where: { supabaseId },
@@ -41,7 +41,10 @@ export class UserRepository {
 
       return user;
     } catch (error) {
-      console.log(error.message);
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+      throw error;
     }
   }
 
@@ -193,7 +196,7 @@ export class UserRepository {
     });
   }
 
-  async updateProfile(supabaseId: string, data: any) {
+  async updateProfile(supabaseId: string, data: Prisma.UserUpdateInput) {
     return this.prisma.user.update({
       where: { supabaseId },
       data,

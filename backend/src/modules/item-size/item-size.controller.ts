@@ -13,6 +13,7 @@ import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard.js';
 import { ItemSizeService } from './item-size.service.js';
 import { CreateItemSizeDto } from './dto/create-item-size.dto.js';
 import { UpdateItemSizeDto } from './dto/update-item-size.dto.js';
+import type { AuthenticatedRequest } from 'src/types/authenticated-request.js';
 
 @Controller('item-sizes')
 export class ItemSizeController {
@@ -20,20 +21,20 @@ export class ItemSizeController {
 
   @UseGuards(SupabaseAuthGuard)
   @Post()
-  async create(@Req() req: any, @Body() dto: CreateItemSizeDto) {
+  async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateItemSizeDto) {
     return this.itemSizeService.create(req.user.sub, dto);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get()
-  async getAll(@Req() req: any) {
+  async getAll(@Req() req: AuthenticatedRequest) {
     return this.itemSizeService.getAll(req.user.sub);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Patch(':id')
   async update(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() dto: UpdateItemSizeDto,
   ) {
@@ -42,7 +43,7 @@ export class ItemSizeController {
 
   @UseGuards(SupabaseAuthGuard)
   @Delete(':id')
-  async remove(@Req() req: any, @Param('id') id: string) {
+  async remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.itemSizeService.remove(req.user.sub, id);
   }
 }

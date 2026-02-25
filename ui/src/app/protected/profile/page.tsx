@@ -150,7 +150,7 @@ export default function ProfilePage() {
 
       <Button
         onClick={saveProfile}
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold"
+        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
       >
         Save Changes
       </Button>

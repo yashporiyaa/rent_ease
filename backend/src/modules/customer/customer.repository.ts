@@ -22,15 +22,40 @@ export class CustomerRepository {
 
       return customer;
     } catch (error) {
-      console.log(error.message);
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+      throw error;
     }
   }
 
-  async findByUserId(userId: string) {
+  async findByUserId(userId: string, skip: number, take: number) {
     return await this.prisma.customer.findMany({
       where: { userId },
       orderBy: { name: 'asc' },
+      skip,
+      take,
     });
+  }
+
+  async countByUserId(userId: string) {
+    return this.prisma.customer.count({
+      where: { userId },
+    });
+  }
+
+  async findByUserIdPaginated(userId: string, skip: number, take: number) {
+    const where = { userId };
+
+    return this.prisma.$transaction([
+      this.prisma.customer.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+      }),
+      this.prisma.customer.count({ where }),
+    ]);
   }
 
   async findByIdAndUserId(id: string, userId: string) {

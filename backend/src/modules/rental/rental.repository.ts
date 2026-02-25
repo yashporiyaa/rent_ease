@@ -515,10 +515,12 @@ export class RentalRepository {
     };
   }
 
-  async findByUserId(userId: string) {
+  async findByUserId(userId: string, skip: number, take: number) {
     return await this.prisma.rental.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
       include: {
         invoice: {
           select: { id: true },
@@ -535,6 +537,41 @@ export class RentalRepository {
         },
       },
     });
+  }
+
+  async countByUserId(userId: string) {
+    return this.prisma.rental.count({
+      where: { userId },
+    });
+  }
+
+  async findByUserIdPaginated(userId: string, skip: number, take: number) {
+    const where: Prisma.RentalWhereInput = { userId };
+
+    return this.prisma.$transaction([
+      this.prisma.rental.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          invoice: {
+            select: { id: true },
+          },
+          customer: {
+            select: { name: true },
+          },
+          rentalItems: {
+            include: {
+              item: {
+                select: { fullName: true, description: true, images: true },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.rental.count({ where }),
+    ]);
   }
 
   async findById(userId: string, rentalId: string) {

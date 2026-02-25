@@ -3,6 +3,11 @@ import { CreateCustomerDto } from './dto/create-customer.dto.js';
 import { UserRepository } from '../user/user.repository.js';
 import { CustomerRepository } from './customer.repository.js';
 import { UpdateCustomerDto } from './dto/update-customer.dto.js';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
+import {
+  buildPaginationMeta,
+  resolvePagination,
+} from '../../common/utils/pagination.util.js';
 
 @Injectable()
 export class CustomerService {
@@ -28,18 +33,25 @@ export class CustomerService {
     return customer;
   }
 
-  async getAll(supabaseId: string) {
+  async getAll(supabaseId: string, query: PaginationQueryDto) {
     const user = await this.UserRepository.findById(supabaseId);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const customers = await this.CustomerRepository.findByUserId(user.id);
+    const pagination = resolvePagination(query);
+    const [customers, totalItems] =
+      await this.CustomerRepository.findByUserIdPaginated(
+        user.id,
+        pagination.skip,
+        pagination.take,
+      );
 
     return {
       success: true,
       data: customers,
+      meta: buildPaginationMeta(pagination, totalItems),
     };
   }
 

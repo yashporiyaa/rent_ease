@@ -1,8 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InvoiceStatus, InvoiceTemplate } from '@prisma/client';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
+import {
+  buildPaginationMeta,
+  resolvePagination,
+} from '../../common/utils/pagination.util.js';
 import { UserRepository } from '../user/user.repository.js';
 import { InvoiceRepository } from './invoice.repository.js';
 import { InvoicePdfService } from './invoice-pdf.service.js';
+import type { ClassicInvoicePdfData } from 'src/interfaces/invoice.interface.js';
+import type {
+  InvoiceDetailRecord,
+  InvoiceSummaryRecord,
+  InvoiceWithRelationsRecord,
+} from './invoice.repository.js';
+
+type InvoiceByIdResponse = {
+  success: true;
+  data: InvoiceDetailRecord & {
+    status: InvoiceStatus;
+  };
+};
+
+type InvoiceListResponse = {
+  success: true;
+  data: {
+    id: string;
+    invoiceNo: string;
+    customer: string;
+    amount: number;
+    status: InvoiceStatus;
+    createdAt: Date;
+  }[];
+  meta: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
 
 @Injectable()
 export class InvoiceService {
@@ -12,7 +48,7 @@ export class InvoiceService {
     private readonly invoicePdfService: InvoicePdfService,
   ) {}
 
-  async getById(supabaseId: string, invoiceId: string) {
+  async getById(supabaseId: string, invoiceId: string): Promise<InvoiceByIdResponse> {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -33,17 +69,26 @@ export class InvoiceService {
     };
   }
 
-  async getAll(supabaseId: string) {
+  async getAll(
+    supabaseId: string,
+    query: PaginationQueryDto,
+  ): Promise<InvoiceListResponse> {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const invoices = await this.invoiceRepository.findAllByUserId(user.id);
+    const pagination = resolvePagination(query);
+    const [invoices, totalItems] =
+      await this.invoiceRepository.findAllByUserIdPaginated(
+        user.id,
+        pagination.skip,
+        pagination.take,
+      );
 
     return {
       success: true,
-      data: invoices.map((inv) => ({
+      data: invoices.map((inv: InvoiceSummaryRecord) => ({
         id: inv.id,
         invoiceNo: inv.invoiceNo,
         customer: inv.rental.customer.name,
@@ -51,10 +96,11 @@ export class InvoiceService {
         status: this.resolveInvoiceStatus(inv),
         createdAt: inv.createdAt,
       })),
+      meta: buildPaginationMeta(pagination, totalItems),
     };
   }
 
-  async downloadInvoice(supabaseId: string, invoiceId: string) {
+  async downloadInvoice(supabaseId: string, invoiceId: string): Promise<Buffer> {
     const user = await this.userRepository.findById(supabaseId);
 
     if (!user) {
@@ -77,9 +123,12 @@ export class InvoiceService {
     );
   }
 
-  private buildInvoiceView(invoice: any, user: any) {
+  private buildInvoiceView(
+    invoice: InvoiceWithRelationsRecord,
+    user: NonNullable<Awaited<ReturnType<UserRepository['findById']>>>,
+  ): ClassicInvoicePdfData {
     const subtotal = (invoice.rental?.rentalItems ?? []).reduce(
-      (sum: number, item: any) =>
+      (sum: number, item) =>
         sum + Number(item?.quantity ?? 0) * Number(item?.price ?? 0),
       0,
     );
@@ -134,7 +183,14 @@ export class InvoiceService {
     };
   }
 
-  private resolveInvoiceStatus(invoice: any): InvoiceStatus {
+  private resolveInvoiceStatus(
+    invoice: {
+      rental?: {
+        pendingAmount?: number | null;
+      } | null;
+      totalAmount?: number | null;
+    },
+  ): InvoiceStatus {
     const pending = Math.max(Number(invoice?.rental?.pendingAmount ?? 0), 0);
     const total = Math.max(Number(invoice?.totalAmount ?? 0), 0);
 

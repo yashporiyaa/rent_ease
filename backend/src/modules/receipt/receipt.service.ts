@@ -8,6 +8,10 @@ import { UserRepository } from '../user/user.repository.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { ReceiptListQueryDto } from './dto/receipt-list-query.dto.js';
 import { InvoiceStatus, Prisma } from '@prisma/client';
+import {
+  buildPaginationMeta,
+  resolvePagination,
+} from '../../common/utils/pagination.util.js';
 
 @Injectable()
 export class ReceiptService {
@@ -174,6 +178,7 @@ export class ReceiptService {
 
   async getAll(supabaseId: string, query: ReceiptListQueryDto) {
     const user = await this.getValidatedUser(supabaseId);
+    const pagination = resolvePagination(query);
 
     const where: {
       userId: string;
@@ -197,37 +202,43 @@ export class ReceiptService {
       };
     }
 
-    const receipts = await this.prisma.receipt.findMany({
-      where,
-      orderBy: {
-        entryDate: 'desc',
-      },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-          },
+    const [receipts, totalItems] = await this.prisma.$transaction([
+      this.prisma.receipt.findMany({
+        where,
+        orderBy: {
+          entryDate: 'desc',
         },
-        lineItems: {
-          include: {
-            rental: {
-              select: {
-                id: true,
-                bookingNo: true,
-                bookingAt: true,
-                totalAmount: true,
-                pendingAmount: true,
+        skip: pagination.skip,
+        take: pagination.take,
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          lineItems: {
+            include: {
+              rental: {
+                select: {
+                  id: true,
+                  bookingNo: true,
+                  bookingAt: true,
+                  totalAmount: true,
+                  pendingAmount: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.prisma.receipt.count({ where }),
+    ]);
 
     return {
       success: true,
       data: receipts,
+      meta: buildPaginationMeta(pagination, totalItems),
     };
   }
 

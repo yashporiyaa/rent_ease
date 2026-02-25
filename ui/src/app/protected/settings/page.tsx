@@ -10,6 +10,7 @@ import {
   Mail,
   Phone,
   UserCog,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -234,7 +235,7 @@ export default function SettingsPage() {
               <Button
                 onClick={() => setEditOpen(true)}
                 variant="brand"
-                className="h-12 rounded-full px-7 text-base font-bold text-white max-sm:h-11 max-sm:px-5 max-sm:text-sm"
+                className="h-12 rounded-full px-7 text-base font-bold text-white max-sm:h-11 max-sm:px-5 max-sm:text-sm cursor-pointer"
               >
                 <UserCog className="h-4 w-4" />
                 Edit Profile
@@ -274,7 +275,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSubscribe}
                 disabled={startingCheckout || isActiveSubscription}
-                className="mt-8 h-14 w-full rounded-full bg-white text-base font-black text-[#11bb82] hover:bg-[#ecfffa]"
+                className="mt-8 h-14 w-full rounded-full bg-white text-base font-black text-[#11bb82] hover:bg-[#ecfffa] cursor-pointer"
               >
                 {startingCheckout
                   ? "Redirecting..."
@@ -348,16 +349,17 @@ export default function SettingsPage() {
               <div className="mt-8 flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
                 <Button
                   variant="outline"
-                  className="h-12 flex-1 rounded-full border-[#d7dfe8] text-base font-bold text-[#334155] hover:bg-[#f8fafc]"
+                  className="h-12 flex-1 rounded-full border-[#d7dfe8] text-base font-bold text-[#334155] hover:bg-[#f8fafc] cursor-pointer"
                 >
                   Update Payment
                 </Button>
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
-                  className="px-2 text-base font-bold text-[#ef4444]"
+                  className="px-2 text-base font-bold text-[#ef4444] cursor-pointer"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -384,14 +386,15 @@ export default function SettingsPage() {
                   </DialogDescription>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setEditOpen(false)}
-                className="text-3xl leading-none text-[#94a3b8]"
+                className="text-3xl leading-none text-[#94a3b8 cursor-pointer"
                 aria-label="Close"
               >
-                ×
-              </button>
+                <X />
+              </Button>
             </div>
           </div>
 
@@ -501,18 +504,19 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex items-center justify-end gap-5 border-t border-[#e3ece8] px-9 py-6 max-sm:px-5">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => setEditOpen(false)}
-              className="px-4 text-base font-bold text-[#334155] max-sm:text-base"
+              className="px-4 text-base font-bold text-[#334155] max-sm:text-base cursor-pointer"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               variant="brand"
               onClick={handleSaveProfile}
               disabled={savingProfile}
-              className="h-12 rounded-full px-8 text-base font-bold text-white"
+              className="h-12 rounded-full px-8 text-base font-bold text-white cursor-pointer"
             >
               <Check className="h-4 w-4" />
               {savingProfile ? "Saving..." : "Save Changes"}

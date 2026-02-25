@@ -52,7 +52,7 @@ export class StripeService {
           customer.id,
         );
         customerId = customer.id;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Stripe customer creation failed:', error);
         throw error;
       }
@@ -73,7 +73,7 @@ export class StripeService {
       });
 
       return { url: session.url };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Checkout session creation failed:', error);
       throw error;
     }

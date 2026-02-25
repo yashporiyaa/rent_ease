@@ -15,6 +15,7 @@ import { ReceiptService } from './receipt.service.js';
 import { ReceiptListQueryDto } from './dto/receipt-list-query.dto.js';
 import { ReceiptCustomerQueryDto } from './dto/receipt-customer-query.dto.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
+import type { AuthenticatedRequest } from 'src/types/authenticated-request.js';
 
 @Controller('receipts')
 export class ReceiptController {
@@ -22,20 +23,23 @@ export class ReceiptController {
 
   @UseGuards(SupabaseAuthGuard)
   @Get()
-  getAll(@Req() req: any, @Query() query: ReceiptListQueryDto) {
+  getAll(@Req() req: AuthenticatedRequest, @Query() query: ReceiptListQueryDto) {
     return this.receiptService.getAll(req.user.sub, query);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get('customers')
-  getCustomers(@Req() req: any, @Query() query: ReceiptCustomerQueryDto) {
+  getCustomers(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ReceiptCustomerQueryDto,
+  ) {
     return this.receiptService.searchCustomersWithPending(req.user.sub, query.search);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Get('customers/:customerId/pending-rentals')
   getPendingRentals(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('customerId') customerId: string,
   ) {
     return this.receiptService.getPendingRentals(req.user.sub, customerId);
@@ -43,14 +47,14 @@ export class ReceiptController {
 
   @UseGuards(SupabaseAuthGuard)
   @Post()
-  create(@Req() req: any, @Body() dto: CreateReceiptDto) {
+  create(@Req() req: AuthenticatedRequest, @Body() dto: CreateReceiptDto) {
     return this.receiptService.create(req.user.sub, dto);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Patch(':receiptId')
   update(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('receiptId') receiptId: string,
     @Body() dto: CreateReceiptDto,
   ) {
@@ -59,7 +63,10 @@ export class ReceiptController {
 
   @UseGuards(SupabaseAuthGuard)
   @Delete(':receiptId')
-  remove(@Req() req: any, @Param('receiptId') receiptId: string) {
+  remove(
+    @Req() req: AuthenticatedRequest,
+    @Param('receiptId') receiptId: string,
+  ) {
     return this.receiptService.remove(req.user.sub, receiptId);
   }
 }
