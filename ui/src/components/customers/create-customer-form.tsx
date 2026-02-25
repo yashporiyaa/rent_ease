@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Phone, X } from "lucide-react";
+import { Phone, User, UserRoundPlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createCustomer } from "@/lib/api/customers";
 import { toast } from "react-toastify";
@@ -45,65 +45,70 @@ export function CreateCustomerForm({
   };
 
   return (
-    <div className="max-w-xl bg-white p-8 rounded-xl border shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-black text-[#0e1b17]">
-          Add New Customer
-        </h1>
+    <div className="max-w-xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.14)]">
+      <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <UserRoundPlus className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">Add New Customer</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Create a customer to start renting items.
+            </p>
+          </div>
+        </div>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-slate-500" />
           </Button>
         )}
       </div>
-      <p className="text-slate-500 mb-6">
-        Create a customer to start renting items.
-      </p>
+      <div className="space-y-5 px-6 py-6">
 
-      {/* Name */}
-      <div className="mb-4">
-        <Label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
-          Customer Name
-        </Label>
-        <div className="relative">
-          <User className="absolute left-3 top-3 text-slate-400" size={18} />
-          <Input
-            className="w-full pl-10 pr-4 py-3 border rounded-xl"
-            placeholder="John Doe"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setError("");
-            }}
-          />
+        <div>
+          <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Customer Name
+          </Label>
+          <div className="relative">
+            <User className="absolute left-3 top-3 text-slate-400" size={18} />
+            <Input
+              className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError("");
+              }}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Phone */}
-      <div className="mb-4">
-        <Label className="text-sm font-semibold text-[#0e1b17] mb-1 block">
-          Phone (optional)
-        </Label>
-        <div className="relative">
-          <Phone className="absolute left-3 top-3 text-slate-400" size={18} />
-          <Input
-            className="w-full pl-10 pr-4 py-3 border rounded-xl"
-            placeholder="9876543210"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+        <div>
+          <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Phone (Optional)
+          </Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 text-slate-400" size={18} />
+            <Input
+              className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4"
+              placeholder="9876543210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
         </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <Button
+          variant="brand"
+          onClick={submit}
+          className="h-11 w-full cursor-pointer rounded-xl bg-[#17cf91] font-bold text-white"
+        >
+          Create Customer
+        </Button>
       </div>
-
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
-
-      <Button
-        variant="brand"
-        onClick={submit}
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
-      >
-        Create Customer
-      </Button>
     </div>
   );
 }

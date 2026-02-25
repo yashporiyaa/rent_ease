@@ -35,15 +35,17 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={!loading} className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle className="text-xl font-black text-slate-900">{title}</DialogTitle>
+          <DialogDescription className="text-sm text-slate-600">
+            {description}
+          </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="pt-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
-            className="cursor-pointer"
+            className="cursor-pointer rounded-xl"
           >
             {cancelLabel}
           </Button>
@@ -51,7 +53,7 @@ export function ConfirmDialog({
             variant="destructive"
             onClick={onConfirm}
             disabled={loading}
-            className="cursor-pointer"
+            className="cursor-pointer rounded-xl"
           >
             {loading ? "Deleting..." : confirmLabel}
           </Button>

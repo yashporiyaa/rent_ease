@@ -651,7 +651,7 @@ export default function PaymentsPage() {
 
       {isCreateOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/55 p-4 sm:p-6 overflow-y-auto backdrop-blur-[1px]"
           onClick={() => {
             if (!savingPayment) {
               setIsCreateOpen(false);
@@ -659,11 +659,11 @@ export default function PaymentsPage() {
             }
           }}
         >
-          <div className="min-h-full flex items-center justify-center">
+          <div className="min-h-full flex items-start justify-center py-6 sm:items-center sm:py-10">
             <div className="w-full max-w-6xl" onClick={(event) => event.stopPropagation()}>
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black text-[#0e1b17]">
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.14)]">
+                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                  <h2 className="text-2xl font-black text-slate-900">
                     {editingPaymentId ? "Update Payment" : "Add Payment"}
                   </h2>
                   <Button
@@ -676,13 +676,14 @@ export default function PaymentsPage() {
                       }
                     }}
                     disabled={savingPayment}
-                    className="cursor-pointer"
+                    className="cursor-pointer rounded-xl"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5 text-slate-500" />
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-5 px-6 py-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative space-y-1">
                     <Label className="text-xs font-semibold text-slate-600">Customer</Label>
                     <Input
@@ -877,7 +878,7 @@ export default function PaymentsPage() {
                       }
                     }}
                     disabled={savingPayment}
-                    className="cursor-pointer"
+                    className="cursor-pointer rounded-xl"
                   >
                     Cancel
                   </Button>
@@ -885,10 +886,11 @@ export default function PaymentsPage() {
                     variant="brand"
                     onClick={() => void handleSavePayment()}
                     disabled={savingPayment}
-                    className="bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-[#17cf91] font-bold text-white"
                   >
                     {savingPayment ? "Saving..." : editingPaymentId ? "Update" : "Save"}
                   </Button>
+                </div>
                 </div>
               </div>
             </div>

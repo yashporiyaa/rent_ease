@@ -15,6 +15,10 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
+  companyLogo?: string;
+
+  @IsOptional()
+  @IsString()
   businessAddress?: string;
 
   @IsOptional()

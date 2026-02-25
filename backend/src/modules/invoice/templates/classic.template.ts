@@ -1,7 +1,18 @@
 import PDFDocument from 'pdfkit';
 import { getStatusStyles } from '../../../common/utils/status-color.util.js';
+import { ClassicInvoicePdfData } from 'src/interfaces/invoice.interface.js';
 
-export function generateClassicTemplate(doc: PDFDocument, data: any) {
+export function generateClassicTemplate(doc: PDFDocument, data: ClassicInvoicePdfData) {
+  const formatDateTime = (value: Date) =>
+    new Date(value).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
   const margin = 50;
   const pageWidth = doc.page.width;
   const contentWidth = pageWidth - margin * 2;
@@ -20,7 +31,45 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
   let y = margin + 30;
 
   /* ---------------- HEADER ---------------- */
-  doc.fontSize(16).font('Helvetica-Bold').text('RENT-EASE', innerX, y);
+  const companyName = data?.company?.name || 'RENT-EASE';
+  const companyLogoDataUrl = data?.company?.logo;
+  const headerTopY = y;
+  const logoSize = 42;
+  const logoY = headerTopY - 5;
+  let titleX = innerX;
+  let leftHeaderBottomY = headerTopY;
+
+  if (
+    typeof companyLogoDataUrl === 'string' &&
+    companyLogoDataUrl.startsWith('data:image/')
+  ) {
+    const base64 = companyLogoDataUrl.split(',')[1];
+    if (base64) {
+      try {
+        const logoBuffer = Buffer.from(base64, 'base64');
+        doc.image(logoBuffer, innerX, logoY, {
+          fit: [logoSize, logoSize],
+          align: 'left',
+          valign: 'center',
+        });
+        titleX = innerX + 50;
+        leftHeaderBottomY = Math.max(leftHeaderBottomY, logoY + logoSize);
+      } catch {
+        titleX = innerX;
+      }
+    }
+  }
+
+  const companyNameY = headerTopY + 8;
+  doc.fontSize(16).font('Helvetica-Bold').text(companyName, titleX, companyNameY, {
+    width: innerWidth - (titleX - innerX) - 240,
+    lineBreak: false,
+  });
+  const companyNameHeight = doc.heightOfString(companyName, {
+    width: innerWidth - (titleX - innerX) - 240,
+    lineBreak: false,
+  });
+  leftHeaderBottomY = Math.max(leftHeaderBottomY, companyNameY + companyNameHeight);
 
   const rightColWidth = 220;
   const rightColX = innerRight - rightColWidth;
@@ -30,7 +79,7 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
     align: 'right',
   });
 
-  y += 30;
+  y = leftHeaderBottomY + 18;
 
   doc
     .fontSize(10)
@@ -110,16 +159,28 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
     .fontSize(10)
     .text('RENTAL PERIOD', rightSectionX, y);
 
+  const rentalPeriodWidth = rightColWidth;
   doc
     .font('Helvetica')
     .fontSize(11)
     .text(
-      `${data.rentalPeriod.start.toDateString()} - ${data.rentalPeriod.end.toDateString()}`,
+      `From: ${formatDateTime(data.rentalPeriod.start)}`,
       rightSectionX,
       y + 15,
+      {
+        width: rentalPeriodWidth,
+      },
+    )
+    .text(
+      `To: ${formatDateTime(data.rentalPeriod.end)}`,
+      rightSectionX,
+      y + 32,
+      {
+        width: rentalPeriodWidth,
+      },
     );
 
-  y += 80;
+  y += 92;
 
   /* ---------------- TABLE HEADER ---------------- */
 
@@ -148,7 +209,7 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
 
   doc.fontSize(11).font('Helvetica').fillColor('#1e293b');
 
-  data.items.forEach((item: any) => {
+  data.items.forEach((item) => {
     doc.text(item.name, tableX, y);
     doc.text(item.quantity.toString(), qtyX, y);
     doc.text(`Rs. ${item.unitPrice}`, priceX, y);
@@ -165,9 +226,10 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
   const totalsX = innerRight - totalsWidth;
   const amountX = totalsX + 120;
   const amountWidth = totalsWidth - 120;
-  const amountPaid = Number(data?.totals?.amountPaid ?? 0);
+  const advance = Number(data?.totals?.advance ?? 0);
+  const deposit = Number(data?.totals?.deposit ?? 0);
   const outstanding = Number(
-    data?.totals?.outstanding ?? data.totals.grandTotal - amountPaid,
+    data?.totals?.outstanding ?? data.totals.grandTotal - advance - deposit,
   );
 
   doc.fillColor('#64748b').fontSize(10);
@@ -178,6 +240,16 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
     align: 'right',
   });
 
+  const discount = Number(data?.totals?.discount ?? 0);
+  if (discount > 0) {
+    y += 20;
+    doc.text('Discount', totalsX, y);
+    doc.text(`Rs. ${discount}`, amountX, y, {
+      width: amountWidth,
+      align: 'right',
+    });
+  }
+
   y += 20;
 
   doc.text(`Tax (${data.totals.taxRate}%)`, totalsX, y);
@@ -186,10 +258,19 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
     align: 'right',
   });
 
-  if (amountPaid > 0) {
+  if (advance > 0) {
     y += 20;
-    doc.text('Paid', totalsX, y);
-    doc.text(`Rs. ${amountPaid}`, amountX, y, {
+    doc.text('Advance', totalsX, y);
+    doc.text(`Rs. ${advance}`, amountX, y, {
+      width: amountWidth,
+      align: 'right',
+    });
+  }
+
+  if (deposit > 0) {
+    y += 20;
+    doc.text('Deposit', totalsX, y);
+    doc.text(`Rs. ${deposit}`, amountX, y, {
       width: amountWidth,
       align: 'right',
     });
@@ -255,9 +336,16 @@ export function generateClassicTemplate(doc: PDFDocument, data: any) {
     .fillColor('#94a3b8')
     .fontSize(9)
     .font('Helvetica')
-    .text('Thank you for your business.', innerX, footerY, {
+    .text(
+      data?.company?.email || data?.company?.phone
+        ? `Thank you for your business. ${data?.company?.email ? `| ${data.company.email}` : ''} ${data?.company?.phone ? `| ${data.company.phone}` : ''}`.trim()
+        : 'Thank you for your business.',
+      innerX,
+      footerY,
+      {
       width: footerWidth,
       align: 'right',
       lineBreak: false,
-    });
+      },
+    );
 }

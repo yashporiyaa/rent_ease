@@ -12,6 +12,7 @@ export type User = {
   id: string;
   supabaseId: string;
   companyName: string;
+  companyLogo?: string | null;
   phone: string;
   email: string;
   businessType: string;
@@ -388,8 +389,6 @@ export type RentalLineFormState = {
   quantity: string;
   rate: string;
   taxPercent: string;
-  lineDiscountPercent: string;
-  lineDiscountAmount: string;
   editingLineId: string | null;
 };
 

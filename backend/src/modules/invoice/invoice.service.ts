@@ -70,32 +70,43 @@ export class InvoiceService {
       throw new NotFoundException('Invoice not found');
     }
 
-    const structured = this.buildInvoiceView(invoice);
+    const structured = this.buildInvoiceView(invoice, user);
     return this.invoicePdfService.generateInvoicePdf(
       structured,
       user.invoiceTemplate ?? InvoiceTemplate.CLASSIC,
     );
   }
 
-  private buildInvoiceView(invoice: any) {
-    const subtotal = invoice.totalAmount;
-    const tax = invoice.taxAmount ?? 0;
-    const taxRate = invoice.taxRate ?? 0;
-    const grandTotal = subtotal + tax;
-    const amountPaidFromPayments = (invoice.payments ?? []).reduce(
-      (sum: number, payment: any) => sum + (payment.amount ?? 0),
+  private buildInvoiceView(invoice: any, user: any) {
+    const subtotal = (invoice.rental?.rentalItems ?? []).reduce(
+      (sum: number, item: any) =>
+        sum + Number(item?.quantity ?? 0) * Number(item?.price ?? 0),
       0,
     );
+    const discount = Number(invoice.rental?.discountAmount ?? 0);
+    const tax = invoice.taxAmount ?? 0;
+    const taxRate = invoice.taxRate ?? 0;
+    const grandTotal = Number(invoice.totalAmount ?? 0);
+    const deposit = Number(invoice.rental?.depositAmount ?? 0);
     const rentalPending = Number(invoice.rental?.pendingAmount ?? NaN);
-    const outstanding = Number.isFinite(rentalPending)
+    const pendingAfterAdvance = Number.isFinite(rentalPending)
       ? Math.max(rentalPending, 0)
-      : Math.max(grandTotal - amountPaidFromPayments, 0);
-    const amountPaid = Math.max(grandTotal - outstanding, 0);
+      : Math.max(grandTotal - Number(invoice.rental?.advanceAmount ?? 0), 0);
+    // Reflect all amount settled against pending (initial advance + later payments)
+    // in the invoice "Advance" row.
+    const advance = Math.max(grandTotal - pendingAfterAdvance, 0);
+    const outstanding = pendingAfterAdvance - deposit;
 
     return {
       invoiceNo: invoice.invoiceNo,
       status: this.resolveInvoiceStatus(invoice),
       issueDate: invoice.createdAt,
+      company: {
+        name: user.companyName,
+        email: user.email,
+        phone: user.phone,
+        logo: user.companyLogo,
+      },
       customer: {
         name: invoice.rental.customer.name,
         phone: invoice.rental.customer.phone,
@@ -112,10 +123,12 @@ export class InvoiceService {
       })),
       totals: {
         subtotal,
+        discount,
         tax,
         taxRate,
         grandTotal,
-        amountPaid,
+        advance,
+        deposit,
         outstanding,
       },
     };

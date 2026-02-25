@@ -144,10 +144,10 @@ export default function ItemsPage() {
 
       {isCreateOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/55 p-4 sm:p-6 overflow-y-auto backdrop-blur-[1px]"
           onClick={() => setIsCreateOpen(false)}
         >
-          <div className="min-h-full flex items-center justify-center">
+          <div className="min-h-full flex items-start justify-center py-6 sm:items-center sm:py-10">
             <div
               className="w-full max-w-2xl"
               onClick={(e) => e.stopPropagation()}
@@ -169,10 +169,10 @@ export default function ItemsPage() {
 
       {editingItem && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/55 p-4 sm:p-6 overflow-y-auto backdrop-blur-[1px]"
           onClick={() => setEditingItem(null)}
         >
-          <div className="min-h-full flex items-center justify-center">
+          <div className="min-h-full flex items-start justify-center py-6 sm:items-center sm:py-10">
             <div
               className="w-full max-w-2xl"
               onClick={(e) => e.stopPropagation()}

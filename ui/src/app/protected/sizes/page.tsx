@@ -236,17 +236,17 @@ export default function SizesPage() {
 
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/55 p-4 sm:p-6 overflow-y-auto backdrop-blur-[1px]"
           onClick={closeModal}
         >
-          <div className="min-h-full flex items-center justify-center">
+          <div className="min-h-full flex items-start justify-center py-6 sm:items-center sm:py-10">
             <div
               className="w-full max-w-lg"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="bg-white p-8 rounded-xl border shadow-sm">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-black text-[#0e1b17]">{pageTitle}</h2>
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.14)]">
+                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                  <h2 className="text-2xl font-black text-slate-900">{pageTitle}</h2>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -254,12 +254,13 @@ export default function SizesPage() {
                     className="cursor-pointer"
                     disabled={submitting}
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5 text-slate-500" />
                   </Button>
                 </div>
+                <div className="space-y-5 px-6 py-6">
 
                 <Input
-                  className="border p-3 rounded-xl w-full mb-6"
+                  className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
                   placeholder="Size name"
                   value={form.name}
                   onChange={(event) =>
@@ -272,7 +273,7 @@ export default function SizesPage() {
                     variant="outline"
                     onClick={closeModal}
                     disabled={submitting}
-                    className="cursor-pointer"
+                    className="cursor-pointer rounded-xl"
                   >
                     Cancel
                   </Button>
@@ -280,10 +281,11 @@ export default function SizesPage() {
                     variant="brand"
                     onClick={() => void handleSave()}
                     disabled={submitting}
-                    className="bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-[#17cf91] font-bold text-white"
                   >
                     {submitting ? "Saving..." : "Save"}
                   </Button>
+                </div>
                 </div>
               </div>
             </div>

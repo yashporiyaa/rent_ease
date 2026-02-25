@@ -18,7 +18,21 @@ import {
   updateRental,
 } from "@/lib/api/rentals";
 import { toast } from "react-toastify";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  CalendarClock,
+  FileText,
+  MapPin,
+  Package2,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Search,
+  Shield,
+  Trash2,
+  UserRound,
+  UserRoundPlus,
+  X,
+} from "lucide-react";
 import { createCustomer, findCustomerByPhone, updateCustomer } from "@/lib/api/customers";
 import { CustomerListItem, CreateRentalPayload, InventoryItem, RentalRecord, CustomerModalState, RentalFormState, RentalLineFormState, RentalSummaryState, CustomerModalUiState, RentalLine } from "@/types";
 import {
@@ -55,8 +69,6 @@ const createInitialLineForm = (): RentalLineFormState => ({
   quantity: "1",
   rate: "",
   taxPercent: "0",
-  lineDiscountPercent: "0",
-  lineDiscountAmount: "0",
   editingLineId: null,
 });
 
@@ -218,10 +230,9 @@ export function CreateRentalForm({
   const lineBaseAmount = round2(
     (Number(lineForm.quantity) || 0) * (Number(lineForm.rate) || 0),
   );
-  const lineDiscountAmt = round2(Number(lineForm.lineDiscountAmount) || 0);
   const lineTaxPct = Number(lineForm.taxPercent) || 0;
-  const lineTaxAmt = round2(((lineBaseAmount - lineDiscountAmt) * lineTaxPct) / 100);
-  const lineTotal = round2(lineBaseAmount - lineDiscountAmt + lineTaxAmt);
+  const lineTaxAmt = round2((lineBaseAmount * lineTaxPct) / 100);
+  const lineTotal = round2(lineBaseAmount + lineTaxAmt);
 
   const linesSubtotal = round2(lines.reduce((sum, line) => sum + line.total, 0));
   const totalQty = lines.reduce((sum, line) => sum + line.quantity, 0);
@@ -259,26 +270,6 @@ export function CreateRentalForm({
       ...prev,
       globalDiscountAmount: value,
       globalDiscountPercent: String(pct),
-    }));
-  };
-
-  const updateLineDiscountFromPercent = (value: string) => {
-    const pct = Number(value) || 0;
-    const amount = round2((lineBaseAmount * pct) / 100);
-    setLineForm((prev) => ({
-      ...prev,
-      lineDiscountPercent: value,
-      lineDiscountAmount: String(amount),
-    }));
-  };
-
-  const updateLineDiscountFromAmount = (value: string) => {
-    const amount = Number(value) || 0;
-    const pct = lineBaseAmount > 0 ? round2((amount / lineBaseAmount) * 100) : 0;
-    setLineForm((prev) => ({
-      ...prev,
-      lineDiscountAmount: value,
-      lineDiscountPercent: String(pct),
     }));
   };
 
@@ -454,8 +445,8 @@ export function CreateRentalForm({
       toAt: lineForm.toAt,
       quantity: requestedQty,
       rate: Number(lineForm.rate),
-      discountPercent: Number(lineForm.lineDiscountPercent) || 0,
-      discountAmount: Number(lineForm.lineDiscountAmount) || 0,
+      discountPercent: 0,
+      discountAmount: 0,
       taxPercent: Number(lineForm.taxPercent) || 0,
       taxAmount: lineTaxAmt,
       total: lineTotal,
@@ -484,8 +475,6 @@ export function CreateRentalForm({
       quantity: String(line.quantity),
       rate: String(line.rate),
       taxPercent: String(line.taxPercent),
-      lineDiscountPercent: String(line.discountPercent),
-      lineDiscountAmount: String(line.discountAmount),
     });
   };
 
@@ -696,33 +685,66 @@ export function CreateRentalForm({
     }
   };
 
+  const bookingDateTime = splitLocalDateTime(rentalForm.bookingAt);
+  const bookingTimeParts = get12HourParts(bookingDateTime.time);
+  const fromDateTime = splitLocalDateTime(lineForm.fromAt);
+  const toDateTime = splitLocalDateTime(lineForm.toAt);
+  const fromTimeParts = get12HourParts(fromDateTime.time);
+  const toTimeParts = get12HourParts(toDateTime.time);
+
   return (
-    <div className="w-full max-w-330 space-y-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 md:p-8">
-      <div className="flex items-start justify-between gap-3 sm:items-center">
-        <h1 className="text-xl font-black text-[#0e1b17] sm:text-2xl">
-          {isEditMode ? "Update Rental" : "Create Rental"}
-        </h1>
+    <div className="w-full max-w-350 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-5 sm:px-8 sm:py-6">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <ReceiptText className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">
+              {isEditMode ? "Update Rental" : "Create New Rental"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {isEditMode
+                ? "Update your rental agreement details"
+                : "Generate a new rental agreement for your client"}
+            </p>
+          </div>
+        </div>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-slate-500" />
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-          <div className="w-full">
-            <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-              Customer Name
-            </Label>
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-6 px-5 py-5 sm:px-8 sm:py-7">
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <UserRound className="h-4 w-4 text-emerald-500" />
+                <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">
+                  Customer Details
+                </h2>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={openCustomerModal}
+                className="h-8 cursor-pointer rounded-full px-3 text-xs font-semibold text-emerald-600 hover:bg-emerald-50"
+              >
+                <UserRoundPlus className="h-4 w-4" />
+                Quick Add
+              </Button>
+            </div>
             <Select
               value={rentalForm.customerId || undefined}
-              onValueChange={(value) =>
-                setRentalForm((prev) => ({ ...prev, customerId: value }))
-              }
+              onValueChange={(value) => setRentalForm((prev) => ({ ...prev, customerId: value }))}
             >
-              <SelectTrigger className="w-full h-12 rounded-xl border p-3">
-                <SelectValue placeholder="Select customer" />
+              <SelectTrigger className="h-12 w-full rounded-2xl border-slate-200 bg-slate-50 px-4">
+                <div className="flex items-center gap-2 text-slate-500">
+                  <Search className="h-4 w-4" />
+                  <SelectValue placeholder="Select or search a customer..." />
+                </div>
               </SelectTrigger>
               <SelectContent className="rounded-xl p-1">
                 {customerList.map((customer) => (
@@ -732,107 +754,127 @@ export function CreateRentalForm({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={openCustomerModal}
-            className="mt-1 h-10 w-full cursor-pointer sm:mt-0 sm:h-9 sm:w-9"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+          </section>
 
-        <div>
-          <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Booking Date & Time
-          </Label>
-          <div className="space-y-2">
-            <Input
-              type="date"
-              className="border p-3 rounded-xl w-full"
-              value={splitLocalDateTime(rentalForm.bookingAt).date}
-              onChange={(event) => updateBookingDateTime("date", event.target.value)}
-            />
-            <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
-              <select
-                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).hour}
-                onChange={(event) => updateBookingTime12h("hour", event.target.value)}
-              >
-                {HOURS_12.map((hour) => (
-                  <option key={hour} value={hour}>
-                    {hour}
-                  </option>
-                ))}
-              </select>
-              <span className="text-sm font-semibold text-slate-600">:</span>
-              <select
-                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).minute}
-                onChange={(event) => updateBookingTime12h("minute", event.target.value)}
-              >
-                {MINUTES.map((minute) => (
-                  <option key={minute} value={minute}>
-                    {minute}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                value={get12HourParts(splitLocalDateTime(rentalForm.bookingAt).time).period}
-                onChange={(event) =>
-                  updateBookingTime12h("period", event.target.value as "AM" | "PM")
-                }
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-emerald-500" />
+              <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">
+                Booking Logistics
+              </h2>
             </div>
-          </div>
-        </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2 rounded-2xl border border-slate-200 p-4">
+                <Label className="text-sm font-semibold text-slate-700">Booking Date & Time</Label>
+                <Input
+                  type="date"
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                  value={bookingDateTime.date}
+                  onChange={(event) => updateBookingDateTime("date", event.target.value)}
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    className="h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm outline-none"
+                    value={bookingTimeParts.hour}
+                    onChange={(event) => updateBookingTime12h("hour", event.target.value)}
+                  >
+                    {HOURS_12.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm outline-none"
+                    value={bookingTimeParts.minute}
+                    onChange={(event) => updateBookingTime12h("minute", event.target.value)}
+                  >
+                    {MINUTES.map((minute) => (
+                      <option key={minute} value={minute}>
+                        {minute}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-10 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm outline-none"
+                    value={bookingTimeParts.period}
+                    onChange={(event) =>
+                      updateBookingTime12h("period", event.target.value as "AM" | "PM")
+                    }
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
 
-        <div>
-          <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Booking No. (Optional)
-          </Label>
-          <Input
-            inputMode="numeric"
-            className="border p-3 rounded-xl w-full"
-            placeholder="Leave empty to auto-generate"
-            value={rentalForm.bookingNo}
-            onChange={(event) =>
-              setRentalForm((prev) => ({
-                ...prev,
-                bookingNo: event.target.value.replace(/\D/g, ""),
-              }))
-            }
-          />
-        </div>
+              <div className="space-y-3 rounded-2xl border border-slate-200 p-4">
+                <div>
+                  <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                    Booking Number (Optional)
+                  </Label>
+                  <div className="relative">
+                    <FileText className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      inputMode="numeric"
+                      className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10"
+                      placeholder="Leave empty to auto-generate"
+                      value={rentalForm.bookingNo}
+                      onChange={(event) =>
+                        setRentalForm((prev) => ({
+                          ...prev,
+                          bookingNo: event.target.value.replace(/\D/g, ""),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                    Delivery Address
+                  </Label>
+                  <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10"
+                      placeholder="Delivery address"
+                      value={rentalForm.deliveryAddress}
+                      onChange={(event) =>
+                        setRentalForm((prev) => ({ ...prev, deliveryAddress: event.target.value }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-        <div>
-            <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-            Delivery Address
-          </Label>
-          <Input
-            className="border p-3 rounded-xl w-full"
-            placeholder="Delivery address"
-            value={rentalForm.deliveryAddress}
-            onChange={(event) =>
-              setRentalForm((prev) => ({ ...prev, deliveryAddress: event.target.value }))
-            }
-          />
-        </div>
-      </div>
+          <section className="space-y-4 rounded-2xl border border-slate-200 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Package2 className="h-4 w-4 text-emerald-500" />
+                <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">
+                  Inventory Items
+                </h2>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => void addOrUpdateLine()}
+                disabled={checkingAvailability}
+                className="h-10 min-w-32 cursor-pointer rounded-full border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+              >
+                <Plus className="h-4 w-4" />
+                {checkingAvailability
+                  ? "Checking..."
+                  : lineForm.editingLineId
+                    ? "Update Product"
+                    : "Add Product"}
+              </Button>
+            </div>
 
-      <div className="space-y-4 rounded-xl border border-slate-200 p-4 sm:p-5">
-        <h3 className="text-base font-bold text-[#0e1b17]">Product Section</h3>
-
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_220px] gap-4">
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[1.1fr_1.5fr_1.5fr_0.7fr]">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Product
                 </Label>
                 <Select
@@ -857,7 +899,7 @@ export function CreateRentalForm({
                     }
                   }}
                 >
-                  <SelectTrigger className="h-10 w-full rounded-lg border px-2 text-sm">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 text-sm">
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl p-1">
@@ -871,117 +913,35 @@ export function CreateRentalForm({
               </div>
 
               <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  From / Delivery
-                </Label>
-                <div className="space-y-2">
-                  <Input
-                    className="h-10 w-full rounded-lg border px-2 text-sm"
-                    type="date"
-                    value={splitLocalDateTime(lineForm.fromAt).date}
-                    onChange={(event) =>
-                      updateLineDateTime("fromAt", "date", event.target.value)
-                    }
-                  />
-                  <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).hour}
-                      onChange={(event) => updateLineTime12h("fromAt", "hour", event.target.value)}
-                    >
-                      {HOURS_12.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {hour}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="text-sm font-semibold text-slate-600">:</span>
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).minute}
-                      onChange={(event) =>
-                        updateLineTime12h("fromAt", "minute", event.target.value)
-                      }
-                    >
-                      {MINUTES.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {minute}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.fromAt).time).period}
-                      onChange={(event) =>
-                        updateLineTime12h("fromAt", "period", event.target.value as "AM" | "PM")
-                      }
-                    >
-                      <option value="AM">AM</option>
-                      <option value="PM">PM</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  To / Return
-                </Label>
-                <div className="space-y-2">
-                  <Input
-                    className="h-10 w-full rounded-lg border px-2 text-sm"
-                    type="date"
-                    value={splitLocalDateTime(lineForm.toAt).date}
-                    onChange={(event) =>
-                      updateLineDateTime("toAt", "date", event.target.value)
-                    }
-                  />
-                  <div className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 py-1">
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).hour}
-                      onChange={(event) => updateLineTime12h("toAt", "hour", event.target.value)}
-                    >
-                      {HOURS_12.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {hour}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="text-sm font-semibold text-slate-600">:</span>
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).minute}
-                      onChange={(event) =>
-                        updateLineTime12h("toAt", "minute", event.target.value)
-                      }
-                    >
-                      {MINUTES.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {minute}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="h-8 w-20 rounded-md border border-slate-300 bg-white px-2 text-center text-sm font-medium outline-none"
-                      value={get12HourParts(splitLocalDateTime(lineForm.toAt).time).period}
-                      onChange={(event) =>
-                        updateLineTime12h("toAt", "period", event.target.value as "AM" | "PM")
-                      }
-                    >
-                      <option value="AM">AM</option>
-                      <option value="PM">PM</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  Qty
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Delivery Date
                 </Label>
                 <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                  type="date"
+                  value={fromDateTime.date}
+                  onChange={(event) => updateLineDateTime("fromAt", "date", event.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Return Date
+                </Label>
+                <Input
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                  type="date"
+                  value={toDateTime.date}
+                  onChange={(event) => updateLineDateTime("toAt", "date", event.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Quantity
+                </Label>
+                <Input
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
                   placeholder="Qty"
                   type="number"
                   value={lineForm.quantity}
@@ -992,13 +952,13 @@ export function CreateRentalForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="xl:col-span-2">
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Description
                 </Label>
                 <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
                   placeholder="Line description"
                   value={lineForm.lineDescription}
                   onChange={(event) =>
@@ -1009,13 +969,12 @@ export function CreateRentalForm({
                   }
                 />
               </div>
-
               <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Rate
                 </Label>
                 <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50"
                   placeholder="Rate"
                   type="number"
                   value={lineForm.rate}
@@ -1024,9 +983,8 @@ export function CreateRentalForm({
                   }
                 />
               </div>
-
               <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
+                <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   GST
                 </Label>
                 <Select
@@ -1035,7 +993,7 @@ export function CreateRentalForm({
                     setLineForm((prev) => ({ ...prev, taxPercent: value }))
                   }
                 >
-                  <SelectTrigger className="h-10 w-full rounded-lg border px-2 text-sm">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 text-sm">
                     <SelectValue placeholder="GST" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl p-1">
@@ -1047,430 +1005,536 @@ export function CreateRentalForm({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  Disc %
-                </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
-                  placeholder="%"
-                  type="number"
-                  value={lineForm.lineDiscountPercent}
-                  onChange={(event) => updateLineDiscountFromPercent(event.target.value)}
-                />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Delivery Time
+                </p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={fromTimeParts.hour}
+                    onChange={(event) => updateLineTime12h("fromAt", "hour", event.target.value)}
+                  >
+                    {HOURS_12.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={fromTimeParts.minute}
+                    onChange={(event) => updateLineTime12h("fromAt", "minute", event.target.value)}
+                  >
+                    {MINUTES.map((minute) => (
+                      <option key={minute} value={minute}>
+                        {minute}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={fromTimeParts.period}
+                    onChange={(event) =>
+                      updateLineTime12h("fromAt", "period", event.target.value as "AM" | "PM")
+                    }
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  Disc Rs
-                </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border px-2 text-sm"
-                  placeholder="Rs"
-                  type="number"
-                  value={lineForm.lineDiscountAmount}
-                  onChange={(event) => updateLineDiscountFromAmount(event.target.value)}
-                />
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Return Time
+                </p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={toTimeParts.hour}
+                    onChange={(event) => updateLineTime12h("toAt", "hour", event.target.value)}
+                  >
+                    {HOURS_12.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={toTimeParts.minute}
+                    onChange={(event) => updateLineTime12h("toAt", "minute", event.target.value)}
+                  >
+                    {MINUTES.map((minute) => (
+                      <option key={minute} value={minute}>
+                        {minute}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm outline-none"
+                    value={toTimeParts.period}
+                    onChange={(event) =>
+                      updateLineTime12h("toAt", "period", event.target.value as "AM" | "PM")
+                    }
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  Tax Rs
-                </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border border-slate-300 bg-slate-100 px-2 text-sm text-slate-500 cursor-not-allowed"
-                  value={String(lineTaxAmt)}
-                  readOnly
-                />
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Tax Amount
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-800">₹{lineTaxAmt}</p>
               </div>
-
-              <div>
-                <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-                  Total
-                </Label>
-                <Input
-                  className="h-10 w-full rounded-lg border border-slate-300 bg-slate-100 px-2 text-sm text-slate-500 cursor-not-allowed"
-                  value={String(lineTotal)}
-                  readOnly
-                />
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Line Total
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-800">₹{lineTotal}</p>
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button
-                variant="brand"
-                onClick={() => void addOrUpdateLine()}
-                disabled={checkingAvailability}
-                className="h-10 w-full min-w-32 cursor-pointer rounded-lg sm:w-auto"
-              >
-                {checkingAvailability
-                  ? "Checking..."
-                  : lineForm.editingLineId
-                    ? "Update"
-                    : "Add"}
-              </Button>
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Selected Product Preview
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  {selectedProduct?.images?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedProduct.images[0]}
+                      alt={selectedProduct.fullName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-300">
+                      <Package2 className="h-5 w-5" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    {selectedProduct?.fullName || "No product selected"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {selectedProduct?.description || "Choose a product to auto-fill price/details"}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div>
-            <Label className="mb-1 block text-xs font-semibold text-[#0e1b17]">
-              Product Image
-            </Label>
-            <div className="h-36 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden">
-              {selectedProduct?.images?.[0] ? (
-                <img
-                  src={selectedProduct.images[0]}
-                  alt={selectedProduct.fullName}
-                  className="h-full w-full object-cover"
+          {lines.length > 0 && (
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <h3 className="text-sm font-semibold text-slate-700">Added Rental Lines</h3>
+              </div>
+              <div className="w-full overflow-x-auto">
+                <Table className="min-w-300">
+                  <TableHeader className="bg-slate-50">
+                    <TableRow>
+                      <TableHead className="px-4 py-3 text-left">#</TableHead>
+                      <TableHead className="px-4 py-3 text-left">Product</TableHead>
+                      <TableHead className="px-4 py-3 text-left">Image</TableHead>
+                      <TableHead className="px-4 py-3 text-left">Description</TableHead>
+                      <TableHead className="px-4 py-3 text-left">From</TableHead>
+                      <TableHead className="px-4 py-3 text-left">To</TableHead>
+                      <TableHead className="px-4 py-3 text-right">Qty</TableHead>
+                      <TableHead className="px-4 py-3 text-right">Rate</TableHead>
+                      <TableHead className="px-4 py-3 text-right">Tax</TableHead>
+                      <TableHead className="px-4 py-3 text-right">Total</TableHead>
+                      <TableHead className="px-4 py-3 text-left">Status</TableHead>
+                      <TableHead className="px-4 py-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y">
+                    {pagedLines.map((line, index) => (
+                      <TableRow key={line.id}>
+                        <TableCell className="px-4 py-3">
+                          {(currentLineTablePage - 1) * lineTablePageSize + index + 1}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 font-medium text-slate-800">
+                          {line.productName}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          {line.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={line.image}
+                              alt={line.productName}
+                              className="h-10 w-10 rounded-lg border object-cover"
+                            />
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">{line.description || "-"}</TableCell>
+                        <TableCell className="px-4 py-3">{line.fromAt}</TableCell>
+                        <TableCell className="px-4 py-3">{line.toAt}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">{line.quantity}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">₹{line.rate}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">₹{line.taxAmount}</TableCell>
+                        <TableCell className="px-4 py-3 text-right font-semibold">
+                          ₹{line.total}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">{line.status}</TableCell>
+                        <TableCell className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => editLine(line)}
+                              className="cursor-pointer border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => deleteLine(line.id)}
+                              className="cursor-pointer border-rose-200 text-rose-600 hover:bg-rose-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  page={currentLineTablePage}
+                  pageSize={lineTablePageSize}
+                  totalItems={lines.length}
+                  onPageChange={(nextPage) =>
+                    setLineTablePage(Math.max(1, Math.min(nextPage, lineTableTotalPages)))
+                  }
                 />
-              ) : (
-                <span className="text-xs font-medium text-slate-400">No image selected</span>
-              )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <aside className="flex flex-col gap-4 border-t border-slate-200 bg-slate-50 px-5 py-5 sm:px-6 sm:py-7 lg:border-t-0 lg:border-l">
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-emerald-500" />
+              <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">
+                Financial Summary
+              </h3>
+            </div>
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                <span className="font-medium text-slate-600">Subtotal</span>
+                <span className="text-lg font-bold text-slate-900">₹{linesSubtotal}</span>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Discount
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Percentage
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        %
+                      </span>
+                      <Input
+                        className="h-10 rounded-xl border-slate-200 bg-white pr-7 text-sm"
+                        type="number"
+                        placeholder="0"
+                        value={summary.globalDiscountPercent}
+                        onChange={(event) => updateDiscountFromPercent(event.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Amount
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        ₹
+                      </span>
+                      <Input
+                        className="h-10 rounded-xl border-slate-200 bg-white pl-7 text-sm"
+                        type="number"
+                        placeholder="0"
+                        value={summary.globalDiscountAmount}
+                        onChange={(event) => updateDiscountFromAmount(event.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                <span className="text-base font-semibold text-slate-800">Grand Total</span>
+                <span className="text-4xl leading-none font-black text-slate-900">
+                  ₹{totalAfterDiscount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>Total Quantity</span>
+                <span className="font-semibold text-slate-700">{totalQty}</span>
+              </div>
             </div>
           </div>
-        </div>
+
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+            <div>
+              <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Security Deposit
+              </Label>
+              <Input
+                className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                type="number"
+                value={summary.depositAmount}
+                onChange={(event) =>
+                  setSummary((prev) => ({ ...prev, depositAmount: event.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Advance Paid
+              </Label>
+              <Input
+                className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                type="number"
+                value={summary.advanceAmount}
+                onChange={(event) =>
+                  setSummary((prev) => ({ ...prev, advanceAmount: event.target.value }))
+                }
+              />
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                Outstanding Balance
+              </p>
+              <p className="mt-1 text-3xl font-black text-slate-900">₹{outstandingWithDeposit}</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Pending: ₹{pending} | Qty: {totalQty}
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="brand"
+            onClick={() => void submitRental()}
+            disabled={submitting}
+            className="h-12 w-full cursor-pointer rounded-2xl bg-[#17cf91] text-base font-bold text-white"
+          >
+            {submitting
+              ? `${isEditMode ? "Updating" : "Saving"}...`
+              : isEditMode
+                ? "Update & Save Rental"
+                : "Confirm & Save Rental"}
+          </Button>
+        </aside>
       </div>
-
-      <div className="flex justify-end">
-        <div className="w-full max-w-140 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_1fr_90px_1fr]">
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Total</div>
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">₹ {linesSubtotal}</div>
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
-            Qty
-          </div>
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-slate-600">{totalQty}</div>
-        </div>
-
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_60px_1fr_60px_1fr]">
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Discount</div>
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">%</div>
-          <Input
-            className="min-w-0 rounded-none border-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
-            type="number"
-            value={summary.globalDiscountPercent}
-            onChange={(event) => updateDiscountFromPercent(event.target.value)}
-          />
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">₹</div>
-          <Input
-            className="min-w-0 rounded-none border-0 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
-            type="number"
-            value={summary.globalDiscountAmount}
-            onChange={(event) => updateDiscountFromAmount(event.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_150px_1fr]">
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#3d5a90]">Advance</div>
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90] sm:border-l sm:border-slate-300">
-            CASH IN HAND
-          </div>
-          <Input
-            className="min-w-0 border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none"
-            type="number"
-            value={summary.advanceAmount}
-            onChange={(event) =>
-              setSummary((prev) => ({ ...prev, advanceAmount: event.target.value }))
-            }
-          />
-        </div>
-
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[160px_1fr]">
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding</div>
-          <div className="bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
-            ₹ {pending}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[120px_150px_1fr_1fr]">
-          <div className="bg-slate-100 px-3 py-2 text-sm font-semibold text-[#2f6feb]">Deposit</div>
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#3d5a90] sm:border-l sm:border-slate-300">
-            CASH IN HAND
-          </div>
-          <Input
-            className="min-w-0 border-l border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-red-600 outline-none"
-            type="number"
-            value={summary.depositAmount}
-            onChange={(event) =>
-              setSummary((prev) => ({ ...prev, depositAmount: event.target.value }))
-            }
-          />
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-green-600 sm:border-l sm:border-slate-300">
-            ₹ {Number(summary.depositAmount) || 0}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-slate-300 sm:grid-cols-[220px_1fr]">
-          <div className="bg-white px-3 py-2 text-sm font-semibold text-[#0e1b17]">Outstanding + Deposit</div>
-          <div className="bg-slate-100 px-3 py-2 text-right text-sm font-semibold text-[#0e1b17] sm:border-l sm:border-slate-300">
-            ₹ {outstandingWithDeposit}
-          </div>
-        </div>
-      </div>
-      </div>
-
-      {lines.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b bg-slate-50">
-            <h3 className="text-sm font-semibold text-[#0e1b17]">Added Rental Lines</h3>
-          </div>
-          <div className="w-full overflow-x-auto">
-          <Table className="min-w-275">
-            <TableHeader className="bg-slate-50">
-              <TableRow>
-                <TableHead className="px-4 py-3 text-left">Sr no.</TableHead>
-                <TableHead className="px-4 py-3 text-left">Product</TableHead>
-                <TableHead className="px-4 py-3 text-left">Image</TableHead>
-                <TableHead className="px-4 py-3 text-left">Description</TableHead>
-                <TableHead className="px-4 py-3 text-left">From</TableHead>
-                <TableHead className="px-4 py-3 text-left">To</TableHead>
-                <TableHead className="px-4 py-3 text-right">Qty</TableHead>
-                <TableHead className="px-4 py-3 text-right">Rate</TableHead>
-                <TableHead className="px-4 py-3 text-right">Discount</TableHead>
-                <TableHead className="px-4 py-3 text-right">Tax</TableHead>
-                <TableHead className="px-4 py-3 text-right">Total</TableHead>
-                <TableHead className="px-4 py-3 text-left">Status</TableHead>
-                <TableHead className="px-4 py-3 text-right">Edit</TableHead>
-                <TableHead className="px-4 py-3 text-right">Delete</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y">
-              {pagedLines.map((line, index) => (
-                <TableRow key={line.id}>
-                  <TableCell className="px-4 py-3">
-                    {(currentLineTablePage - 1) * lineTablePageSize + index + 1}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">{line.productName}</TableCell>
-                  <TableCell className="px-4 py-3">
-                    {line.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={line.image} alt={line.productName} className="h-10 w-10 rounded-lg border object-cover" />
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">{line.description || "-"}</TableCell>
-                  <TableCell className="px-4 py-3">{line.fromAt}</TableCell>
-                  <TableCell className="px-4 py-3">{line.toAt}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">{line.quantity}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">₹{line.rate}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">₹{line.discountAmount}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">₹{line.taxAmount}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">₹{line.total}</TableCell>
-                  <TableCell className="px-4 py-3">{line.status}</TableCell>
-                  <TableCell className="px-4 py-3 text-right">
-                    <Button type="button" onClick={() => editLine(line)} className="cursor-pointer text-green-600 bg-white hover:bg-green-100 ">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right">
-                    <Button type="button" onClick={() => deleteLine(line.id)} className="cursor-pointer text-red-600 bg-white hover:bg-red-100">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            page={currentLineTablePage}
-            pageSize={lineTablePageSize}
-            totalItems={lines.length}
-            onPageChange={(nextPage) =>
-              setLineTablePage(Math.max(1, Math.min(nextPage, lineTableTotalPages)))
-            }
-          />
-          </div>
-        </div>
-      )}
-
-      <Button
-        variant="brand"
-        onClick={() => void submitRental()}
-        disabled={submitting}
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
-      >
-        {submitting
-          ? `${isEditMode ? "Updating" : "Saving"}...`
-          : isEditMode
-            ? "Update Rental"
-            : "Save"}
-      </Button>
 
       {customerModal.open && (
         <div
-          className="fixed inset-0 z-60 bg-black/45 p-4"
+          className="fixed inset-0 z-50 bg-slate-900/55 p-4 backdrop-blur-[1px]"
           onClick={() => setCustomerModal((prev) => ({ ...prev, open: false }))}
         >
           <div className="flex min-h-full items-center justify-center">
             <div className="w-full max-w-2xl" onClick={(event) => event.stopPropagation()}>
-              <div className="max-h-[85vh] space-y-4 overflow-y-auto rounded-xl border bg-white p-4 shadow-sm sm:p-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-[#0e1b17]">Add / Select Customer</h2>
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                      <UserRoundPlus className="h-5 w-5" />
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-900">Add / Select Customer</h2>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setCustomerModal((prev) => ({ ...prev, open: false }))}
                     className="cursor-pointer"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5 text-slate-500" />
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="max-h-[70vh] space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
                   <div>
-                    <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-                      Primary Phone
+                    <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                      Search existing customer (phone)
                     </Label>
-                    <Input
-                      className="border p-3 rounded-xl w-full"
-                      placeholder="Primary phone"
-                      value={customerModal.form.phone1 ?? ""}
-                      onChange={(event) =>
-                        setCustomerModal((prev) => ({
-                          ...prev,
-                          form: { ...prev.form, phone1: event.target.value },
-                        }))
-                      }
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          void handlePhoneLookup();
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10"
+                        placeholder="Type phone and press Enter"
+                        value={customerModal.form.phone1 ?? ""}
+                        onChange={(event) =>
+                          setCustomerModal((prev) => ({
+                            ...prev,
+                            form: { ...prev.form, phone1: event.target.value },
+                          }))
                         }
-                      }}
-                    />
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void handlePhoneLookup();
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                        Customer Full Name
+                      </Label>
+                      <Input
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                        placeholder="e.g. Michael Thompson"
+                        value={customerModal.form.name ?? ""}
+                        onChange={(event) =>
+                          setCustomerModal((prev) => ({
+                            ...prev,
+                            form: { ...prev.form, name: event.target.value },
+                          }))
+                        }
+                        readOnly={hasFoundCustomer && !customerModal.isEditCustomer}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                        Secondary Phone
+                      </Label>
+                      <Input
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                        placeholder="(555) 000-0000"
+                        value={customerModal.form.phone2 ?? ""}
+                        onChange={(event) =>
+                          setCustomerModal((prev) => ({
+                            ...prev,
+                            form: { ...prev.form, phone2: event.target.value },
+                          }))
+                        }
+                        readOnly={hasFoundCustomer && !customerModal.isEditCustomer}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-                      Secondary Phone
+                    <Label className="mb-1 block text-sm font-semibold text-slate-700">
+                      Physical Address
                     </Label>
                     <Input
-                      className="border p-3 rounded-xl w-full"
-                      placeholder="Secondary phone"
-                      value={customerModal.form.phone2 ?? ""}
+                      className="h-11 rounded-xl border-slate-200 bg-slate-50"
+                      placeholder="Street, City, State..."
+                      value={customerModal.form.address ?? ""}
                       onChange={(event) =>
                         setCustomerModal((prev) => ({
                           ...prev,
-                          form: { ...prev.form, phone2: event.target.value },
+                          form: { ...prev.form, address: event.target.value },
                         }))
                       }
                       readOnly={hasFoundCustomer && !customerModal.isEditCustomer}
                     />
                   </div>
-                </div>
 
-                <div>
-                  <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-                    Customer Name
-                  </Label>
-                  <Input
-                    className="border p-3 rounded-xl w-full"
-                    placeholder="Customer name"
-                    value={customerModal.form.name ?? ""}
-                    onChange={(event) =>
-                      setCustomerModal((prev) => ({
-                        ...prev,
-                        form: { ...prev.form, name: event.target.value },
-                      }))
-                    }
-                    readOnly={hasFoundCustomer && !customerModal.isEditCustomer}
-                  />
-                </div>
-
-                <div>
-                  <Label className="mb-1 block text-sm font-semibold text-[#0e1b17]">
-                    Address
-                  </Label>
-                  <Input
-                    className="border p-3 rounded-xl w-full"
-                    placeholder="Address"
-                    value={customerModal.form.address ?? ""}
-                    onChange={(event) =>
-                      setCustomerModal((prev) => ({
-                        ...prev,
-                        form: { ...prev.form, address: event.target.value },
-                      }))
-                    }
-                    readOnly={hasFoundCustomer && !customerModal.isEditCustomer}
-                  />
-                </div>
-
-                {customerModal.foundCustomer && hasFoundCustomer && (
-                  <div className="rounded-xl border overflow-hidden">
-                    <div className="w-full overflow-x-auto">
-                    <Table className="min-w-180">
-                      <TableHeader className="bg-slate-50">
-                        <TableRow>
-                          <TableHead className="px-4 py-2 text-left">Name</TableHead>
-                          <TableHead className="px-4 py-2 text-left">Phone 1</TableHead>
-                          <TableHead className="px-4 py-2 text-left">Phone 2</TableHead>
-                          <TableHead className="px-4 py-2 text-left">Address</TableHead>
-                          <TableHead className="px-4 py-2 text-right">Edit</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell className="px-4 py-2">
-                            {customerModal.foundCustomer.name}
-                          </TableCell>
-                          <TableCell className="px-4 py-2">
-                            {customerModal.foundCustomer.phone1 || "-"}
-                          </TableCell>
-                          <TableCell className="px-4 py-2">
-                            {customerModal.foundCustomer.phone2 || "-"}
-                          </TableCell>
-                          <TableCell className="px-4 py-2">
-                            {customerModal.foundCustomer.address || "-"}
-                          </TableCell>
-                          <TableCell className="px-4 py-2 text-right">
-                            <Button
-                              variant="destructive"
-                              type="button"
-                              onClick={() =>
-                                setCustomerModal((prev) => ({
-                                  ...prev,
-                                  isEditCustomer: true,
-                                }))
-                              }
-                              className="cursor-pointer text-green-600 bg-white hover:bg-green-100"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                  {customerModal.foundCustomer && hasFoundCustomer && (
+                    <div className="overflow-hidden rounded-xl border border-slate-200">
+                      <div className="border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Existing customer found
+                      </div>
+                      <div className="w-full overflow-x-auto">
+                        <Table className="min-w-175">
+                          <TableHeader className="bg-slate-50">
+                            <TableRow>
+                              <TableHead className="px-4 py-2 text-left">Name</TableHead>
+                              <TableHead className="px-4 py-2 text-left">Phone 1</TableHead>
+                              <TableHead className="px-4 py-2 text-left">Phone 2</TableHead>
+                              <TableHead className="px-4 py-2 text-left">Address</TableHead>
+                              <TableHead className="px-4 py-2 text-right">Edit</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell className="px-4 py-2">
+                                {customerModal.foundCustomer.name}
+                              </TableCell>
+                              <TableCell className="px-4 py-2">
+                                {customerModal.foundCustomer.phone1 || "-"}
+                              </TableCell>
+                              <TableCell className="px-4 py-2">
+                                {customerModal.foundCustomer.phone2 || "-"}
+                              </TableCell>
+                              <TableCell className="px-4 py-2">
+                                {customerModal.foundCustomer.address || "-"}
+                              </TableCell>
+                              <TableCell className="px-4 py-2 text-right">
+                                <Button
+                                  variant="outline"
+                                  size="icon-sm"
+                                  type="button"
+                                  onClick={() =>
+                                    setCustomerModal((prev) => ({
+                                      ...prev,
+                                      isEditCustomer: true,
+                                    }))
+                                  }
+                                  className="cursor-pointer border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => setCustomerModal((prev) => ({ ...prev, open: false }))}
                     disabled={customerModal.submittingCustomer}
-                    className="w-full cursor-pointer sm:w-auto"
+                    className="w-full cursor-pointer rounded-xl sm:w-auto"
                   >
                     Cancel
-                  </Button>
-                  <Button
-                    variant="brand"
-                    onClick={() => void upsertCustomer(false)}
-                    disabled={customerModal.submittingCustomer}
-                    className="w-full cursor-pointer bg-[#17cf91] text-[#0e1b17] sm:w-auto"
-                  >
-                    {customerModal.foundCustomer && customerModal.isEditCustomer
-                      ? "Update"
-                      : "Save"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => void upsertCustomer(true)}
                     disabled={customerModal.submittingCustomer}
-                    className="w-full cursor-pointer sm:w-auto"
+                    className="w-full cursor-pointer rounded-xl border-emerald-200 bg-emerald-100/60 text-emerald-700 hover:bg-emerald-100 sm:w-auto"
                   >
                     Save New
+                  </Button>
+                  <Button
+                    variant="brand"
+                    onClick={() => void upsertCustomer(false)}
+                    disabled={customerModal.submittingCustomer}
+                    className="w-full cursor-pointer rounded-xl bg-[#17cf91] text-white sm:w-auto"
+                  >
+                    {customerModal.foundCustomer && customerModal.isEditCustomer
+                      ? "Update & Select"
+                      : "Save & Select"}
                   </Button>
                 </div>
               </div>

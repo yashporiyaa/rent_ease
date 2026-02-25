@@ -344,6 +344,7 @@ export class RentalService {
   async updateReturnStatus(
     supabaseId: string,
     rentalItemId: string,
+    status: string,
   ) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useMemo, useState } from "react";
 import {
   Building2,
   CalendarDays,
@@ -41,6 +41,16 @@ const getInitials = (value: string) =>
     .map((chunk) => chunk[0]?.toUpperCase())
     .join("");
 
+const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Failed to read selected logo"));
+    reader.readAsDataURL(file);
+  });
+
 export default function SettingsPage() {
   const [startingCheckout, setStartingCheckout] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -52,6 +62,7 @@ export default function SettingsPage() {
     phone: "",
     companyName: "",
     businessType: "",
+    companyLogo: "",
   });
 
   useEffect(() => {
@@ -61,8 +72,38 @@ export default function SettingsPage() {
       phone: user.phone || "",
       companyName: user.companyName || "",
       businessType: user.businessType || "",
+      companyLogo: user.companyLogo || "",
     });
   }, [user]);
+
+  const handleLogoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_LOGO_SIZE_BYTES) {
+      toast.error("Logo size should be less than 2MB");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setForm((prev) => ({ ...prev, companyLogo: dataUrl }));
+      toast.success("Company logo selected");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to process logo";
+      toast.error(message);
+    } finally {
+      event.target.value = "";
+    }
+  };
 
   const handleSubscribe = async () => {
     if (isActiveSubscription) {
@@ -99,6 +140,7 @@ export default function SettingsPage() {
           companyName: normalizedCompanyName,
           businessType: normalizedBusinessType,
           phone: normalizedPhone,
+          companyLogo: form.companyLogo || null,
         }),
       });
 
@@ -160,16 +202,18 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-6 max-lg:flex-col max-lg:items-start">
               <div className="flex items-center gap-7 max-sm:w-full max-sm:flex-col max-sm:items-start">
                 <div className="relative">
-                  <div className="flex h-32 w-32 items-center justify-center rounded-full border-[5px] border-[#c8efe2] bg-linear-to-br from-[#def7ed] via-white to-[#d2f6e8] text-3xl font-black text-[#12b780] max-sm:h-28 max-sm:w-28 max-sm:text-2xl">
-                    {getInitials(profileName)}
+                  <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl border-[5px] border-[#c8efe2] bg-linear-to-br from-[#def7ed] via-white to-[#d2f6e8] text-3xl font-black text-[#12b780] max-sm:h-28 max-sm:w-28 max-sm:text-2xl">
+                    {user.companyLogo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.companyLogo}
+                        alt={`${profileName} logo`}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      getInitials(profileName)
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-[#17cf91] text-white shadow"
-                    aria-label="Change profile photo"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </button>
                 </div>
 
                 <div className="space-y-2">
@@ -352,21 +396,37 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-6 px-9 py-8 max-sm:px-5">
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative">
-                <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[#dff6ec] bg-linear-to-br from-[#ebf7f1] to-[#d9ece4] text-3xl font-black text-[#11bb82]">
-                  {getInitials(form.companyName || profileName)}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative">
+                <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl border-4 border-[#dff6ec] bg-linear-to-br from-[#ebf7f1] to-[#d9ece4] text-3xl font-black text-[#11bb82]">
+                  {form.companyLogo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={form.companyLogo}
+                      alt={`${form.companyName || profileName} logo`}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    getInitials(form.companyName || profileName)
+                  )}
                 </div>
-                <button
-                  type="button"
-                  className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-[#17cf91] text-white"
-                  aria-label="Change profile photo"
+                <input
+                  id="company-logo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => void handleLogoChange(event)}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="company-logo-upload"
+                  className="absolute bottom-0 right-0 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#17cf91] text-white"
+                  aria-label="Change company logo"
                 >
                   <Camera className="h-4 w-4" />
-                </button>
+                </label>
               </div>
               <p className="text-2xl font-semibold text-[#11bb82] max-sm:text-base">
-                Change Profile Photo
+                Change Company Logo
               </p>
             </div>
 

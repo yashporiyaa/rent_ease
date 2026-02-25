@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { createItem, updateItem } from "@/lib/api/items";
 import { toast } from "react-toastify";
-import { ImagePlus, Trash2, X } from "lucide-react";
+import { ImagePlus, Package2, Trash2, X } from "lucide-react";
 import { ItemCategory, InventoryItem, ItemSize } from "@/types";
 import {
   Select,
@@ -188,11 +188,21 @@ export function CreateItemForm({
   };
 
   return (
-    <div className="max-w-2xl bg-white p-8 rounded-xl border shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-black text-[#0e1b17]">
-          {isEditMode ? "Edit Inventory Item" : "Add Inventory Item"}
-        </h1>
+    <div className="max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.14)]">
+      <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Package2 className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">
+              {isEditMode ? "Edit Inventory Item" : "Add Inventory Item"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Add product details, pricing and stock availability.
+            </p>
+          </div>
+        </div>
         {onClose && (
           <Button
             variant="ghost"
@@ -200,21 +210,22 @@ export function CreateItemForm({
             onClick={onClose}
             className="cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-slate-500" />
           </Button>
         )}
       </div>
 
+      <div className="space-y-4 px-6 py-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          className="border p-3 rounded-xl w-full"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
           placeholder="Short name"
           value={shortName}
           onChange={(e) => setShortName(e.target.value)}
         />
 
         <Input
-          className="border p-3 rounded-xl w-full"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
           placeholder="Full name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
@@ -222,15 +233,15 @@ export function CreateItemForm({
       </div>
 
       <textarea
-        className="border p-3 rounded-xl w-full mt-4 min-h-24"
+        className="min-h-24 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none ring-0"
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Select value={categoryId} onValueChange={setCategoryId}>
-          <SelectTrigger className="w-full border p-3 rounded-xl h-12">
+          <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 px-3">
             <SelectValue
               placeholder="Select category"
             />
@@ -245,7 +256,7 @@ export function CreateItemForm({
         </Select>
 
         <Select value={sizeId} onValueChange={setSizeId}>
-          <SelectTrigger className="w-full border p-3 rounded-xl h-12">
+          <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 px-3">
             <SelectValue
               placeholder="Select size"
             />
@@ -260,9 +271,9 @@ export function CreateItemForm({
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Input
-          className="border p-3 rounded-xl w-full"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
           placeholder="Price"
           type="number"
           value={price}
@@ -270,12 +281,12 @@ export function CreateItemForm({
         />
         <Input
           type="date"
-          className="border p-3 rounded-xl w-full"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
           value={entryDate}
           onChange={(e) => setEntryDate(e.target.value)}
         />
         <Input
-          className="border p-3 rounded-xl w-full"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50"
           placeholder="Quantity"
           type="number"
           value={quantity}
@@ -283,15 +294,15 @@ export function CreateItemForm({
         />
       </div>
 
-      <div className="mt-4">
-        <p className="text-sm font-medium text-[#0e1b17] mb-2">
+      <div>
+        <p className="mb-2 text-sm font-semibold text-slate-700">
           Images (optional, up to 5)
         </p>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {imageSlots.map((image, index) => (
             <div
               key={`slot-${index}`}
-              className="relative h-24 rounded-xl border bg-slate-50 overflow-hidden"
+              className="relative h-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
             >
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -316,7 +327,7 @@ export function CreateItemForm({
 
               <Label
                 htmlFor={`item-image-slot-${index}`}
-                className="absolute top-0 right-0 h-7 w-7 rounded-full bg-white/95 border shadow-sm flex items-center justify-center cursor-pointer"
+                className="absolute top-2 right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border bg-white/95 shadow-sm"
               >
                 <ImagePlus className="h-4 w-4 text-[#0e1b17]" />
               </Label>
@@ -325,7 +336,7 @@ export function CreateItemForm({
                 <button
                   type="button"
                   onClick={() => clearImageSlot(index)}
-                  className="absolute bottom-2 right-2 h-7 w-7 rounded-full bg-white/95 border shadow-sm flex items-center justify-center cursor-pointer text-red-600"
+                  className="absolute right-2 bottom-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border bg-white/95 text-red-600 shadow-sm"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -338,7 +349,7 @@ export function CreateItemForm({
         </p>
       </div>
 
-      {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button
         variant="brand"
@@ -348,7 +359,7 @@ export function CreateItemForm({
           categories.length === 0 ||
           sizes.length === 0
         }
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer mt-6"
+        className="mt-2 h-11 w-full cursor-pointer rounded-xl bg-[#17cf91] font-bold text-white"
       >
         {activeImageSlot !== null
           ? "Processing image..."
@@ -356,6 +367,7 @@ export function CreateItemForm({
             ? "Update Item"
             : "Create Item"}
       </Button>
+      </div>
     </div>
   );
 }

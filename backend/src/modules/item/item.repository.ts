@@ -1,17 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '@prisma/client';
-
-type ItemAvailability = {
-  id: string;
-  name: string;
-  fullName: string;
-  price: number;
-  stock: number;
-  available: number;
-  images: string[];
-  description: string | null;
-};
+import { ItemAvailability } from 'src/interfaces/item.interface.js';
 
 @Injectable()
 export class ItemRepository {

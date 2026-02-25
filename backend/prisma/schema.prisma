@@ -16,6 +16,7 @@ model User {
   id              String          @id @default(uuid())
   supabaseId      String          @unique
   companyName     String
+  companyLogo     String?
   phone           String
   email           String          @unique
   businessType    String
@@ -309,4 +310,3 @@ enum InvoiceTemplate {
   MODERN
   MINIMAL
 }
-
