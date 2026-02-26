@@ -1,14 +1,14 @@
 "use client";
 
 import { Building2, Phone, Mail, Briefcase, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/common/form-input";
+import { Button } from "../../../components/ui/button";
+import { FormInput } from "../../../components/common/form-input";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { createUser } from "@/lib/api/user";
+import { createUser } from "../../../lib/api/user";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../context/user-context";
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({

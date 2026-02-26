@@ -1,8 +1,8 @@
 "use client";
 
-import { Sidebar } from "@/components/layout/sidebar";
-import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
-import { UserContext } from "@/app/context/user-context";
+import { Sidebar } from "../../components/layout/sidebar";
+import { SidebarInset, SidebarProvider, useSidebar } from "../../components/ui/sidebar";
+import { UserContext } from "../context/user-context";
 import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";

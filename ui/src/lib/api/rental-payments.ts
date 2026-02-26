@@ -2,7 +2,7 @@ import {
   RentalPaymentCustomerOption,
   RentalPaymentListFilters,
   RentalPaymentPayload,
-} from "@/types";
+} from "../../types";
 import { API_URL } from "./config";
 
 export const getRentalPayments = async (params: RentalPaymentListFilters = {}) => {

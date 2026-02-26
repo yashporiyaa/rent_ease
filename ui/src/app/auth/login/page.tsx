@@ -1,15 +1,15 @@
 "use client";
 
 import { Mail, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/common/form-input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../../../components/ui/button";
+import { FormInput } from "../../../components/common/form-input";
+import { Label } from "../../../components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import { loginUser } from "@/lib/api/user";
+import { loginUser } from "../../../lib/api/user";
 import { toast } from "react-toastify";
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../context/user-context";
 
 export default function LoginPage() {
   const router = useRouter();

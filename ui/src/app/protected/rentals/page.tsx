@@ -1,16 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { RentalsTable } from "@/components/rentals/rentals-table";
-import { RentalsEmptyState } from "@/components/rentals/rentals-empty-state";
-import { Button } from "@/components/ui/button";
-import { deleteRental, getRentalById, getRentals } from "@/lib/api/rentals";
-import { getCustomers } from "@/lib/api/customers";
-import { getItems } from "@/lib/api/items";
+import { RentalsTable } from "../../../components/rentals/rentals-table";
+import { RentalsEmptyState } from "../../../components/rentals/rentals-empty-state";
+import { Button } from "../../../components/ui/button";
+import { deleteRental, getRentalById, getRentals } from "../../../lib/api/rentals";
+import { getCustomers } from "../../../lib/api/customers";
+import { getItems } from "../../../lib/api/items";
 import { toast } from "react-toastify";
-import { CreateRentalForm } from "@/components/rentals/create-rental-form";
-import { CustomerListItem, InventoryItem, RentalRecord } from "@/types";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { CreateRentalForm } from "../../../components/rentals/create-rental-form";
+import { CustomerListItem, InventoryItem, RentalRecord } from "../../../types";
+import { ConfirmDialog } from "../../../components/common/confirm-dialog";
 
 export default function RentalsPage() {
   const [rentals, setRentals] = useState<RentalRecord[]>([]);

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../app/context/user-context";
 
 export function Header() {
   const router = useRouter();

@@ -1,6 +1,6 @@
-import { formatDate } from "@/lib/utils/date";
+import { formatDate } from "../../lib/utils/date";
 import { Calendar } from "lucide-react";
-import { RentalHeaderProps } from "@/types";
+import { RentalHeaderProps } from "../../types";
 
 export function RentalHeader({ rental }: RentalHeaderProps) {
   return (

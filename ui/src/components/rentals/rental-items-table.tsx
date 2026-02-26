@@ -5,9 +5,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../ui/table";
 import { useMemo, useState } from "react";
-import { TablePagination } from "@/components/common/table-pagination";
+import { TablePagination } from "../common/table-pagination";
 
 export function RentalItemsTable({
   items,

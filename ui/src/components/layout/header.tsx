@@ -1,8 +1,8 @@
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../app/context/user-context";
 import { Bell, HelpCircle, Search } from "lucide-react";
 import { useRouter } from "next/dist/client/components/navigation";
 import { useContext } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "../ui/input";
 
 export function Header() {
   const { user } = useContext(UserContext);

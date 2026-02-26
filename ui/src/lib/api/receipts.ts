@@ -2,7 +2,7 @@ import {
   ReceiptCustomerOption,
   ReceiptListFilters,
   ReceiptPayload,
-} from "@/types";
+} from "../../types";
 import { API_URL } from "./config";
 
 export const getReceipts = async (params: ReceiptListFilters = {}) => {

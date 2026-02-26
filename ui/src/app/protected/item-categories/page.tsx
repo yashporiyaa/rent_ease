@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,18 +10,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../../../components/ui/table";
 import {
   createItemCategory,
   deleteItemCategory,
   getItemCategories,
   updateItemCategory,
-} from "@/lib/api/item-categories";
-import { ItemCategory } from "@/types";
+} from "../../../lib/api/item-categories";
+import { ItemCategory } from "../../../types";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
-import { TablePagination } from "@/components/common/table-pagination";
+import { ConfirmDialog } from "../../../components/common/confirm-dialog";
+import { TablePagination } from "../../../components/common/table-pagination";
 
 type CategoryForm = {
   name: string;

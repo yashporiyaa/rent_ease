@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { StatsCardProps } from "@/types";
+import { cn } from "../../lib/utils";
+import { StatsCardProps } from "../../types";
 import { BarChart3 } from "lucide-react";
 
 export function StatsCard({

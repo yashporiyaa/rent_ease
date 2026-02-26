@@ -1,4 +1,4 @@
-import { DashboardUpcomingReturn } from "@/types";
+import { DashboardUpcomingReturn } from "../../types";
 import Link from "next/link";
 import { Camera, Laptop, Smartphone } from "lucide-react";
 

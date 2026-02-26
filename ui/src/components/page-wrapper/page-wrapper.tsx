@@ -1,7 +1,7 @@
-import { PageWrapperProps } from "@/types";
+import { PageWrapperProps } from "../../types";
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
-import { UserProvider } from "@/app/context/user-context";
+import { UserProvider } from "../../app/context/user-context";
 
 export default function PageWrapper({ children }: PageWrapperProps) {
   return (

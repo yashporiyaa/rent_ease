@@ -2,12 +2,12 @@
 
 import { useState, useContext } from "react";
 import { Building2, Phone, Percent, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { UserContext } from "@/app/context/user-context";
-import { API_URL } from "@/lib/api/config";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { UserContext } from "../../context/user-context";
+import { API_URL } from "../../../lib/api/config";
 import { toast } from "react-toastify";
-import { ProfileForm } from "@/types";
+import { ProfileForm } from "../../../types";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useContext(UserContext);

@@ -1,21 +1,21 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
-import { createItem, updateItem } from "@/lib/api/items";
+import { createItem, updateItem } from "../../lib/api/items";
 import { toast } from "react-toastify";
 import { ImagePlus, Package2, Trash2, X } from "lucide-react";
-import { ItemCategory, InventoryItem, ItemSize } from "@/types";
+import { ItemCategory, InventoryItem, ItemSize } from "../../types";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 
 const MAX_IMAGE_SLOTS = 5;
 

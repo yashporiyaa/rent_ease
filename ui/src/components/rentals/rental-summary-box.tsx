@@ -1,4 +1,4 @@
-import { RentalSummaryBoxProps } from "@/types";
+import { RentalSummaryBoxProps } from "../../types";
 import { IndianRupee } from "lucide-react";
 
 export function RentalSummaryBox({

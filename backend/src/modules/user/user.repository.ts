@@ -10,6 +10,7 @@ import {
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
+  private static readonly TRIAL_DAYS = 14;
 
   private async syncExpiredSubscriptionIfNeeded(
     user: UserWithSubscription,
@@ -51,7 +52,6 @@ export class UserRepository {
     businessType: string;
     onboardingDone?: boolean;
   }) {
-    const trialDays = 14;
     const user = await this.prisma.user.create({
       data: {
         supabaseId: data.supabaseId,
@@ -60,7 +60,9 @@ export class UserRepository {
         email: data.email,
         businessType: data.businessType,
         onboardingDone: data.onboardingDone,
-        trialEndsAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000),
+        trialEndsAt: new Date(
+          Date.now() + UserRepository.TRIAL_DAYS * 24 * 60 * 60 * 1000,
+        ),
       },
     });
     return {
@@ -70,23 +72,13 @@ export class UserRepository {
   }
 
   async updateUser(supabaseId: string, data: Prisma.UserUpdateInput) {
-    try {
-      const user = await this.prisma.user.update({
-        where: { supabaseId },
-        data,
-      });
-
-      return user;
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log(error.message);
-      }
-      throw error;
-    }
+    return this.prisma.user.update({
+      where: { supabaseId },
+      data,
+    });
   }
 
   async findById(supabaseId: string) {
-    
     const user = await this.prisma.user.findUnique({
       where: { supabaseId },
       include: {

@@ -1,14 +1,14 @@
 "use client";
 
-import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { RevenueChart } from "@/components/dashboard/revenue-chart";
-import { UpcomingReturns } from "@/components/dashboard/upcoming-returns";
+import { RecentActivity } from "../../../components/dashboard/recent-activity";
+import { RevenueChart } from "../../../components/dashboard/revenue-chart";
+import { UpcomingReturns } from "../../../components/dashboard/upcoming-returns";
 import {
   getRecentActivity,
   getUpcomingReturns,
   getUserDashboardData,
-} from "@/lib/api/user";
-import { DashboardRecentActivity, DashboardUpcomingReturn } from "@/types";
+} from "../../../lib/api/user";
+import { DashboardRecentActivity, DashboardUpcomingReturn } from "../../../types";
 import { FileText, Plus, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";

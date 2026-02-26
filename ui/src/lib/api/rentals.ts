@@ -2,7 +2,7 @@ import {
   CreateRentalPayload,
   DeliveryFilterStatus,
   ReturnFilterStatus,
-} from "@/types";
+} from "../../types";
 import { API_URL } from "./config";
 
 export const createRental = async (payload: CreateRentalPayload) => {

@@ -1,16 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ItemsTable } from "@/components/items/items-table";
-import { ItemsEmptyState } from "@/components/items/items-empty-state";
-import { Button } from "@/components/ui/button";
-import { deleteItem, getItems } from "@/lib/api/items";
-import { getItemCategories } from "@/lib/api/item-categories";
-import { getItemSizes } from "@/lib/api/item-sizes";
+import { ItemsTable } from "../../../components/items/items-table";
+import { ItemsEmptyState } from "../../../components/items/items-empty-state";
+import { Button } from "../../../components/ui/button";
+import { deleteItem, getItems } from "../../../lib/api/items";
+import { getItemCategories } from "../../../lib/api/item-categories";
+import { getItemSizes } from "../../../lib/api/item-sizes";
 import { toast } from "react-toastify";
-import { CreateItemForm } from "@/components/items/create-item-form";
-import { InventoryItem, ItemCategory, ItemSize } from "@/types";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { CreateItemForm } from "../../../components/items/create-item-form";
+import { InventoryItem, ItemCategory, ItemSize } from "../../../types";
+import { ConfirmDialog } from "../../../components/common/confirm-dialog";
 
 export default function ItemsPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);

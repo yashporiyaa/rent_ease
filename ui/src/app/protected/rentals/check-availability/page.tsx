@@ -3,16 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../../components/ui/select";
 import {
   Table,
   TableBody,
@@ -20,16 +20,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { TablePagination } from "@/components/common/table-pagination";
-import { getItems } from "@/lib/api/items";
-import { getItemSizes } from "@/lib/api/item-sizes";
-import { checkRentalItemAvailability } from "@/lib/api/rentals";
+} from "../../../../components/ui/table";
+import { TablePagination } from "../../../../components/common/table-pagination";
+import { getItems } from "../../../../lib/api/items";
+import { getItemSizes } from "../../../../lib/api/item-sizes";
+import { checkRentalItemAvailability } from "../../../../lib/api/rentals";
 import {
   InventoryItem,
   ItemAvailabilityResult,
   ItemSize,
-} from "@/types";
+} from "../../../../types";
 
 const getTodayDateValue = () => {
   const date = new Date();

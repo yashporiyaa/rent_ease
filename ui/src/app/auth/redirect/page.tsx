@@ -2,7 +2,7 @@
 
 import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../context/user-context";
 
 export default function RedirectPage() {
   const router = useRouter();

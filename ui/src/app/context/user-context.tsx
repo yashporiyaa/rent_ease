@@ -1,7 +1,7 @@
 "use client";
 
-import { getUser, logoutUser } from "@/lib/api/user";
-import { ProviderChildrenProps, User, UserContextType } from "@/types";
+import { getUser, logoutUser } from "../../lib/api/user";
+import { ProviderChildrenProps, User, UserContextType } from "../../types";
 import { createContext, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 

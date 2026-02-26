@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { RentalStatus } from "@/types";
+import { cn } from "../../lib/utils";
+import { RentalStatus } from "../../types";
 
 export function RentalStatusBadge({
   status,

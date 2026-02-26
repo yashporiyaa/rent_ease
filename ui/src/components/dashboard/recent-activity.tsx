@@ -1,12 +1,23 @@
-import { DashboardRecentActivity } from "@/types";
-import { ArrowDownToLine, ArrowUpFromLine, Check, PackageCheck, Plus } from "lucide-react";
+import { DashboardRecentActivity } from "../../types";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Check,
+  PackageCheck,
+  Plus,
+} from "lucide-react";
 
 type RecentActivityProps = {
   activities: DashboardRecentActivity[];
 };
 
 const toRelativeTime = (value: string) => {
-  const diffMs = Date.now() - new Date(value).getTime();
+  const timestamp = new Date(value).getTime();
+  if (Number.isNaN(timestamp)) {
+    return "JUST NOW";
+  }
+
+  const diffMs = Date.now() - timestamp;
   const minutes = Math.max(1, Math.floor(diffMs / (1000 * 60)));
 
   if (minutes < 60) return `${minutes} MINS AGO`;
@@ -16,40 +27,37 @@ const toRelativeTime = (value: string) => {
   return `${days} DAYS AGO`;
 };
 
-const getActivityStyle = (type: DashboardRecentActivity["type"]) => {
-  if (type === "BOOKING") {
-    return {
-      icon: Plus,
-      iconClass: "text-[#2563eb] bg-[#dbeafe]",
-    };
-  }
-
-  if (type === "RECEIPT") {
-    return {
-      icon: ArrowDownToLine,
-      iconClass: "text-[#16a34a] bg-[#dcfce7]",
-    };
-  }
-
-  if (type === "PAYOUT") {
-    return {
-      icon: ArrowUpFromLine,
-      iconClass: "text-[#f97316] bg-[#ffedd5]",
-    };
-  }
-
-  if (type === "PICKED") {
-    return {
-      icon: PackageCheck,
-      iconClass: "text-[#7c3aed] bg-[#ede9fe]",
-    };
-  }
-
-  return {
-    icon: Check,
-    iconClass: "text-[#0f766e] bg-[#ccfbf1]",
-  };
+const ACTIVITY_STYLES: Partial<
+  Record<
+    DashboardRecentActivity["type"],
+    { icon: typeof Check; iconClass: string }
+  >
+> = {
+  BOOKING: {
+    icon: Plus,
+    iconClass: "text-[#2563eb] bg-[#dbeafe]",
+  },
+  RECEIPT: {
+    icon: ArrowDownToLine,
+    iconClass: "text-[#16a34a] bg-[#dcfce7]",
+  },
+  PAYOUT: {
+    icon: ArrowUpFromLine,
+    iconClass: "text-[#f97316] bg-[#ffedd5]",
+  },
+  PICKED: {
+    icon: PackageCheck,
+    iconClass: "text-[#7c3aed] bg-[#ede9fe]",
+  },
 };
+
+const defaultActivityStyle = {
+  icon: Check,
+  iconClass: "text-[#0f766e] bg-[#ccfbf1]",
+};
+
+const getActivityStyle = (type: DashboardRecentActivity["type"]) =>
+  ACTIVITY_STYLES[type] ?? defaultActivityStyle;
 
 export function RecentActivity({ activities }: RecentActivityProps) {
   return (
@@ -63,20 +71,27 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           </p>
         ) : (
           activities.map((item) => {
-          const style = getActivityStyle(item.type);
-          const Icon = style.icon;
-          return (
-            <div key={item.id} className="flex gap-4">
-              <span className={`mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${style.iconClass}`}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-base font-bold text-[#0f172a] max-sm:text-sm">{item.title}</p>
-                <p className="mt-1 text-sm text-[#64748b]">{item.subtitle}</p>
-                <p className="mt-1 text-xs font-bold text-[#94a3b8]">{toRelativeTime(item.happenedAt)}</p>
+            const style = getActivityStyle(item.type);
+            const Icon = style.icon;
+
+            return (
+              <div key={item.id} className="flex gap-4">
+                <span
+                  className={`mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${style.iconClass}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-base font-bold text-[#0f172a] max-sm:text-sm">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-sm text-[#64748b]">{item.subtitle}</p>
+                  <p className="mt-1 text-xs font-bold text-[#94a3b8]">
+                    {toRelativeTime(item.happenedAt)}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
+            );
           })
         )}
       </div>

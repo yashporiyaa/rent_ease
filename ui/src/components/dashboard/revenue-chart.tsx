@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
-import { API_URL } from "@/lib/api/config";
+import { API_URL } from "../../lib/api/config";
 
 const ranges = [
   { label: "12 Months", value: "1y" },
@@ -94,7 +94,7 @@ export function RevenueChart() {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="h-[360px] rounded-2xl bg-linear-to-b from-[#f8fffc] to-[#f8fafc] px-2 py-2">
+          <div className="h-90 rounded-2xl bg-linear-to-b from-[#f8fffc] to-[#f8fafc] px-2 py-2">
             <svg viewBox={`0 0 ${chart.width} ${chart.height}`} className="h-full w-full" role="img" aria-label="Revenue chart">
               <defs>
                 <linearGradient id="revenueArea" x1="0" y1="0" x2="0" y2="1">

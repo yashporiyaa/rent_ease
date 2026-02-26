@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Lock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/common/form-input";
+import { supabase } from "../../../lib/supabase";
+import { Button } from "../../../components/ui/button";
+import { FormInput } from "../../../components/common/form-input";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");

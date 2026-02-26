@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/common/form-input";
-import { forgotPassword } from "@/lib/api/user";
+import { Button } from "../../../components/ui/button";
+import { FormInput } from "../../../components/common/form-input";
+import { forgotPassword } from "../../../lib/api/user";
 import { toast } from "react-toastify";
 
 export default function ForgotPasswordPage() {

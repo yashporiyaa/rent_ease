@@ -4,10 +4,10 @@ import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { RentalStatusBadge } from "./rental-status-badge";
 import { FileDown, Pencil, Trash2 } from "lucide-react";
-import { formatDate } from "@/lib/utils/date";
-import { RentalsTableProps } from "@/types";
+import { formatDate } from "../../lib/utils/date";
+import { RentalsTableProps } from "../../types";
 import { Button } from "../ui/button";
-import { downloadInvoicePDF } from "@/lib/api/invoice";
+import { downloadInvoicePDF } from "../../lib/api/invoice";
 import { toast } from "react-toastify";
 import {
   Table,

@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useContext, useState } from "react";
-import { UserContext } from "@/app/context/user-context";
+import { UserContext } from "../../app/context/user-context";
 import {
   Sidebar as UiSidebar,
   SidebarContent,
@@ -28,7 +28,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "../ui/sidebar";
 
 const navItems = [
   { href: "/protected/reports", label: "Reports", icon: BarChart3 },

@@ -12,16 +12,16 @@ import {
   UserCog,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { UserContext } from "@/app/context/user-context";
-import { API_URL } from "@/lib/api/config";
-import { createCheckoutSession } from "@/lib/api/stripe";
+} from "../../../components/ui/dialog";
+import { UserContext } from "../../context/user-context";
+import { API_URL } from "../../../lib/api/config";
+import { createCheckoutSession } from "../../../lib/api/stripe";
 import { toast } from "react-toastify";
 
 const getDisplayName = (email: string, companyName: string) => {

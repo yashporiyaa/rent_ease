@@ -1,6 +1,6 @@
 import { Package, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { InventoryItem } from "@/types";
+import { InventoryItem } from "../../types";
 import { Button } from "../ui/button";
 import {
   Table,

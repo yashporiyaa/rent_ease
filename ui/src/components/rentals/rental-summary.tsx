@@ -1,4 +1,4 @@
-import { RentalSummaryProps } from "@/types";
+import { RentalSummaryProps } from "../../types";
 
 export function RentalSummary({ rental }: RentalSummaryProps) {
   return (

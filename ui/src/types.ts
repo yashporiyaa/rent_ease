@@ -418,7 +418,7 @@ export type CustomerModalUiState = {
   open: boolean;
   form: CustomerModalState;
   foundCustomer: CustomerListItem | null;
-  isEditCustomer: boolean;
+  isEditingCustomer: boolean;
   submittingCustomer: boolean;
 };
 
