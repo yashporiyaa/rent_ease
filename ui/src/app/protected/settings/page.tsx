@@ -56,6 +56,7 @@ export default function SettingsPage() {
   const [startingCheckout, setStartingCheckout] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const { user, refreshUser } = useContext(UserContext);
 
   const [form, setForm] = useState({
@@ -167,13 +168,53 @@ export default function SettingsPage() {
   };
 
   const subscriptionStatus = user?.subscriptionStatus ?? "TRIAL";
-  const isActiveSubscription = subscriptionStatus === "ACTIVE";
-  const trialEndsAt = user?.trialEndsAt ? new Date(user.trialEndsAt) : null;
-  const currentPeriodEnd = user?.subscription?.currentPeriodEnd
-    ? new Date(user.subscription.currentPeriodEnd)
+  const trialEndsAtMs = user?.trialEndsAt ? Date.parse(user.trialEndsAt) : NaN;
+  const currentPeriodEndMs = user?.subscription?.currentPeriodEnd
+    ? Date.parse(user.subscription.currentPeriodEnd)
+    : NaN;
+  const trialEndsAt = Number.isFinite(trialEndsAtMs)
+    ? new Date(trialEndsAtMs)
     : null;
-  const renewalLabel = isActiveSubscription ? "NEXT RENEWAL" : "TRIAL ENDS";
-  const renewalDate = isActiveSubscription ? currentPeriodEnd : trialEndsAt;
+  const currentPeriodEnd = Number.isFinite(currentPeriodEndMs)
+    ? new Date(currentPeriodEndMs)
+    : null;
+  const isActiveSubscription =
+    subscriptionStatus === "ACTIVE" &&
+    (!Number.isFinite(currentPeriodEndMs) || currentPeriodEndMs > nowMs);
+  const effectiveSubscriptionStatus =
+    subscriptionStatus === "ACTIVE" && !isActiveSubscription
+      ? "EXPIRED"
+      : subscriptionStatus;
+  const renewalLabel = isActiveSubscription
+    ? "NEXT RENEWAL"
+    : subscriptionStatus === "ACTIVE"
+      ? "EXPIRED ON"
+      : "TRIAL ENDS";
+  const renewalDate = isActiveSubscription
+    ? currentPeriodEnd
+    : subscriptionStatus === "ACTIVE"
+      ? currentPeriodEnd
+      : trialEndsAt;
+
+  useEffect(() => {
+    if (
+      subscriptionStatus !== "ACTIVE" ||
+      !Number.isFinite(currentPeriodEndMs)
+    ) {
+      return;
+    }
+
+    const msUntilExpiry = currentPeriodEndMs - nowMs;
+    if (msUntilExpiry <= 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNowMs(Date.now());
+    }, msUntilExpiry + 200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [subscriptionStatus, currentPeriodEndMs, nowMs]);
 
   const profileName = useMemo(() => {
     if (!user) return "";
@@ -188,7 +229,9 @@ export default function SettingsPage() {
     <>
       <div className="w-full space-y-8">
         <div>
-          <h1 className="text-2xl font-black text-[#111827] max-sm:text-xl">Settings</h1>
+          <h1 className="text-2xl font-black text-[#111827] max-sm:text-xl">
+            Settings
+          </h1>
           <p className="mt-2 text-base text-[#6b7280] max-sm:text-sm">
             Manage your account preferences and subscription.
           </p>
@@ -262,7 +305,11 @@ export default function SettingsPage() {
               </p>
 
               <ul className="mt-7 space-y-3 text-base max-sm:text-sm">
-                {["Unlimited Property Listings", "Automated Rent Collection", "Priority Customer Support"].map((feature) => (
+                {[
+                  "Unlimited Property Listings",
+                  "Automated Rent Collection",
+                  "Priority Customer Support",
+                ].map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
                       <Check className="h-4 w-4" />
@@ -339,7 +386,7 @@ export default function SettingsPage() {
                         SUBSCRIPTION STATUS
                       </p>
                       <p className="text-xl font-semibold text-[#111827] max-sm:text-base">
-                        {subscriptionStatus}
+                        {effectiveSubscriptionStatus}
                       </p>
                     </div>
                   </div>
@@ -399,8 +446,8 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-6 px-9 py-8 max-sm:px-5">
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative">
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
                 <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl border-4 border-[#dff6ec] bg-linear-to-br from-[#ebf7f1] to-[#d9ece4] text-3xl font-black text-[#11bb82]">
                   {form.companyLogo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -443,7 +490,10 @@ export default function SettingsPage() {
                   <input
                     value={form.companyName}
                     onChange={(event) =>
-                      setForm((prev) => ({ ...prev, companyName: event.target.value }))
+                      setForm((prev) => ({
+                        ...prev,
+                        companyName: event.target.value,
+                      }))
                     }
                     className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
                     placeholder="Company Name"
@@ -475,7 +525,10 @@ export default function SettingsPage() {
                     <input
                       value={form.phone}
                       onChange={(event) =>
-                        setForm((prev) => ({ ...prev, phone: event.target.value }))
+                        setForm((prev) => ({
+                          ...prev,
+                          phone: event.target.value,
+                        }))
                       }
                       className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
                       placeholder="Phone Number"
@@ -492,7 +545,10 @@ export default function SettingsPage() {
                     <input
                       value={form.businessType}
                       onChange={(event) =>
-                        setForm((prev) => ({ ...prev, businessType: event.target.value }))
+                        setForm((prev) => ({
+                          ...prev,
+                          businessType: event.target.value,
+                        }))
                       }
                       className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
                       placeholder="Type of Business"

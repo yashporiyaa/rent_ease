@@ -20,9 +20,9 @@ export type User = {
   taxRate?: number | null;
   stripeCustomerId?: string | null;
   subscriptionStatus?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
-  trialEndsAt?: string | Date | null;
+  trialEndsAt?: string | null;
   subscription?: {
-    currentPeriodEnd?: string | Date | null;
+    currentPeriodEnd?: string | null;
     status?: "ACTIVE" | "EXPIRED" | "CANCELLED" | "TRIAL";
   } | null;
   invoiceTemplate: string;
@@ -347,6 +347,21 @@ export type InvoiceSummaryProps = {
 export type RevenueData = {
   month: string;
   revenue: number;
+};
+
+export type DashboardUpcomingReturn = {
+  id: string;
+  asset: string;
+  customer: string;
+  returnAt: string;
+};
+
+export type DashboardRecentActivity = {
+  id: string;
+  type: "BOOKING" | "RECEIPT" | "PAYOUT" | "PICKED" | "RETURNED";
+  title: string;
+  subtitle: string;
+  happenedAt: string;
 };
 
 export type RentalLine = {

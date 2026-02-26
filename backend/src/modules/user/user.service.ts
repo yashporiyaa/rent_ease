@@ -118,6 +118,38 @@ export class UserService {
     return this.userRepository.getRevenueAnalytics(user.id, range);
   }
 
+  async getUpcomingReturns(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const upcomingReturns = await this.userRepository.getUpcomingReturns(
+      user.id,
+    );
+
+    return {
+      success: true,
+      data: upcomingReturns,
+    };
+  }
+
+  async getRecentActivities(supabaseId: string) {
+    const user = await this.userRepository.findById(supabaseId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const activities = await this.userRepository.getRecentActivities(user.id);
+
+    return {
+      success: true,
+      data: activities,
+    };
+  }
+
   async updateTax(supabaseId: string, dto: UpdateTaxDto) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {

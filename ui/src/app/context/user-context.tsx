@@ -2,7 +2,6 @@
 
 import { getUser, logoutUser } from "@/lib/api/user";
 import { ProviderChildrenProps, User, UserContextType } from "@/types";
-import { usePathname } from "next/navigation";
 import { createContext, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -11,7 +10,6 @@ export const UserContext = createContext<UserContextType>(
 );
 
 export const UserProvider = ({ children }: ProviderChildrenProps) => {
-  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -25,6 +23,7 @@ export const UserProvider = ({ children }: ProviderChildrenProps) => {
       return currentUser;
     } catch {
       setUser(null);
+      localStorage.removeItem("isLoggedIn");
       return null;
     } finally {
       setLoading(false);
@@ -35,12 +34,9 @@ export const UserProvider = ({ children }: ProviderChildrenProps) => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
     if (!isLoggedIn) {
       setUser(null);
-      setLoading(false);
-      return;
     }
-
-    void refreshUser();
-  }, [refreshUser, pathname]);
+    setLoading(false);
+  }, []);
 
   const logout = async () => {
     try {

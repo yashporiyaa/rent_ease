@@ -99,13 +99,24 @@ export const getUser = async () => {
     });
 
     if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || "Fetch user failed");
+      let message = "Fetch user failed";
+      try {
+        const error = await res.json();
+        message = error.message || message;
+      } catch {}
+
+      const authError = res.status === 401 || res.status === 403;
+      if (authError) {
+        throw new Error("Unauthorized");
+      }
+      throw new Error(message);
     }
 
     return res.json();
   } catch (error) {
-    console.error("getUser failed:", error);
+    if (!(error instanceof Error && error.message === "Unauthorized")) {
+      console.error("getUser failed:", error);
+    }
     throw error;
   }
 };
@@ -124,6 +135,42 @@ export const getUserDashboardData = async () => {
     return res.json();
   } catch (error) {
     console.error("getUserDashbaordData failed:", error);
+    throw error;
+  }
+};
+
+export const getUpcomingReturns = async () => {
+  try {
+    const res = await fetch(`${API_URL}/users/upcoming-returns`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Fetch upcoming returns failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("getUpcomingReturns failed:", error);
+    throw error;
+  }
+};
+
+export const getRecentActivity = async () => {
+  try {
+    const res = await fetch(`${API_URL}/users/recent-activity`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Fetch recent activity failed");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("getRecentActivity failed:", error);
     throw error;
   }
 };

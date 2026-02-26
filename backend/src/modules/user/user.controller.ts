@@ -89,6 +89,18 @@ export class UserController {
   }
 
   @UseGuards(SupabaseAuthGuard)
+  @Get('upcoming-returns')
+  async getUpcomingReturns(@Req() req: AuthenticatedRequest) {
+    return this.userService.getUpcomingReturns(req.user.sub);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Get('recent-activity')
+  async getRecentActivities(@Req() req: AuthenticatedRequest) {
+    return this.userService.getRecentActivities(req.user.sub);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
   @Patch('settings/tax')
   updateTax(@Req() req: AuthenticatedRequest, @Body() dto: UpdateTaxDto) {
     return this.userService.updateTax(req.user.sub, dto);

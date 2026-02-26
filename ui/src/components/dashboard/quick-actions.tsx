@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlusCircle, UserPlus, Boxes, Tags, Ruler } from "lucide-react";
+import { PlusCircle, Wallet, Boxes, Tags, Ruler } from "lucide-react";
 
 type QuickActionsProps = {
   onCreateRental?: () => void;
@@ -33,11 +33,11 @@ export function QuickActions({ onCreateRental }: QuickActionsProps) {
         )}
 
         <Link
-          href="/protected/customers/new"
+          href="/protected/finance/payments"
           className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#0e1b17] hover:bg-slate-100 transition"
         >
-          <UserPlus className="h-5 w-5 text-[#17cf91]" />
-          <span>Register Customer</span>
+          <Wallet className="h-5 w-5 text-[#17cf91]" />
+          <span>Record Payment</span>
         </Link>
 
         <Link
