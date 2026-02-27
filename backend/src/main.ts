@@ -39,7 +39,10 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.enableCors();
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+  });
 
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
