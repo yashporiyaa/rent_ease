@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,263 +7,238 @@ datasource db {
 }
 
 model User {
-  id              String          @id @default(uuid())
-  supabaseId      String          @unique
-  companyName     String
-  companyLogo     String?
-  phone           String
-  email           String          @unique
-  businessType    String
-  businessAddress String?
-  taxRate         Float? 
-
-
-  stripeCustomerId     String?  @unique
-  subscriptionStatus   SubscriptionStatus   @default(TRIAL) 
-  trialEndsAt          DateTime
-
-  onboardingDone  Boolean         @default(false)
-  invoiceTemplate InvoiceTemplate @default(CLASSIC)
-
-  customers Customer[]
-  items     Item[]
-  itemCategories ItemCategory[]
-  itemSizes ItemSize[]
-  rentals   Rental[]
-
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  invoices     Invoice[]
-  payments     Payment[]
-  receipts     Receipt[]
-  rentalPayments RentalPayment[]
-  subscription Subscription?
+  id                 String             @id @default(uuid())
+  supabaseId         String             @unique
+  companyName        String
+  companyLogo        String?
+  phone              String
+  email              String             @unique
+  businessType       String
+  businessAddress    String?
+  taxRate            Float?
+  stripeCustomerId   String?            @unique
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+  trialEndsAt        DateTime
+  onboardingDone     Boolean            @default(false)
+  invoiceTemplate    InvoiceTemplate    @default(CLASSIC)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  customers          Customer[]
+  invoices           Invoice[]
+  items              Item[]
+  itemCategories     ItemCategory[]
+  itemSizes          ItemSize[]
+  payments           Payment[]
+  receipts           Receipt[]
+  rentals            Rental[]
+  rentalPayments     RentalPayment[]
+  subscription       Subscription?
 }
 
 model Customer {
-  id       String @id @default(uuid())
-  userId   String
-  name     String
-  phone    String?
-  phone1   String?
-  phone2   String?
-  address  String?
-
-  user    User     @relation(fields: [userId], references: [id])
-  rentals Rental[]
-  receipts Receipt[]
+  id             String          @id @default(uuid())
+  userId         String
+  name           String
+  phone          String?
+  phone1         String?
+  phone2         String?
+  address        String?
+  user           User            @relation(fields: [userId], references: [id])
+  receipts       Receipt[]
+  rentals        Rental[]
   rentalPayments RentalPayment[]
 }
 
 model Item {
-  id       String @id @default(uuid())
-  userId   String
-  shortName String @default("")
-  fullName String @default("")
-  description String?
-  category String
-  categoryId String?
-  size     String?
-  sizeId   String?
-  price    Float
-  entryDate DateTime @default(now())
-  quantity Int @default(1)
-  images   String[] @default([])
-  stock    Int     @default(1)   
-
-
-  user        User         @relation(fields: [userId], references: [id])
+  id           String        @id @default(uuid())
+  userId       String
+  shortName    String        @default("")
+  fullName     String        @default("")
+  description  String?
+  category     String
+  categoryId   String?
+  size         String?
+  sizeId       String?
+  price        Float
+  entryDate    DateTime      @default(now())
+  quantity     Int           @default(1)
+  images       String[]      @default([])
+  stock        Int           @default(1)
   itemCategory ItemCategory? @relation(fields: [categoryId], references: [id])
-  itemSize    ItemSize? @relation(fields: [sizeId], references: [id])
-  rentalItems RentalItem[]
+  itemSize     ItemSize?     @relation(fields: [sizeId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  rentalItems  RentalItem[]
 }
 
 model ItemCategory {
-  id       String @id @default(uuid())
-  userId   String
-  name     String
-  imageUrl String?
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user  User @relation(fields: [userId], references: [id])
-  items Item[]
+  items     Item[]
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, name])
 }
 
 model ItemSize {
-  id       String @id @default(uuid())
-  userId   String
-  name     String
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user  User @relation(fields: [userId], references: [id])
-  items Item[]
+  items     Item[]
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, name])
 }
 
 model Rental {
-  id          String   @id @default(uuid())
-  bookingNo   String?  @unique
-  userId      String
-  customerId  String
-  startDate   DateTime
-  endDate     DateTime
-  totalAmount Float
-  createdAt   DateTime      @default(now())
-  bookingAt   DateTime      @default(now())
-  deliveryAddress String?
-  description String?
-  totalQuantity Int         @default(0)
-  discountPercent Float     @default(0)
-  discountAmount Float      @default(0)
-  taxPercent Float          @default(0)
-  taxAmountValue Float      @default(0)
-  advanceAmount Float       @default(0)
-  pendingAmount Float       @default(0)
-  depositAmount Float       @default(0)
-  outstandingWithDeposit Float @default(0)
-
-  status      RentalStatus  @default(ACTIVE)
-  returnedAt  DateTime?                    
-
-  user        User         @relation(fields: [userId], references: [id])
-  customer    Customer     @relation(fields: [customerId], references: [id])
-  rentalItems RentalItem[]
-  invoice     Invoice?
-  receiptLines ReceiptLine[]
-  rentalPaymentLines RentalPaymentLine[]
+  id                     String              @id @default(uuid())
+  bookingNo              String?             @unique
+  userId                 String
+  customerId             String
+  startDate              DateTime
+  endDate                DateTime
+  totalAmount            Float
+  createdAt              DateTime            @default(now())
+  bookingAt              DateTime            @default(now())
+  deliveryAddress        String?
+  description            String?
+  totalQuantity          Int                 @default(0)
+  discountPercent        Float               @default(0)
+  discountAmount         Float               @default(0)
+  taxPercent             Float               @default(0)
+  taxAmountValue         Float               @default(0)
+  advanceAmount          Float               @default(0)
+  pendingAmount          Float               @default(0)
+  depositAmount          Float               @default(0)
+  outstandingWithDeposit Float               @default(0)
+  status                 RentalStatus        @default(ACTIVE)
+  returnedAt             DateTime?
+  invoice                Invoice?
+  receiptLines           ReceiptLine[]
+  customer               Customer            @relation(fields: [customerId], references: [id])
+  user                   User                @relation(fields: [userId], references: [id])
+  rentalItems            RentalItem[]
+  rentalPaymentLines     RentalPaymentLine[]
 }
 
 model RentalItem {
-  id       String @id @default(uuid())
-  rentalId String
-  itemId   String
-  quantity Int
-  price    Float
-  fromAt   DateTime?
-  toAt     DateTime?
-  description String?
-  image    String?
-  discountPercent Float @default(0)
-  discountAmount Float  @default(0)
-  taxPercent Float      @default(0)
-  taxAmount Float       @default(0)
-  totalAmount Float     @default(0)
-  status   String       @default("ACTIVE")
-  deliveryStatus RentalDeliveryStatus @default(PENDING)
-  pickedAt DateTime?
-
-  rental Rental @relation(fields: [rentalId], references: [id])
-  item   Item   @relation(fields: [itemId], references: [id])
+  id              String               @id @default(uuid())
+  rentalId        String
+  itemId          String
+  quantity        Int
+  price           Float
+  fromAt          DateTime?
+  toAt            DateTime?
+  description     String?
+  image           String?
+  discountPercent Float                @default(0)
+  discountAmount  Float                @default(0)
+  taxPercent      Float                @default(0)
+  taxAmount       Float                @default(0)
+  totalAmount     Float                @default(0)
+  status          String               @default("ACTIVE")
+  deliveryStatus  RentalDeliveryStatus @default(PENDING)
+  pickedAt        DateTime?
+  item            Item                 @relation(fields: [itemId], references: [id])
+  rental          Rental               @relation(fields: [rentalId], references: [id])
 }
 
 model Invoice {
-  id       String @id @default(uuid())
-  userId   String
-  rentalId String @unique
-
+  id          String        @id @default(uuid())
+  userId      String
+  rentalId    String        @unique
   invoiceNo   String        @unique
   totalAmount Float
   taxAmount   Float?
   status      InvoiceStatus
   taxRate     Float?
-
-  user     User      @relation(fields: [userId], references: [id])
-  rental   Rental    @relation(fields: [rentalId], references: [id])
-  payments Payment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  rental      Rental        @relation(fields: [rentalId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  payments    Payment[]
 }
 
 model Payment {
-  id        String @id @default(uuid())
+  id        String        @id @default(uuid())
   userId    String
   invoiceId String
-
   amount    Float
   method    PaymentMethod
   reference String?
   paidAt    DateTime
-
-  user    User    @relation(fields: [userId], references: [id])
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
-
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
 }
 
 model Receipt {
-  id            String   @id @default(uuid())
-  userId        String
-  customerId    String
-  entryDate     DateTime
-  paymentMode   PaymentMethod
-  discountAmount Float   @default(0)
-  totalReceived Float
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user      User          @relation(fields: [userId], references: [id])
-  customer  Customer      @relation(fields: [customerId], references: [id])
-  lineItems ReceiptLine[]
+  id             String        @id @default(uuid())
+  userId         String
+  customerId     String
+  entryDate      DateTime
+  paymentMode    PaymentMethod
+  discountAmount Float         @default(0)
+  totalReceived  Float
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+  lineItems      ReceiptLine[]
 }
 
 model ReceiptLine {
-  id             String  @id @default(uuid())
+  id             String   @id @default(uuid())
   receiptId      String
   rentalId       String
   description    String?
-  receivedAmount Float   @default(0)
-  discountAmount Float   @default(0)
+  receivedAmount Float    @default(0)
+  discountAmount Float    @default(0)
   createdAt      DateTime @default(now())
-
-  receipt Receipt @relation(fields: [receiptId], references: [id])
-  rental  Rental  @relation(fields: [rentalId], references: [id])
+  receipt        Receipt  @relation(fields: [receiptId], references: [id])
+  rental         Rental   @relation(fields: [rentalId], references: [id])
 }
 
 model Subscription {
-  id                     String         @id @default(uuid())
-  userId                 String         @unique
-
-  stripeSubscriptionId   String         @unique
-  priceId                String
-  currentPeriodEnd       DateTime
-  status                 SubscriptionStatus
-
-  user User @relation(fields: [userId], references: [id])
+  id                   String             @id @default(uuid())
+  userId               String             @unique
+  stripeSubscriptionId String             @unique
+  priceId              String
+  currentPeriodEnd     DateTime
+  status               SubscriptionStatus
+  user                 User               @relation(fields: [userId], references: [id])
 }
 
 model RentalPayment {
-  id            String   @id @default(uuid())
-  userId        String
-  customerId    String
-  entryDate     DateTime
-  paymentMode   PaymentMethod
-  discountAmount Float   @default(0)
-  totalPaid     Float
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user      User               @relation(fields: [userId], references: [id])
-  customer  Customer           @relation(fields: [customerId], references: [id])
-  lineItems RentalPaymentLine[]
+  id             String              @id @default(uuid())
+  userId         String
+  customerId     String
+  entryDate      DateTime
+  paymentMode    PaymentMethod
+  discountAmount Float               @default(0)
+  totalPaid      Float
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  customer       Customer            @relation(fields: [customerId], references: [id])
+  user           User                @relation(fields: [userId], references: [id])
+  lineItems      RentalPaymentLine[]
 }
 
 model RentalPaymentLine {
-  id             String  @id @default(uuid())
+  id              String        @id @default(uuid())
   rentalPaymentId String
-  rentalId       String
-  description    String?
-  paidAmount     Float   @default(0)
-  discountAmount Float   @default(0)
-  createdAt      DateTime @default(now())
-
-  rentalPayment RentalPayment @relation(fields: [rentalPaymentId], references: [id])
-  rental  Rental @relation(fields: [rentalId], references: [id])
+  rentalId        String
+  description     String?
+  paidAmount      Float         @default(0)
+  discountAmount  Float         @default(0)
+  createdAt       DateTime      @default(now())
+  rental          Rental        @relation(fields: [rentalId], references: [id])
+  rentalPayment   RentalPayment @relation(fields: [rentalPaymentId], references: [id])
 }
 
 enum RentalStatus {

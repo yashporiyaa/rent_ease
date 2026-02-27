@@ -44,7 +44,6 @@ export class UserService {
       onboardingDone: true,
     });
 
-    // STEP 3 — 🔥 Auto Login User
     const loginRes = await supabase.auth.signInWithPassword({
       email,
       password,

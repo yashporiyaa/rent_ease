@@ -5,7 +5,7 @@ import {
   RecentActivity,
   UpcomingReturn,
   UserWithSubscription,
-} from 'src/interfaces/user.interface.js';
+} from '../../../src/interfaces/user.interface.js';
 
 @Injectable()
 export class UserRepository {
@@ -52,23 +52,32 @@ export class UserRepository {
     businessType: string;
     onboardingDone?: boolean;
   }) {
-    const user = await this.prisma.user.create({
-      data: {
-        supabaseId: data.supabaseId,
-        companyName: data.companyName,
-        phone: data.phone,
-        email: data.email,
-        businessType: data.businessType,
-        onboardingDone: data.onboardingDone,
-        trialEndsAt: new Date(
-          Date.now() + UserRepository.TRIAL_DAYS * 24 * 60 * 60 * 1000,
-        ),
-      },
-    });
-    return {
-      message: 'User created successfully',
-      data: user,
-    };
+    console.log(data);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          supabaseId: data.supabaseId,
+          companyName: data.companyName,
+          phone: data.phone,
+          email: data.email,
+          businessType: data.businessType,
+          onboardingDone: data.onboardingDone,
+          trialEndsAt: new Date(
+            Date.now() + UserRepository.TRIAL_DAYS * 24 * 60 * 60 * 1000,
+          ),
+        },
+      });
+      return {
+        message: 'User created successfully',
+        data: user,
+      };
+    } catch (error) {
+      console.log('object', error);
+      return {
+        message: 'User creation failed',
+        // error: error.message,
+      };
+    }
   }
 
   async updateUser(supabaseId: string, data: Prisma.UserUpdateInput) {
