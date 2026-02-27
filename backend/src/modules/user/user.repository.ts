@@ -52,32 +52,19 @@ export class UserRepository {
     businessType: string;
     onboardingDone?: boolean;
   }) {
-    console.log(data);
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          supabaseId: data.supabaseId,
-          companyName: data.companyName,
-          phone: data.phone,
-          email: data.email,
-          businessType: data.businessType,
-          onboardingDone: data.onboardingDone,
-          trialEndsAt: new Date(
-            Date.now() + UserRepository.TRIAL_DAYS * 24 * 60 * 60 * 1000,
-          ),
-        },
-      });
-      return {
-        message: 'User created successfully',
-        data: user,
-      };
-    } catch (error) {
-      console.log('object', error);
-      return {
-        message: 'User creation failed',
-        // error: error.message,
-      };
-    }
+    return this.prisma.user.create({
+      data: {
+        supabaseId: data.supabaseId,
+        companyName: data.companyName,
+        phone: data.phone,
+        email: data.email,
+        businessType: data.businessType,
+        onboardingDone: data.onboardingDone,
+        trialEndsAt: new Date(
+          Date.now() + UserRepository.TRIAL_DAYS * 24 * 60 * 60 * 1000,
+        ),
+      },
+    });
   }
 
   async updateUser(supabaseId: string, data: Prisma.UserUpdateInput) {
@@ -105,6 +92,41 @@ export class UserRepository {
     }
 
     return this.syncExpiredSubscriptionIfNeeded(user);
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        subscription: {
+          select: {
+            currentPeriodEnd: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return user;
+    }
+
+    return this.syncExpiredSubscriptionIfNeeded(user);
+  }
+
+  async linkSupabaseIdByEmail(email: string, supabaseId: string) {
+    return this.prisma.user.update({
+      where: { email },
+      data: { supabaseId },
+      include: {
+        subscription: {
+          select: {
+            currentPeriodEnd: true,
+            status: true,
+          },
+        },
+      },
+    });
   }
 
   async getDashboardStats(userId: string) {

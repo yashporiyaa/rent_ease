@@ -71,10 +71,60 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const supabaseUser = data.user;
+    const userEmail = supabaseUser.email ?? dto.email;
+    let appUser = await this.userRepository.findById(supabaseUser.id);
+
+    if (!appUser) {
+      const existingByEmail = await this.userRepository.findByEmail(userEmail);
+
+      if (existingByEmail) {
+        appUser = await this.userRepository.linkSupabaseIdByEmail(
+          userEmail,
+          supabaseUser.id,
+        );
+      } else {
+        const metadata =
+          typeof supabaseUser.user_metadata === 'object' &&
+          supabaseUser.user_metadata !== null
+            ? (supabaseUser.user_metadata as Record<string, unknown>)
+            : {};
+
+        const companyName =
+          typeof metadata.companyName === 'string' &&
+          metadata.companyName.trim().length > 0
+            ? metadata.companyName.trim()
+            : userEmail.split('@')[0];
+        const phone =
+          typeof metadata.phone === 'string' && metadata.phone.trim().length > 0
+            ? metadata.phone.trim()
+            : '0000000000';
+        const businessType =
+          typeof metadata.businessType === 'string' &&
+          metadata.businessType.trim().length > 0
+            ? metadata.businessType.trim()
+            : 'General';
+
+        await this.userRepository.create({
+          supabaseId: supabaseUser.id,
+          email: userEmail,
+          companyName,
+          phone,
+          businessType,
+          onboardingDone: true,
+        });
+        appUser = await this.userRepository.findById(supabaseUser.id);
+      }
+    }
+
+    if (!appUser) {
+      throw new UnauthorizedException('User profile not found');
+    }
+
     return {
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token,
-      user: data.user,
+      user: appUser,
     };
   }
 
@@ -94,7 +144,12 @@ export class UserService {
   }
 
   async getUser(supabaseId: string) {
-    return await this.userRepository.findById(supabaseId);
+    const user = await this.userRepository.findById(supabaseId);
+    if (!user) {
+      throw new UnauthorizedException('User profile not found');
+    }
+
+    return user;
   }
 
   async getDashboardData(supabaseId: string) {
