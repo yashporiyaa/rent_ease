@@ -10,11 +10,20 @@ import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-  const allowedOrigins = (
+  const configuredOrigins = (
     process.env.CORS_ORIGIN?.split(',') ?? [frontendUrl]
   )
     .map((origin) => origin.trim())
     .filter(Boolean);
+  const allowedOrigins = Array.from(
+    new Set([
+      ...configuredOrigins,
+      frontendUrl,
+      'https://rent1ease1.netlify.app',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+    ]),
+  );
 
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
@@ -40,8 +49,21 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS`), false);
+    },
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 204,
   });
 
   app.useGlobalInterceptors(new ResponseInterceptor());
