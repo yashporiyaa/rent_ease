@@ -18,7 +18,6 @@ import { CheckItemAvailabilityDto } from './dto/check-item-availability.dto.js';
 import { DeliveryQueryDto } from './dto/delivery-query.dto.js';
 import { UpdateDeliveryStatusDto } from './dto/update-delivery-status.dto.js';
 import { ReturnQueryDto } from './dto/return-query.dto.js';
-import { UpdateReturnStatusDto } from './dto/update-return-status.dto.js';
 import type { AuthenticatedRequest } from 'src/types/authenticated-request.js';
 import { RentalListQueryDto } from './dto/rental-list-query.dto.js';
 
@@ -49,7 +48,10 @@ export class RentalController {
 
   @UseGuards(SupabaseAuthGuard)
   @Get('calendar')
-  getCalendar(@Req() req: AuthenticatedRequest, @Query() query: CalendarQueryDto) {
+  getCalendar(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: CalendarQueryDto,
+  ) {
     return this.rentalService.getCalendarData(
       req.user.sub,
       query.start,
@@ -59,7 +61,10 @@ export class RentalController {
 
   @UseGuards(SupabaseAuthGuard)
   @Get('delivery')
-  getDeliveryList(@Req() req: AuthenticatedRequest, @Query() query: DeliveryQueryDto) {
+  getDeliveryList(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: DeliveryQueryDto,
+  ) {
     return this.rentalService.getDeliveryList(req.user.sub, query);
   }
 
@@ -79,7 +84,10 @@ export class RentalController {
 
   @UseGuards(SupabaseAuthGuard)
   @Get('return')
-  getReturnList(@Req() req: AuthenticatedRequest, @Query() query: ReturnQueryDto) {
+  getReturnList(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ReturnQueryDto,
+  ) {
     return this.rentalService.getReturnList(req.user.sub, query);
   }
 
@@ -88,13 +96,8 @@ export class RentalController {
   updateReturnStatus(
     @Req() req: AuthenticatedRequest,
     @Param('rentalItemId') rentalItemId: string,
-    @Body() dto: UpdateReturnStatusDto,
   ) {
-    return this.rentalService.updateReturnStatus(
-      req.user.sub,
-      rentalItemId,
-      dto.status,
-    );
+    return this.rentalService.updateReturnStatus(req.user.sub, rentalItemId);
   }
 
   @UseGuards(SupabaseAuthGuard)

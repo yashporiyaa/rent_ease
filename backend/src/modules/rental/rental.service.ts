@@ -46,7 +46,9 @@ export class RentalService {
     this.parseDateOrThrow(dto.bookingAt, 'bookingAt');
 
     if (!dto.lineItems?.length) {
-      throw new BadRequestException('At least one rental line item is required');
+      throw new BadRequestException(
+        'At least one rental line item is required',
+      );
     }
 
     dto.lineItems.forEach((item, index) => {
@@ -375,11 +377,7 @@ export class RentalService {
     };
   }
 
-  async updateReturnStatus(
-    supabaseId: string,
-    rentalItemId: string,
-    status: string,
-  ) {
+  async updateReturnStatus(supabaseId: string, rentalItemId: string) {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -403,7 +401,8 @@ export class RentalService {
       throw new BadRequestException('Item is already returned');
     }
 
-    const updated = await this.rentalRepository.updateReturnStatus(rentalItemId);
+    const updated =
+      await this.rentalRepository.updateReturnStatus(rentalItemId);
 
     return {
       success: true,

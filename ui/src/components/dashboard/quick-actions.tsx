@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlusCircle, Wallet, Boxes, Tags, Ruler } from "lucide-react";
+import { Button } from "../ui/button";
 
 type QuickActionsProps = {
   onCreateRental?: () => void;
@@ -14,14 +15,14 @@ export function QuickActions({ onCreateRental }: QuickActionsProps) {
 
       <div className="flex flex-col gap-3">
         {onCreateRental ? (
-          <button
+          <Button
             type="button"
             onClick={onCreateRental}
             className="flex items-center gap-3 p-4 bg-[#17cf91] text-[#0e1b17] font-bold rounded-xl shadow hover:opacity-90 transition text-left cursor-pointer"
           >
             <PlusCircle className="h-5 w-5" />
             <span>Add New Rental</span>
-          </button>
+          </Button>
         ) : (
           <Link
             href="/protected/rentals"

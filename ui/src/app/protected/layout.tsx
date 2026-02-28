@@ -2,6 +2,7 @@
 
 import { Sidebar } from "../../components/layout/sidebar";
 import { SidebarInset, SidebarProvider, useSidebar } from "../../components/ui/sidebar";
+import { Button } from "../../components/ui/button";
 import { UserContext } from "../context/user-context";
 import { Menu } from "lucide-react";
 import Image from "next/image";
@@ -73,14 +74,16 @@ function MobileTopbar() {
 
   return (
     <div className="sticky top-0 z-40 flex items-center justify-between border-b bg-white/95 px-4 py-3 backdrop-blur md:hidden">
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon"
         onClick={toggleSidebar}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700"
+        className="h-10 w-10 rounded-md border-slate-200 bg-white text-slate-700"
         aria-label="Toggle sidebar menu"
       >
         <Menu className="h-5 w-5" />
-      </button>
+      </Button>
       <div className="flex items-center gap-2">
         <Image
           src={RentEaseLogo}

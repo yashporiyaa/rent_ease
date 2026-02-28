@@ -29,6 +29,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "../ui/sidebar";
+import { Button } from "../ui/button";
 import ImagePlaceholder from "../../assests/images/imageplaceholder.png";
 
 const groupedNavItems = [
@@ -124,8 +125,10 @@ export function Sidebar() {
               </div>
             </>
           )}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={toggleSidebar}
             className={isCollapsed
               ? "rounded-md p-1 text-slate-500 hover:bg-slate-100 cursor-pointer"
@@ -133,7 +136,7 @@ export function Sidebar() {
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
+          </Button>
         </div>
       </SidebarHeader>
 

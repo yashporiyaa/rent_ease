@@ -706,17 +706,18 @@ export default function PaymentsPage() {
                           </div>
                         ) : (
                           customerOptions.map((customer) => (
-                            <button
+                            <Button
                               key={customer.id}
                               type="button"
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50"
+                              variant="ghost"
+                              className="h-auto w-full justify-start rounded-none px-3 py-2 text-left text-sm hover:bg-slate-50"
                               onClick={() => void handleCustomerSelect(customer)}
                             >
                               <div className="font-medium text-[#0e1b17]">{customer.name}</div>
                               <div className="text-xs text-slate-500">
                                 Deposit Pending: ₹{customer.pendingTotal}
                               </div>
-                            </button>
+                            </Button>
                           ))
                         )}
                       </div>

@@ -19,16 +19,6 @@ export class PaymentService {
     const user = await this.userRepository.findById(supabaseId);
     if (!user) throw new NotFoundException('User not found');
 
-    const invoice = await this.prisma.invoice.findFirst({
-      where: {
-        id: dto.invoiceId,
-        userId: user.id,
-      },
-      include: {
-        payments: true,
-      },
-    });
-
     // Transaction: payment + invoice status update
     return this.prisma.$transaction(async (tx) => {
       const invoiceTx = await tx.invoice.findFirst({

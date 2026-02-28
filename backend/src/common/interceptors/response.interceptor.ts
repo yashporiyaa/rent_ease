@@ -13,9 +13,10 @@ type ApiSuccessResponse<T> = {
 } & Record<string, unknown>;
 
 @Injectable()
-export class ResponseInterceptor<T>
-  implements NestInterceptor<T, ApiSuccessResponse<T>>
-{
+export class ResponseInterceptor<T> implements NestInterceptor<
+  T,
+  ApiSuccessResponse<T>
+> {
   intercept(
     _context: ExecutionContext,
     next: CallHandler<T>,
@@ -30,7 +31,9 @@ export class ResponseInterceptor<T>
 
         if (responseData && 'data' in responseData) {
           const payload = responseData.data as T;
-          const { message: _message, data: _data, ...rest } = responseData;
+          const rest: Record<string, unknown> = { ...responseData };
+          delete rest.message;
+          delete rest.data;
 
           return {
             success: true,
@@ -49,7 +52,7 @@ export class ResponseInterceptor<T>
             typeof messageValue === 'string'
               ? messageValue
               : 'Request successful',
-          data: data as T,
+          data,
         };
       }),
     );

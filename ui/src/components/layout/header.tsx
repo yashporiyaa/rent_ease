@@ -3,6 +3,7 @@ import { Bell, HelpCircle, Search } from "lucide-react";
 import { useRouter } from "next/dist/client/components/navigation";
 import { useContext } from "react";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
 export function Header() {
   const { user } = useContext(UserContext);
@@ -46,8 +47,8 @@ export function Header() {
 
 function IconButton({ children }: { children: React.ReactNode }) {
   return (
-    <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+    <Button variant="ghost" size="icon" className="rounded-lg text-slate-500 hover:bg-slate-100">
       {children}
-    </button>
+    </Button>
   );
 }

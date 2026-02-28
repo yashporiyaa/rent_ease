@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -421,7 +422,7 @@ export default function SettingsPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => setEditOpen(false)}
-                className="text-3xl leading-none text-[#94a3b8 cursor-pointer"
+                className="text-3xl leading-none text-[#94a3b8] cursor-pointer"
                 aria-label="Close"
               >
                 <X />
@@ -444,7 +445,7 @@ export default function SettingsPage() {
                     getInitials(form.companyName || profileName)
                   )}
                 </div>
-                <input
+                <Input
                   id="company-logo-upload"
                   type="file"
                   accept="image/*"
@@ -471,7 +472,7 @@ export default function SettingsPage() {
                 </label>
                 <div className="flex h-14 items-center gap-3 rounded-full border border-[#dbe4ee] bg-[#f5f8fb] px-5">
                   <Building2 className="h-5 w-5 text-[#94a3b8]" />
-                  <input
+                  <Input
                     value={form.companyName}
                     onChange={(event) =>
                       setForm((prev) => ({
@@ -479,7 +480,7 @@ export default function SettingsPage() {
                         companyName: event.target.value,
                       }))
                     }
-                    className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
+                    className="h-full w-full border-0 bg-transparent px-0 text-base text-[#111827] shadow-none outline-none placeholder:text-[#94a3b8] focus-visible:ring-0 max-sm:text-sm"
                     placeholder="Company Name"
                   />
                 </div>
@@ -491,10 +492,10 @@ export default function SettingsPage() {
                 </label>
                 <div className="flex h-14 items-center gap-3 rounded-full border border-[#dbe4ee] bg-[#f5f8fb] px-5">
                   <Mail className="h-5 w-5 text-[#94a3b8]" />
-                  <input
+                  <Input
                     value={form.email}
                     disabled
-                    className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] disabled:opacity-100 max-sm:text-sm"
+                    className="h-full w-full border-0 bg-transparent px-0 text-base text-[#111827] shadow-none outline-none placeholder:text-[#94a3b8] disabled:opacity-100 focus-visible:ring-0 max-sm:text-sm"
                   />
                 </div>
               </div>
@@ -506,7 +507,7 @@ export default function SettingsPage() {
                   </label>
                   <div className="flex h-14 items-center gap-3 rounded-full border border-[#dbe4ee] bg-[#f5f8fb] px-5">
                     <Phone className="h-5 w-5 text-[#94a3b8]" />
-                    <input
+                    <Input
                       value={form.phone}
                       onChange={(event) =>
                         setForm((prev) => ({
@@ -514,7 +515,7 @@ export default function SettingsPage() {
                           phone: event.target.value,
                         }))
                       }
-                      className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
+                      className="h-full w-full border-0 bg-transparent px-0 text-base text-[#111827] shadow-none outline-none placeholder:text-[#94a3b8] focus-visible:ring-0 max-sm:text-sm"
                       placeholder="Phone Number"
                     />
                   </div>
@@ -526,7 +527,7 @@ export default function SettingsPage() {
                   </label>
                   <div className="flex h-14 items-center gap-3 rounded-full border border-[#dbe4ee] bg-[#f5f8fb] px-5">
                     <Building2 className="h-5 w-5 text-[#94a3b8]" />
-                    <input
+                    <Input
                       value={form.businessType}
                       onChange={(event) =>
                         setForm((prev) => ({
@@ -534,7 +535,7 @@ export default function SettingsPage() {
                           businessType: event.target.value,
                         }))
                       }
-                      className="w-full bg-transparent text-base text-[#111827] outline-none placeholder:text-[#94a3b8] max-sm:text-sm"
+                      className="h-full w-full border-0 bg-transparent px-0 text-base text-[#111827] shadow-none outline-none placeholder:text-[#94a3b8] focus-visible:ring-0 max-sm:text-sm"
                       placeholder="Type of Business"
                     />
                   </div>
