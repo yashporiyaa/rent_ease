@@ -129,7 +129,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h1 className="text-3xl font-black leading-tight text-[#0f172a] max-sm:text-2xl">
-              Good morning, Alex
+              Good morning
             </h1>
             <p className="mt-2 text-base text-[#64748b] max-sm:text-sm">
               Here&apos;s what&apos;s happening with your rentals today.
