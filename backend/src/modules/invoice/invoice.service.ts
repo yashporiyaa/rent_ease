@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InvoiceStatus, InvoiceTemplate } from '@prisma/client';
+import { InvoiceStatus } from '@prisma/client';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
 import {
   buildPaginationMeta,
@@ -117,10 +117,7 @@ export class InvoiceService {
     }
 
     const structured = this.buildInvoiceView(invoice, user);
-    return this.invoicePdfService.generateInvoicePdf(
-      structured,
-      user.invoiceTemplate ?? InvoiceTemplate.CLASSIC,
-    );
+    return this.invoicePdfService.generateInvoicePdf(structured);
   }
 
   private buildInvoiceView(

@@ -1,5 +1,4 @@
-import { InvoiceTemplate } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -28,7 +27,4 @@ export class UpdateProfileDto {
   @Max(100)
   taxRate?: number;
 
-  @IsOptional()
-  @IsEnum(InvoiceTemplate)
-  invoiceTemplate?: InvoiceTemplate;
 }

@@ -4,8 +4,10 @@ import { Sidebar } from "../../components/layout/sidebar";
 import { SidebarInset, SidebarProvider, useSidebar } from "../../components/ui/sidebar";
 import { UserContext } from "../context/user-context";
 import { Menu } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import RentEaseLogo from "../../assests/images/RentEase.png";
 
 export default function ProtectedLayout({
   children,
@@ -79,7 +81,17 @@ function MobileTopbar() {
       >
         <Menu className="h-5 w-5" />
       </button>
-      <p className="text-sm font-semibold text-[#0e1b17]">RentEase</p>
+      <div className="flex items-center gap-2">
+        <Image
+          src={RentEaseLogo}
+          alt="RentEase logo"
+          className="h-10 w-auto rounded-full bg-white p-1 object-contain"
+          priority
+        />
+        <span className="text-base font-bold tracking-tight text-[#0e1b17]">
+          RentEase
+        </span>
+      </div>
       <span className="w-10" aria-hidden />
     </div>
   );

@@ -21,6 +21,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { user, refreshUser } = useContext(UserContext);
   const [checking, setChecking] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (key: string, value: string) => {
     setFormData((prev) => ({
@@ -33,6 +34,7 @@ export default function SignUpPage() {
     e.preventDefault();
 
     try {
+      setIsSubmitting(true);
       await createUser(formData);
       localStorage.setItem("isLoggedIn", "true");
       toast.success("Account created successfully");
@@ -40,6 +42,8 @@ export default function SignUpPage() {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Signup failed";
       toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -184,12 +188,20 @@ export default function SignUpPage() {
             <Button
               variant="brand"
               type="submit"
-              className="mt-4 h-14 w-full rounded-full bg-[#17cf91]
+              disabled={isSubmitting}
+              className="relative mt-4 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90
-                         shadow-lg shadow-[#17cf91]/20 cursor-pointer"
+                         shadow-lg shadow-[#17cf91]/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Sign Up
+              {isSubmitting && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#0e1b17] border-t-transparent" />
+                </span>
+              )}
+              <span className={isSubmitting ? "opacity-0" : "opacity-100"}>
+                Sign Up
+              </span>
             </Button>
           </form>
 

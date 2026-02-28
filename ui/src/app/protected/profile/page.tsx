@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useContext } from "react";
-import { Building2, Phone, Percent, FileText } from "lucide-react";
+import { Building2, Phone, Percent } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { UserContext } from "../../context/user-context";
@@ -24,7 +24,6 @@ export default function ProfilePage() {
     businessType: user.businessType || "",
     businessAddress: user.businessAddress || "",
     taxRate: user.taxRate || 0,
-    invoiceTemplate: user.invoiceTemplate || "minimal",
   };
 
   const handleChange = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) => {
@@ -119,33 +118,6 @@ export default function ProfilePage() {
             handleChange("taxRate", Number(e.target.value))
           }
         />
-      </div>
-
-      {/* TEMPLATE SELECTION */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-        <div className="flex items-center gap-2">
-          <FileText className="text-[#17cf91]" />
-          <h2 className="font-bold text-lg">Invoice Template</h2>
-        </div>
-
-        <div className="flex gap-4">
-          {["MINIMAL", "CLASSIC", "MODERN"].map((template) => (
-            <button
-              key={template}
-              onClick={() =>
-                handleChange("invoiceTemplate", template)
-              }
-              className={`px-4 py-2 rounded-xl border font-medium
-              ${
-                currentForm.invoiceTemplate === template
-                  ? "bg-[#17cf91] text-white"
-                  : "bg-slate-50"
-              }`}
-            >
-              {template}
-            </button>
-          ))}
-        </div>
       </div>
 
       <Button

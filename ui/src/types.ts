@@ -554,5 +554,4 @@ export type ProfileForm = {
   businessType: string;
   businessAddress: string;
   taxRate: number;
-  invoiceTemplate: string;
 };

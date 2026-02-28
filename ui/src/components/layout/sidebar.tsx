@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -28,6 +29,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "../ui/sidebar";
+import RentEaseLogo from "../../assests/images/RentEase.png";
 
 const groupedNavItems = [
   {
@@ -105,10 +107,16 @@ export function Sidebar() {
         <div className={isCollapsed ? "flex justify-center" : "flex items-center gap-3 px-2"}>
           {!isCollapsed && (
             <>
-              <div className="bg-[#17cf91] p-2 rounded-lg text-white">🔑</div>
-              <div>
-                <p className="font-bold text-[#0e1b17]">RentEase</p>
-                <p className="text-xs text-[#17cf91]">Management Portal</p>
+              <div className="flex items-center gap-2">
+                <Image
+                  src={RentEaseLogo}
+                  alt="RentEase logo"
+                  className="h-12 w-auto rounded-full bg-white p-1 object-contain"
+                  priority
+                />
+                <span className="text-lg font-bold tracking-tight text-[#0e1b17]">
+                  RentEase
+                </span>
               </div>
             </>
           )}

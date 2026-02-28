@@ -15,6 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, refreshUser } = useContext(UserContext);
   const [checking, setChecking] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -32,6 +33,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
+      setIsSubmitting(true);
       await loginUser(formData);
       toast.success("Login successful");
       localStorage.setItem("isLoggedIn", "true");
@@ -40,6 +42,8 @@ export default function LoginPage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login failed";
       toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -171,12 +175,20 @@ export default function LoginPage() {
             <Button
               variant="brand"
               type="submit"
-              className="mt-6 h-14 w-full rounded-full bg-[#17cf91]
+              disabled={isSubmitting}
+              className="relative mt-6 h-14 w-full rounded-full bg-[#17cf91]
                          text-[#0e1b17] font-bold
                          hover:bg-[#17cf91]/90
-                         shadow-lg shadow-[#17cf91]/20 cursor-pointer"
+                         shadow-lg shadow-[#17cf91]/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Log In
+              {isSubmitting && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#0e1b17] border-t-transparent" />
+                </span>
+              )}
+              <span className={isSubmitting ? "opacity-0" : "opacity-100"}>
+                Log In
+              </span>
             </Button>
           </form>
 

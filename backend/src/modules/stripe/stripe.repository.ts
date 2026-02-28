@@ -6,12 +6,6 @@ import { SubscriptionStatus } from '@prisma/client';
 export class StripeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  // async findUserBySupabaseId(supabaseId: string) {
-  //   return this.prisma.user.findUnique({
-  //     where: { supabaseId },
-  //   });
-  // }
-
   async updateStripeCustomerId(userId: string, customerId: string) {
     return this.prisma.user.update({
       where: { id: userId },
