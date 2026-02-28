@@ -126,6 +126,18 @@ html {
   body {
     @apply bg-background text-foreground;
   }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
 
 input[type="date"],

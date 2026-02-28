@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const { user, refreshUser } = useContext(UserContext);
 
   const [form, setForm] = useState<ProfileForm | null>(null);
+  const [saving, setSaving] = useState(false);
 
   if (!user) {
     return null;
@@ -31,15 +32,30 @@ export default function ProfilePage() {
   };
 
   const saveProfile = async () => {
-    await fetch(`${API_URL}/users/profile`, {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(currentForm),
-    });
+    try {
+      setSaving(true);
 
-    await refreshUser();
-    toast.success("Profile updated successfully");
+      const response = await fetch(`${API_URL}/users/profile`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentForm),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.message || "Failed to update profile");
+      }
+
+      await refreshUser();
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update profile";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -122,9 +138,15 @@ export default function ProfilePage() {
 
       <Button
         onClick={saveProfile}
-        className="w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer"
+        disabled={saving}
+        className="relative w-full rounded-full bg-[#17cf91] text-[#0e1b17] font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
       >
-        Save Changes
+        {saving && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#0e1b17] border-t-transparent" />
+          </span>
+        )}
+        <span className={saving ? "opacity-0" : "opacity-100"}>Save Changes</span>
       </Button>
     </div>
   );

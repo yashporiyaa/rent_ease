@@ -29,7 +29,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "../ui/sidebar";
-import RentEaseLogo from "../../assests/images/RentEase.png";
+import ImagePlaceholder from "../../assests/images/imageplaceholder.png";
 
 const groupedNavItems = [
   {
@@ -75,10 +75,12 @@ const groupedNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { logout } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
   const router = useRouter();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const companyName = user?.companyName?.trim() || user?.email?.split("@")[0] || "RentEase";
+  const companyLogo = user?.companyLogo?.trim() || ImagePlaceholder;
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     dashboard: false,
     rent: false,
@@ -109,13 +111,15 @@ export function Sidebar() {
             <>
               <div className="flex items-center gap-2">
                 <Image
-                  src={RentEaseLogo}
-                  alt="RentEase logo"
-                  className="h-12 w-auto rounded-full bg-white p-1 object-contain"
+                  width={48}
+                  height={48}
+                  src={companyLogo}
+                  alt={`${companyName} logo`}
+                  className="h-12 w-12 rounded-full bg-white p-1 object-contain"
                   priority
                 />
                 <span className="text-lg font-bold tracking-tight text-[#0e1b17]">
-                  RentEase
+                  {companyName}
                 </span>
               </div>
             </>

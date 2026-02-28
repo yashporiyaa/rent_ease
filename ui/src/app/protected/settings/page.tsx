@@ -392,22 +392,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-
-              <div className="mt-8 flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
-                <Button
-                  variant="outline"
-                  className="h-12 flex-1 rounded-full border-[#d7dfe8] text-base font-bold text-[#334155] hover:bg-[#f8fafc] cursor-pointer"
-                >
-                  Update Payment
-                </Button>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  className="px-2 text-base font-bold text-[#ef4444] cursor-pointer"
-                >
-                  Cancel
-                </Button>
-              </div>
             </div>
           </div>
         </section>

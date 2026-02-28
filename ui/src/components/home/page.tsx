@@ -8,7 +8,10 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-6 py-20 grid gap-12 lg:grid-cols-2 items-center">
+      <section
+        id="home"
+        className="mx-auto max-w-7xl scroll-mt-24 px-6 py-20 grid gap-12 lg:grid-cols-2 items-center"
+      >
         <div>
           <h1 className="text-5xl font-black leading-tight text-[#0e1b17]">
             The smarter way to manage your property portfolio
@@ -48,7 +51,7 @@ export default function HomePage() {
       </section>
 
       {/* ABOUT */}
-      <section className="bg-white px-6 py-20 text-center">
+      <section id="about" className="bg-white scroll-mt-24 px-6 py-20 text-center">
         <p className="text-sm font-semibold text-[#17cf91]">ABOUT RENT-EASE</p>
         <h2 className="mt-4 text-3xl font-black text-[#0e1b17]">
           Revolutionizing Property Management
@@ -74,7 +77,7 @@ export default function HomePage() {
       </section>
 
       {/* FEATURES */}
-      <section className="bg-[#f2fdf9] px-6 py-20">
+      <section id="features" className="bg-[#f2fdf9] scroll-mt-24 px-6 py-20">
         <h2 className="text-center text-3xl font-black text-[#0e1b17]">
           Everything you need to grow
         </h2>
@@ -95,7 +98,7 @@ export default function HomePage() {
       </section>
 
       {/* PRICING */}
-      <section className="bg-white px-6 py-20">
+      <section id="pricing" className="bg-white scroll-mt-24 px-6 py-20">
         <h2 className="text-center text-3xl font-black text-[#0e1b17]">
           Transparent Pricing
         </h2>

@@ -53,9 +53,16 @@ export default function ForgotPasswordPage() {
               variant="brand"
               type="submit"
               disabled={loading}
-              className="mt-4 w-full rounded-full bg-[#17cf91] cursor-pointer"
+              className="relative mt-4 w-full rounded-full bg-[#17cf91] cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Send reset link
+              {loading && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#0e1b17] border-t-transparent" />
+                </span>
+              )}
+              <span className={loading ? "opacity-0" : "opacity-100"}>
+                Send reset link
+              </span>
             </Button>
           </form>
         ) : (
