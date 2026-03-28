@@ -28,11 +28,13 @@ const currency = new Intl.NumberFormat("en-IN", {
 });
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [upcomingReturns, setUpcomingReturns] = useState<DashboardUpcomingReturn[]>([]);
   const [recentActivity, setRecentActivity] = useState<DashboardRecentActivity[]>([]);
 
   const fetchUserDashboardData = useCallback(async () => {
+    setLoading(true);
     try {
       const [statsResult, upcomingReturnsResult, recentActivityResult] = await Promise.allSettled([
         getUserDashboardData(),
@@ -59,6 +61,8 @@ export default function DashboardPage() {
       const message =
         error instanceof Error ? error.message : "Failed to fetch dashboard data";
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -77,6 +81,14 @@ export default function DashboardPage() {
       return dayDate;
     });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-9 w-9 rounded-full border-4 border-[#17cf91] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   if (!stats) return null;
 

@@ -21,7 +21,6 @@ async function bootstrap() {
       frontendUrl,
       'https://rent1ease1.netlify.app',
       'http://localhost:3000',
-      'http://127.0.0.1:3000',
     ]),
   );
 

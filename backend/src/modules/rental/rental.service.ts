@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -53,6 +54,26 @@ export class RentalService {
     });
   }
 
+  private ensureUserCanCreateRental(user: {
+    subscriptionStatus: string;
+    trialEndsAt: Date;
+  }) {
+    if (user.subscriptionStatus === 'ACTIVE') {
+      return;
+    }
+
+    if (
+      user.subscriptionStatus === 'TRIAL' &&
+      user.trialEndsAt.getTime() > Date.now()
+    ) {
+      return;
+    }
+
+    throw new ForbiddenException(
+      'Your free trial has ended. Please activate a subscription to create rentals.',
+    );
+  }
+
   async create(supabaseId: string, dto: CreateRentalDto) {
     this.validateRentalTimeline(dto);
 
@@ -60,6 +81,7 @@ export class RentalService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    this.ensureUserCanCreateRental(user);
 
     await this.rentalRepository.assertItemsAvailable(user.id, dto);
 

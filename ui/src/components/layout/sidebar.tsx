@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Receipt,
   Boxes,
-  BarChart3,
   Settings,
   LogOut,
   FileText,
@@ -29,10 +28,6 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "../ui/sidebar";
-
-const navItems = [
-  { href: "/protected/reports", label: "Reports", icon: BarChart3 },
-];
 
 const groupedNavItems = [
   {
@@ -132,30 +127,6 @@ export function Sidebar() {
 
       <SidebarContent className={isCollapsed ? "px-2" : "px-4"}>
         <SidebarMenu className="space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname.startsWith(href);
-
-            return (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={active}
-                  tooltip={label}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                    active
-                      ? "bg-[#17cf91]/10 text-[#17cf91]"
-                      : "text-slate-600 hover:bg-slate-50"
-                  } ${isCollapsed ? "justify-center px-0" : ""}`}
-                >
-                  <Link href={href}>
-                    <Icon size={18} />
-                    {!isCollapsed && <span>{label}</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-
           {groupedNavItems.map(({ key, label, icon: Icon, children }) => {
             const isActive = children.some((child) => pathname.startsWith(child.href));
             const isOpen = Boolean(openGroups[key]);

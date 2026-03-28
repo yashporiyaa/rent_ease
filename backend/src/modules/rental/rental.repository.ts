@@ -866,35 +866,64 @@ export class RentalRepository {
   }
 
   async updateReturnStatus(rentalItemId: string) {
-    return this.prisma.rentalItem.update({
-      where: {
-        id: rentalItemId,
-      },
-      data: {
-        status: 'RETURNED',
-      },
-      include: {
-        item: {
-          select: {
-            fullName: true,
-            description: true,
-            images: true,
-            category: true,
-            categoryId: true,
-          },
+    return this.prisma.$transaction(async (tx) => {
+      const updatedItem = await tx.rentalItem.update({
+        where: {
+          id: rentalItemId,
         },
-        rental: {
-          select: {
-            bookingNo: true,
-            depositAmount: true,
-            customer: {
-              select: {
-                name: true,
+        data: {
+          status: 'RETURNED',
+        },
+        include: {
+          item: {
+            select: {
+              fullName: true,
+              description: true,
+              images: true,
+              category: true,
+              categoryId: true,
+            },
+          },
+          rental: {
+            select: {
+              id: true,
+              bookingNo: true,
+              depositAmount: true,
+              customer: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
         },
-      },
+      });
+
+      const remainingItems = await tx.rentalItem.count({
+        where: {
+          rentalId: updatedItem.rental.id,
+          status: {
+            not: 'RETURNED',
+          },
+        },
+      });
+
+      if (remainingItems === 0) {
+        await tx.rental.updateMany({
+          where: {
+            id: updatedItem.rental.id,
+            status: {
+              not: 'COMPLETED',
+            },
+          },
+          data: {
+            status: 'COMPLETED',
+            returnedAt: new Date(),
+          },
+        });
+      }
+
+      return updatedItem;
     });
   }
 }
